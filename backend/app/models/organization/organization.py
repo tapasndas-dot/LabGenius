@@ -5,6 +5,7 @@ Organization model.
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
 
 from app.database.base_entities import MasterEntity
 
@@ -15,6 +16,12 @@ class Organization(MasterEntity):
     """
 
     __tablename__ = "organizations"
+
+    business_units = relationship(
+        "BusinessUnit",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
 
     organization_code: Mapped[str] = mapped_column(
         String(20),
