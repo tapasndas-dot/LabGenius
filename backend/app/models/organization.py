@@ -6,7 +6,7 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
-from app.database.entities import MasterEntity
+from app.database.base_entities import MasterEntity
 
 
 class Organization(MasterEntity):
