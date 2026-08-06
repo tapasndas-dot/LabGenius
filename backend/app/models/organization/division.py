@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base_entities import MasterEntity
 
+from uuid import UUID
 
 class Division(MasterEntity):
     """
@@ -11,7 +12,7 @@ class Division(MasterEntity):
 
     __tablename__ = "divisions"
 
-    business_unit_id: Mapped[str] = mapped_column(
+    business_unit_id: Mapped[UUID] = mapped_column(
         ForeignKey("business_units.id"),
         nullable=False,
     )

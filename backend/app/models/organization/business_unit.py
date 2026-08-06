@@ -10,8 +10,10 @@ class BusinessUnit(MasterEntity):
     """
 
     __tablename__ = "business_units"
+    
+    from uuid import UUID
 
-    organization_id: Mapped[str] = mapped_column(
+    organization_id: Mapped[UUID] = mapped_column(
         ForeignKey("organizations.id"),
         nullable=False,
     )

@@ -1,14 +1,40 @@
 from fastapi import FastAPI
+from app.core.exception_handlers import register_exception_handlers
 
+from app.routers import organization
+from app.routers import business_unit
+from app.routers import division
 
 from app.core.config import settings
 from app.routers import database
 from app.routers import health
 from app.routers import root
 
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION
+)
+
+register_exception_handlers(app)
+
+
+app.include_router(
+    organization.router,
+    prefix="/organizations",
+    tags=["Organizations"],
+)
+
+app.include_router(
+    business_unit.router,
+    prefix="/business-units",
+    tags=["Business Units"]
+)
+
+app.include_router(
+    division.router,
+    prefix="/divisions",
+    tags=["Divisions"],
 )
 
 app.include_router(
@@ -27,3 +53,4 @@ app.include_router(
     prefix="/database",
     tags=["Database"]
 )
+
