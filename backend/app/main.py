@@ -6,6 +6,7 @@ from app.routers import business_unit
 from app.routers import division
 from app.routers import department
 from app.routers import designation
+from app.routers.user import router as user_router
 
 from app.core.config import settings
 from app.routers import database
@@ -68,3 +69,8 @@ app.include_router(
     tags=["Database"]
 )
 
+app.include_router(
+    user_router,
+    prefix="/users",
+    tags=["Users"]
+)
