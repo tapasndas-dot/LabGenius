@@ -1,3 +1,4 @@
 from .organization_service import OrganizationService
 from .business_unit_service import BusinessUnitService
 from .department_service import DepartmentService
+from .designation_service import DesignationService

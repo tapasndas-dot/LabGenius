@@ -37,3 +37,8 @@ class Department(MasterEntity):
         "Division",
         back_populates="departments",
     )
+    designations = relationship(
+    "Designation",
+    back_populates="department",
+    cascade="all, delete-orphan",
+)

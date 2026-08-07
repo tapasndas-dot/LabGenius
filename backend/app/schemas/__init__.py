@@ -8,3 +8,8 @@ from .department import (
     DepartmentUpdate,
     DepartmentResponse,
 )
+from .designation import (
+    DesignationCreate,
+    DesignationUpdate,
+    DesignationResponse,
+)

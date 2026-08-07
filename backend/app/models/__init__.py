@@ -4,6 +4,7 @@ from .organization import (
     Division,
 )
 from .organization.department import Department
+from .organization.designation import Designation
 from .user import (
     User,
     Role,

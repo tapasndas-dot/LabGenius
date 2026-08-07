@@ -5,6 +5,7 @@ from app.routers import organization
 from app.routers import business_unit
 from app.routers import division
 from app.routers import department
+from app.routers import designation
 
 from app.core.config import settings
 from app.routers import database
@@ -42,6 +43,12 @@ app.include_router(
     department.router,
     prefix="/departments",
     tags=["Departments"],
+)
+
+app.include_router(
+    designation.router,
+    prefix="/designations",
+    tags=["Designations"],
 )
 
 app.include_router(
