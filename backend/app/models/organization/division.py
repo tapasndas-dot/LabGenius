@@ -38,3 +38,8 @@ class Division(MasterEntity):
         "BusinessUnit",
         back_populates="divisions",
     )
+    departments = relationship(
+        "Department",
+        back_populates="division",
+        cascade="all, delete-orphan",
+    )

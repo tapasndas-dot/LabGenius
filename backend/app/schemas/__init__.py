@@ -3,3 +3,8 @@ from .organization import (
     OrganizationUpdate,
     OrganizationResponse,
 )
+from .department import (
+    DepartmentCreate,
+    DepartmentUpdate,
+    DepartmentResponse,
+)

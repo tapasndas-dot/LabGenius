@@ -3,7 +3,7 @@ from .organization import (
     BusinessUnit,
     Division,
 )
-
+from .organization.department import Department
 from .user import (
     User,
     Role,
