@@ -29,6 +29,12 @@ class RolePermission(MasterEntity):
         nullable=False,
     )
 
-    role = relationship("Role")
+    role = relationship(
+    "Role",
+    back_populates="role_permissions",
+    )
 
-    permission = relationship("Permission")
+    permission = relationship(
+        "Permission",
+        back_populates="role_permissions",
+    )

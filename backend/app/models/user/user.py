@@ -160,12 +160,28 @@ class User(MasterEntity):
     # Relationships
     # ==========================================================
 
-    organization = relationship("Organization")
+    organization = relationship(
+    "Organization",
+    )
 
-    business_unit = relationship("BusinessUnit")
+    business_unit = relationship(
+        "BusinessUnit",
+    )
 
-    division = relationship("Division")
+    division = relationship(
+        "Division",
+    )
 
-    department = relationship("Department")
+    department = relationship(
+        "Department",
+    )
 
-    designation = relationship("Designation")
+    designation = relationship(
+        "Designation",
+    )
+
+    user_roles = relationship(
+        "UserRole",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

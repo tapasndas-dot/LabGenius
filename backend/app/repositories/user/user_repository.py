@@ -1,6 +1,10 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.user.user import User
+from app.models.user.user_role import UserRole
+from app.models.user.role import Role
+from app.models.user.role_permission import RolePermission
+
 from app.repositories.base_repository import BaseRepository
 
 
@@ -62,4 +66,25 @@ class UserRepository(BaseRepository[User]):
             db.query(User)
             .filter(User.designation_id == designation_id)
             .all()
+        )
+
+    def get_with_roles(
+        self,
+        db: Session,
+        user_id,
+    ):
+        """
+        Load a user together with all roles and permissions.
+        """
+
+        return (
+            db.query(User)
+            .options(
+                joinedload(User.user_roles)
+                .joinedload(UserRole.role)
+                .joinedload(Role.role_permissions)
+                .joinedload(RolePermission.permission)
+            )
+            .filter(User.id == user_id)
+            .first()
         )

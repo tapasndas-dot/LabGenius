@@ -1,5 +1,6 @@
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import (Mapped, mapped_column, relationship)
+
 
 from app.database.base_entities import MasterEntity
 
@@ -26,4 +27,9 @@ class Permission(MasterEntity):
     description: Mapped[str | None] = mapped_column(
         String(500),
         nullable=True,
+    )
+    role_permissions = relationship(
+    "RolePermission",
+    back_populates="permission",
+    cascade="all, delete-orphan",
     )

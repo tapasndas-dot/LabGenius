@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.dependencies.database import get_db
+from app.auth.dependencies import require_role
 
 from app.auth.auth_service import AuthService
 from app.auth.jwt import create_access_token
@@ -54,4 +55,16 @@ def get_me(
         "username": current_user.username,
         "email": current_user.email,
         "display_name": current_user.display_name,
+    }
+@router.get(
+    "/admin-test",
+)
+def admin_test(
+    current_user: User = Depends(
+        require_role("ADMIN"),
+    ),
+):
+    return {
+        "message": "Welcome Administrator",
+        "user": current_user.username,
     }

@@ -42,7 +42,7 @@ def get_current_user(
         if user_id is None:
             raise credentials_exception
 
-        user = user_repository.get(
+        user = user_repository.get_with_roles(
             db,
             UUID(user_id),
         )
@@ -54,3 +54,33 @@ def get_current_user(
 
     except jwt.PyJWTError:
         raise credentials_exception
+def require_role(
+    role_code: str,
+    ):
+        """
+        Require the authenticated user
+        to have a specific role.
+        """
+
+        def role_checker(
+            current_user: User = Depends(
+                get_current_user,
+            ),
+        ):
+
+            for user_role in current_user.user_roles:
+
+                if (
+                    user_role.role.role_code
+                    == role_code
+                ):
+                    return current_user
+
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"Role '{role_code}' is required."
+                ),
+            )
+
+        return role_checker   

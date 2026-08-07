@@ -29,3 +29,62 @@ Accepted
 
 Date:
 2026-08-07
+
+Decision #003
+Permission Naming Convention
+
+Decision:
+Permissions will follow the naming convention:
+
+resource.action
+
+Examples:
+organization.view
+organization.create
+asset.calibrate
+coa.approve
+stability.review
+
+Reason:
+• Consistent
+• Human-readable
+• Scalable
+• Frontend-friendly
+• Industry standard
+
+Status:
+Accepted
+
+Decision #003
+
+Title:
+Permission Naming Convention
+
+Decision:
+Permissions shall follow the naming format:
+
+resource.action
+
+Examples:
+
+organization.view
+organization.create
+organization.update
+organization.delete
+
+asset.calibrate
+coa.approve
+stability.review
+
+Reason:
+• Consistent
+• Readable
+• Scalable
+• Frontend compatible
+• Enterprise RBAC standard
+
+Status:
+Accepted
+
+Date:
+2026-08-07

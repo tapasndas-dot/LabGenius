@@ -29,6 +29,12 @@ class UserRole(MasterEntity):
         nullable=False,
     )
 
-    user = relationship("User")
+    user = relationship(
+        "User",
+        back_populates="user_roles",
+    )
 
-    role = relationship("Role")
+    role = relationship(
+        "Role",
+        back_populates="user_roles",
+    )
