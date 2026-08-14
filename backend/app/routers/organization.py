@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
 from app.schemas.organization import (
     OrganizationCreate,
@@ -10,6 +11,7 @@ from app.schemas.organization import (
     OrganizationUpdate,
 )
 from app.services.organization_service import OrganizationService
+
 
 router = APIRouter()
 
@@ -22,6 +24,11 @@ service = OrganizationService()
 )
 def get_organizations(
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "organization.view",
+        ),
+    ),
 ):
     return service.get_all(db)
 
@@ -33,6 +40,11 @@ def get_organizations(
 def get_organization(
     organization_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "organization.view",
+        ),
+    ),
 ):
     return service.get(
         db,
@@ -47,6 +59,11 @@ def get_organization(
 def create_organization(
     organization: OrganizationCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "organization.create",
+        ),
+    ),
 ):
     return service.create(
         db,
@@ -62,6 +79,11 @@ def update_organization(
     organization_id: UUID,
     update: OrganizationUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "organization.update",
+        ),
+    ),
 ):
     organization = service.get(
         db,
@@ -81,6 +103,11 @@ def update_organization(
 def delete_organization(
     organization_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "organization.delete",
+        ),
+    ),
 ):
     organization = service.get(
         db,

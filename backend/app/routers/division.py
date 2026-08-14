@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
 from app.schemas.division import (
     DivisionCreate,
@@ -10,6 +11,7 @@ from app.schemas.division import (
     DivisionUpdate,
 )
 from app.services.division_service import DivisionService
+
 
 router = APIRouter()
 
@@ -22,6 +24,11 @@ service = DivisionService()
 )
 def get_divisions(
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "division.view",
+        ),
+    ),
 ):
     return service.get_all(db)
 
@@ -33,6 +40,11 @@ def get_divisions(
 def get_by_business_unit(
     business_unit_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "division.view",
+        ),
+    ),
 ):
     return service.get_by_business_unit(
         db,
@@ -47,6 +59,11 @@ def get_by_business_unit(
 def get_division(
     division_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "division.view",
+        ),
+    ),
 ):
     return service.get(
         db,
@@ -61,6 +78,11 @@ def get_division(
 def create_division(
     division: DivisionCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "division.create",
+        ),
+    ),
 ):
     return service.create(
         db,
@@ -76,6 +98,11 @@ def update_division(
     division_id: UUID,
     update: DivisionUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "division.update",
+        ),
+    ),
 ):
     division = service.get(
         db,
@@ -95,6 +122,11 @@ def update_division(
 def delete_division(
     division_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "division.delete",
+        ),
+    ),
 ):
     division = service.get(
         db,

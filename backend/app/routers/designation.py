@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
 from app.schemas.designation import (
     DesignationCreate,
@@ -10,6 +11,7 @@ from app.schemas.designation import (
     DesignationUpdate,
 )
 from app.services.designation_service import DesignationService
+
 
 router = APIRouter()
 
@@ -22,6 +24,11 @@ service = DesignationService()
 )
 def get_designations(
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "designation.view",
+        ),
+    ),
 ):
     return service.get_all(db)
 
@@ -33,6 +40,11 @@ def get_designations(
 def get_by_department(
     department_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "designation.view",
+        ),
+    ),
 ):
     return service.get_by_department(
         db,
@@ -47,6 +59,11 @@ def get_by_department(
 def get_designation(
     designation_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "designation.view",
+        ),
+    ),
 ):
     return service.get(
         db,
@@ -61,6 +78,11 @@ def get_designation(
 def create_designation(
     designation: DesignationCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "designation.create",
+        ),
+    ),
 ):
     return service.create(
         db,
@@ -76,6 +98,11 @@ def update_designation(
     designation_id: UUID,
     update: DesignationUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "designation.update",
+        ),
+    ),
 ):
     designation = service.get(
         db,
@@ -95,6 +122,11 @@ def update_designation(
 def delete_designation(
     designation_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "designation.delete",
+        ),
+    ),
 ):
     designation = service.get(
         db,

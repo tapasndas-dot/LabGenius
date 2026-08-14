@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
 from app.schemas.business_unit import (
     BusinessUnitCreate,
@@ -10,6 +11,7 @@ from app.schemas.business_unit import (
     BusinessUnitUpdate,
 )
 from app.services.business_unit_service import BusinessUnitService
+
 
 router = APIRouter()
 
@@ -22,6 +24,11 @@ service = BusinessUnitService()
 )
 def get_business_units(
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "business_unit.view",
+        ),
+    ),
 ):
     return service.get_all(db)
 
@@ -33,6 +40,11 @@ def get_business_units(
 def get_business_units_by_organization(
     organization_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "business_unit.view",
+        ),
+    ),
 ):
     return service.get_by_organization(
         db,
@@ -47,6 +59,11 @@ def get_business_units_by_organization(
 def get_business_unit(
     business_unit_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "business_unit.view",
+        ),
+    ),
 ):
     return service.get(
         db,
@@ -61,6 +78,11 @@ def get_business_unit(
 def create_business_unit(
     business_unit: BusinessUnitCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "business_unit.create",
+        ),
+    ),
 ):
     return service.create(
         db,
@@ -76,6 +98,11 @@ def update_business_unit(
     business_unit_id: UUID,
     update: BusinessUnitUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "business_unit.update",
+        ),
+    ),
 ):
     business_unit = service.get(
         db,
@@ -95,6 +122,11 @@ def update_business_unit(
 def delete_business_unit(
     business_unit_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "business_unit.delete",
+        ),
+    ),
 ):
     business_unit = service.get(
         db,

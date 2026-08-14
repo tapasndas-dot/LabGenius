@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
 from app.schemas.department import (
     DepartmentCreate,
@@ -10,6 +11,7 @@ from app.schemas.department import (
     DepartmentUpdate,
 )
 from app.services.department_service import DepartmentService
+
 
 router = APIRouter()
 
@@ -22,6 +24,11 @@ service = DepartmentService()
 )
 def get_departments(
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "department.view",
+        ),
+    ),
 ):
     return service.get_all(db)
 
@@ -33,6 +40,11 @@ def get_departments(
 def get_departments_by_division(
     division_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "department.view",
+        ),
+    ),
 ):
     return service.get_by_division(
         db,
@@ -47,6 +59,11 @@ def get_departments_by_division(
 def get_department(
     department_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "department.view",
+        ),
+    ),
 ):
     return service.get(
         db,
@@ -61,6 +78,11 @@ def get_department(
 def create_department(
     department: DepartmentCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "department.create",
+        ),
+    ),
 ):
     return service.create(
         db,
@@ -76,6 +98,11 @@ def update_department(
     department_id: UUID,
     update: DepartmentUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "department.update",
+        ),
+    ),
 ):
     department = service.get(
         db,
@@ -95,6 +122,11 @@ def update_department(
 def delete_department(
     department_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "department.delete",
+        ),
+    ),
 ):
     department = service.get(
         db,

@@ -3,14 +3,13 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
-
 from app.schemas.user.user import (
     UserCreate,
-    UserUpdate,
     UserResponse,
+    UserUpdate,
 )
-
 from app.services.user.user_service import UserService
 
 
@@ -25,6 +24,11 @@ service = UserService()
 )
 def get_users(
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "user.view",
+        ),
+    ),
 ):
     return service.get_all(db)
 
@@ -36,6 +40,11 @@ def get_users(
 def get_user(
     user_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "user.view",
+        ),
+    ),
 ):
     return service.get(
         db,
@@ -50,6 +59,11 @@ def get_user(
 def create_user(
     user: UserCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "user.create",
+        ),
+    ),
 ):
     return service.create(
         db,
@@ -65,6 +79,11 @@ def update_user(
     user_id: UUID,
     update: UserUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "user.update",
+        ),
+    ),
 ):
     db_object = service.get(
         db,
@@ -84,6 +103,11 @@ def update_user(
 def delete_user(
     user_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            "user.delete",
+        ),
+    ),
 ):
     db_object = service.get(
         db,
