@@ -103,8 +103,8 @@ def require_permission(
 ):
     """
     Require the authenticated user to have
-    a specific active permission through an
-    active role and active role-permission mapping.
+    a specific active permission through
+    an active role and active role-permission mapping.
     """
 
     def permission_checker(

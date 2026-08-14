@@ -16,8 +16,20 @@
   - Role-permission assignments
   - Permissions
 - Established the `<module>.<action>` permission naming convention.
-- Seeded the initial 24 application permissions.
-- Seeded the ADMIN role with the complete initial permission set.
+- Seeded the initial 24 business permissions.
+- Added `permission.view` and `permission.update` for security administration.
+- Expanded the application permission catalog to 26 permissions.
+- Seeded the ADMIN role with the complete 26-permission set.
+- Implemented Permission Administration API:
+  - `GET /permissions/`
+  - `GET /permissions/active`
+  - `GET /permissions/{permission_id}`
+  - `PUT /permissions/{permission_id}/status`
+- Protected Permission Administration APIs using explicit `permission.view` and `permission.update` permissions.
+- Enforced active-state authorization for permissions.
+- Validated that inactive permissions cannot grant authorization.
+- Validated restricted-user authentication and permission denial.
+- Confirmed `403 Forbidden` for users without `permission.view`.
 - Protected Organization APIs with permission-based authorization.
 - Protected Business Unit APIs with permission-based authorization.
 - Protected Division APIs with permission-based authorization.
@@ -74,3 +86,15 @@
 - Confirmed final foundation API regression tests.
 
 ---
+
+### Sprint 11.1 — Permission Administration
+
+- Permission catalog expanded to 26 permissions.
+- Permission administration repository implemented.
+- Permission administration service implemented.
+- Permission administration router implemented.
+- Permission status management implemented.
+- Active permission filtering implemented.
+- Permission administration authorization validated.
+- Restricted-user negative authorization test completed.
+- Permission active-state enforcement validated.

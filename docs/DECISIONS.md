@@ -206,3 +206,66 @@ The initial module set includes:
 ### Consequences
 
 Permission names remain predictable and scalable as new modules are introduced.
+
+---
+
+## ADR-015 — Controlled Permission Administration
+
+**Status:** Accepted
+
+**Date:** 2026-08-15
+
+### Context
+
+The LabGenius platform requires a controlled mechanism for viewing and managing the application permission catalog.
+
+Permissions are security configuration and should not be treated as ordinary business data.
+
+The initial permission catalog contained 24 business permissions.
+
+Permission administration also requires authorization of its own APIs.
+
+### Decision
+
+LabGenius will expose a controlled Permission Administration API.
+
+The current endpoints are:
+
+    GET /permissions/
+    GET /permissions/active
+    GET /permissions/{permission_id}
+    PUT /permissions/{permission_id}/status
+
+Permission administration is protected by two explicit permissions:
+
+    permission.view
+    permission.update
+
+The permission catalog therefore contains 26 permissions.
+
+The API does not currently support arbitrary creation or deletion of permission definitions.
+
+Permissions may instead be activated or deactivated.
+
+### Authorization Rule
+
+An inactive permission cannot grant authorization.
+
+Authorization must verify active state across:
+
+    User
+    UserRole
+    Role
+    RolePermission
+    Permission
+
+An inactive element in this chain prevents access.
+
+### Consequences
+
+- Permission configuration remains controlled.
+- Security administration follows the same permission-based authorization model as business APIs.
+- Permissions can be disabled without deleting configuration records.
+- ADMIN access remains permission-driven rather than hard-coded.
+- The permission catalog can evolve without introducing arbitrary runtime permission creation.
+- Future security administration capabilities can be added under explicit permissions.

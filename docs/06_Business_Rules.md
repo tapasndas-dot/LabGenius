@@ -553,3 +553,164 @@ The following rules are intentionally deferred to later modules:
 - business transaction authorization.
 
 These rules should be introduced when the corresponding functional modules are implemented.
+
+---
+
+## 21. Permission Administration Rules
+
+The permission catalog is controlled application security configuration.
+
+### 21.1 Permission Catalog
+
+The application maintains a controlled catalog of permissions.
+
+The current catalog contains:
+
+    26 permissions
+
+The original 24 business permissions cover:
+
+    organization
+    business_unit
+    division
+    department
+    designation
+    user
+
+The security administration permissions are:
+
+    permission.view
+    permission.update
+
+### 21.2 Permission Naming
+
+Permission codes follow:
+
+    <module>.<action>
+
+The standard actions currently include:
+
+    view
+    create
+    update
+    delete
+
+Security administration permissions use the same naming convention.
+
+### 21.3 Permission Administration
+
+The permission administration API supports:
+
+    View permissions
+    View active permissions
+    View an individual permission
+    Activate or deactivate a permission
+
+The application does not currently support arbitrary permission creation or deletion through the API.
+
+### 21.4 Active Permission Rule
+
+An inactive permission must not grant authorization.
+
+Authorization must therefore verify:
+
+    User is active
+    User-role assignment is active
+    Role is active
+    Role-permission assignment is active
+    Permission is active
+
+If any required element is inactive, access must be denied.
+
+### 21.5 Least-Privilege Rule
+
+Users must receive permissions through role assignments.
+
+A user without the required permission must receive:
+
+    403 Forbidden
+
+Authentication alone does not grant access to protected business or security-administration APIs.
+
+### 21.6 ADMIN Rule
+
+The ADMIN role does not receive a hard-coded application bypass.
+
+ADMIN receives broad access through explicit permission assignments.
+
+The current ADMIN role is mapped to all 26 application permissions.
+
+### 21.7 Permission Administration Security
+
+The following permissions control the permission administration API:
+
+    permission.view
+    permission.update
+
+A user without `permission.view` must not be able to retrieve the permission catalog.
+
+A user without `permission.update` must not be able to change permission active state.
+
+---
+
+## 22. Permission Administration Validation
+
+Permission administration has been validated through API and authorization testing.
+
+### Administrative validation
+
+The ADMIN user successfully:
+
+    authenticated through JWT
+    retrieved the permission catalog
+    retrieved active permissions
+    retrieved an individual permission
+    deactivated a permission
+    reactivated the permission
+
+### Inactive permission validation
+
+An inactive permission was tested against a protected API.
+
+The authorization dependency correctly returned:
+
+    403 Forbidden
+
+The permission was subsequently reactivated.
+
+### Restricted-user validation
+
+A dedicated restricted test user was assigned a role with no permissions.
+
+The user successfully authenticated but received:
+
+    403 Forbidden
+
+when attempting to access:
+
+    GET /permissions/
+
+This confirms that authentication does not imply authorization.
+
+---
+
+## 23. Future Business Rules
+
+The following rules are intentionally deferred to later modules:
+
+- organization-level data isolation;
+- tenant-level access enforcement;
+- department-specific access;
+- role-specific workflow restrictions;
+- approval authority;
+- segregation of duties;
+- audit trail requirements;
+- login attempt limits;
+- password expiration;
+- password reset;
+- MFA;
+- business transaction authorization;
+- role and permission administration workflows;
+- security configuration audit history.
+
+These rules should be introduced when the corresponding functional modules are implemented.

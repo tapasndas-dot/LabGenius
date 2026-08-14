@@ -710,9 +710,105 @@ These should be implemented as separate controlled enhancements rather than comp
 
 ---
 
+## 24A. Permission Administration
+
+LabGenius provides a controlled permission administration API.
+
+The current permission administration endpoints are:
+
+    GET /permissions/
+    GET /permissions/active
+    GET /permissions/{permission_id}
+    PUT /permissions/{permission_id}/status
+
+Permission administration is itself protected by explicit permissions:
+
+    permission.view
+    permission.update
+
+The application does not currently allow arbitrary creation or deletion of permission definitions through the API.
+
+The permission catalog is therefore treated as controlled application security configuration.
+
+### Permission Catalog
+
+The initial permission catalog contains 24 business permissions covering:
+
+    organization
+    business_unit
+    division
+    department
+    designation
+    user
+
+Each module follows the standard:
+
+    <module>.<action>
+
+naming convention.
+
+Two security-administration permissions were subsequently added:
+
+    permission.view
+    permission.update
+
+The current catalog therefore contains:
+
+    26 permissions
+
+The ADMIN role receives all 26 permissions explicitly.
+
+### Permission Active-State Enforcement
+
+An inactive permission cannot grant authorization.
+
+Authorization evaluates active state at every relevant level:
+
+    User
+        ->
+    UserRole
+        ->
+    Role
+        ->
+    RolePermission
+        ->
+    Permission
+
+An inactive element in this chain prevents authorization.
+
+This allows permissions to be disabled without deleting their definitions or historical relationships.
+
+### Permission Administration Security
+
+Permission administration is protected through the same permission-based authorization mechanism used by the rest of the application.
+
+A user with:
+
+    permission.view
+
+may view the permission catalog.
+
+A user with:
+
+    permission.update
+
+may change the active state of a permission.
+
+A restricted user without:
+
+    permission.view
+
+receives:
+
+    403 Forbidden
+
+when attempting to access the permission catalog.
+
+This behavior was validated using a dedicated restricted test role.
+
 ## 25. Current Security Status
 
-Authentication and foundational RBAC are implemented and validated.
+Authentication, foundational RBAC, permission-based authorization, and permission administration are implemented and validated.
 
 Current status:
 
@@ -722,9 +818,11 @@ Current status:
     Role Authorization              COMPLETE
     Permission Authorization        COMPLETE
     Active-State Authorization      COMPLETE
-    24 Initial Permissions          COMPLETE
+    26 Application Permissions      COMPLETE
     ADMIN Role                      COMPLETE
     Foundation API Protection       COMPLETE
+    Permission Administration       COMPLETE
     Restricted Role Validation      COMPLETE
+    Negative Authorization Testing  COMPLETE
 
 The LabGenius identity and authorization foundation is ready for the next development phase.

@@ -296,43 +296,125 @@ Example:
 
 Build application-level management of roles and permissions rather than relying on direct database administration.
 
+# Sprint 11.1 — Permission Administration
+
+## Status
+
+    COMPLETE
+
+## Completed Work
+
+### Permission Catalog
+
+- Expanded permission catalog from 24 to 26 permissions.
+- Added `permission.view`.
+- Added `permission.update`.
+- Updated ADMIN mappings to include all 26 permissions.
+
+### Permission Administration API
+
+Implemented:
+
+    GET /permissions/
+    GET /permissions/active
+    GET /permissions/{permission_id}
+    PUT /permissions/{permission_id}/status
+
+### Authorization
+
+- Permission administration APIs are protected by explicit permissions.
+- Active-state enforcement was extended to permissions.
+- Inactive permissions cannot grant authorization.
+- Active-state enforcement applies across User, UserRole, Role, RolePermission, and Permission.
+
+### Validation
+
+- ADMIN permission access validated.
+- Permission status update validated.
+- Inactive permission authorization rejection validated.
+- Restricted user authentication validated.
+- Restricted user permission denial validated with HTTP 403.
+
+### Architecture
+
+Implemented layers:
+
+    PermissionRepository
+        ↓
+    PermissionService
+        ↓
+    PermissionRouter
+        ↓
+    Permission Administration API
+
+## Sprint 11.1 Exit Criteria
+
+    Permission catalog available             COMPLETE
+    Permission administration API            COMPLETE
+    Permission active-state control          COMPLETE
+    Authorization enforcement                COMPLETE
+    Restricted-user test                     COMPLETE
+    Regression testing                       COMPLETE
+    Documentation                            COMPLETE
+    Git commit                                PENDING
+    Git tag v0.10.0                           PENDING
+
+---
+
+## Sprint 11.2 — Role Administration
+
+### Status
+
+    PLANNED
+
 ### Planned Work
-
-#### 11.1 — Permission APIs
-
-- Permission repository
-- Permission service
-- Permission response schemas
-- Permission list API
-- Permission detail API
-- Permission filtering
-- Permission active-state management
-
-#### 11.2 — Role APIs
 
 - Role repository
 - Role service
 - Role schemas
-- Role CRUD APIs
+- Role list API
+- Role detail API
+- Role creation
+- Role update
+- Role activation/deactivation
 - Role validation
-- Role active-state management
+- Role administration authorization
 
-#### 11.3 — Role-Permission Management
+---
 
-- Assign permission to role
-- Remove permission from role
-- List role permissions
-- Validate duplicate mappings
-- Validate inactive permissions
-- Role permission administration
+## Sprint 11.3 — Role-Permission Management
 
-#### 11.4 — User-Role Management
+### Status
 
-- Assign role to user
-- Remove role from user
-- List user roles
-- Validate duplicate assignments
-- Active/inactive assignment management
+    PLANNED
+
+### Planned Work
+
+- Role-permission assignment API
+- Role-permission removal API
+- Permission assignment validation
+- Active-state validation
+- Duplicate assignment prevention
+- Role permission summary
+- Permission assignment authorization
+
+---
+
+## Sprint 11.4 — User-Role Management
+
+### Status
+
+    PLANNED
+
+### Planned Work
+
+- User-role assignment API
+- User-role removal API
+- Active-state validation
+- Role assignment validation
+- Duplicate assignment prevention
+- User role summary
+- Role assignment authorization
 
 ---
 
@@ -432,17 +514,46 @@ The following capabilities remain future enhancements:
 
 # Release Milestones
 
-Current release:
+Completed releases:
+
+    v0.7.0
+    OAuth2 JWT Authentication
 
     v0.8.0
+    Role-Based Access Control
+
+    v0.9.0
+    Permission-Based RBAC Foundation
+
+Current completed milestone:
+
+    Sprint 11.1
+    Permission Administration
 
 Next release:
 
-    v0.9.0
+    v0.10.0
 
-Planned release focus:
+Release focus:
 
-    Permission-Based RBAC & Foundation API Security
+    Permission Administration API
+
+Next development milestone:
+
+    Sprint 11.2
+    Role Administration
+
+Completed Sprint 11.1 capabilities:
+
+    Permission catalog
+    Permission view API
+    Active permission API
+    Individual permission retrieval
+    Permission active-state management
+    permission.view
+    permission.update
+    Active-state authorization enforcement
+    Restricted-user authorization validation
 
 Future releases will be tagged according to completed development milestones.
 

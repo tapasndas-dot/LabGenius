@@ -159,6 +159,16 @@ PERMISSION_CATALOG = [
         "permission_name": "Delete User",
         "description": "Delete a user.",
     },
+        {
+        "permission_code": "permission.view",
+        "permission_name": "View Permissions",
+        "description": "View application permission definitions.",
+    },
+    {
+        "permission_code": "permission.update",
+        "permission_name": "Update Permissions",
+        "description": "Activate or deactivate application permissions.",
+    },
 ]
 
 
