@@ -363,22 +363,91 @@ Implemented layers:
 
 ## Sprint 11.2 — Role Administration
 
-### Status
+# Sprint 11.2 — Role Administration
 
-    PLANNED
+## Status
 
-### Planned Work
+    COMPLETE
 
-- Role repository
-- Role service
-- Role schemas
-- Role list API
-- Role detail API
-- Role creation
-- Role update
-- Role activation/deactivation
-- Role validation
-- Role administration authorization
+## Completed Work
+
+### Role Repository
+
+Implemented:
+
+- Role lookup by ID.
+- Role lookup by role code.
+- Active role retrieval.
+- Ordered role catalog retrieval.
+- Role retrieval for administration.
+
+### Role Schemas
+
+Implemented:
+
+- Role response schema.
+- Role creation schema.
+- Role update schema.
+- Role active-status update schema.
+
+### Role Administration API
+
+Implemented:
+
+    GET /roles/
+    GET /roles/active
+    GET /roles/{role_id}
+    POST /roles/
+    PUT /roles/{role_id}
+    PUT /roles/{role_id}/status
+
+### Authorization
+
+Role administration is protected through:
+
+    role.view
+    role.create
+    role.update
+
+The role.delete permission is present in the permission catalog but role deletion remains deferred.
+
+### Validation
+
+Validated:
+
+- ADMIN can view roles.
+- ADMIN can create roles.
+- Duplicate role codes are rejected with HTTP 409.
+- ADMIN can update roles.
+- ADMIN can activate/deactivate roles.
+- Inactive roles are excluded from the active-role catalog.
+- Authenticated users without role administration permission receive HTTP 403.
+- Users associated with inactive roles cannot obtain role administration authorization.
+
+### Test Roles
+
+Retained:
+
+    ADMIN
+    TEST_ROLE
+    TEST_VIEWER
+
+TEST_VIEWER remains inactive for future authorization testing.
+
+---
+
+## Sprint 11.3 — Role ↔ Permission Administration
+
+Next:
+
+- Role-permission assignment API.
+- View permissions assigned to a role.
+- Assign permission to role.
+- Remove permission from role.
+- Prevent duplicate role-permission assignments.
+- Enforce active role and active permission states.
+- Validate ADMIN role permissions.
+- Validate restricted-role behavior.
 
 ---
 

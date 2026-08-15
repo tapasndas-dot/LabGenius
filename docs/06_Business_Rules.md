@@ -714,3 +714,64 @@ The following rules are intentionally deferred to later modules:
 - security configuration audit history.
 
 These rules should be introduced when the corresponding functional modules are implemented.
+
+---
+
+## 22. Role Administration Rules
+
+### 22.1 Role Catalog
+
+The application maintains a controlled catalog of security roles.
+
+Each role contains:
+
+    role_code
+    role_name
+    description
+    active status
+
+### 22.2 Role Code Uniqueness
+
+Role codes must be unique.
+
+Attempting to create a role using an existing role code must return:
+
+    HTTP 409 Conflict
+
+### 22.3 Role Code Stability
+
+Role codes cannot be changed through the normal role update operation.
+
+The role name and description may be updated without changing the role code.
+
+### 22.4 Role Active State
+
+Roles may be activated or deactivated through the dedicated status operation.
+
+An inactive role must not grant permissions.
+
+### 22.5 Role Administration Authorization
+
+Role administration operations require the appropriate permission:
+
+    role.view
+    role.create
+    role.update
+
+The `role.delete` permission is defined in the permission catalog but role deletion is not currently exposed through the API.
+
+### 22.6 Role Hierarchy
+
+Roles do not currently form a hierarchy.
+
+A role receives authorization through its associated permissions.
+
+Role-to-permission assignment is managed separately from role administration.
+
+### 22.7 Test Role Policy
+
+TEST_ROLE and TEST_VIEWER are controlled development/test roles.
+
+TEST_VIEWER is intentionally retained as an inactive role for authorization testing.
+
+These test roles must not be treated as production business roles.

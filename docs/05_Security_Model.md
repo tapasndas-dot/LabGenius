@@ -826,3 +826,73 @@ Current status:
     Negative Authorization Testing  COMPLETE
 
 The LabGenius identity and authorization foundation is ready for the next development phase.
+
+---
+
+## 24B. Role Administration
+
+LabGenius provides controlled administration of security roles.
+
+The current role administration endpoints are:
+
+    GET /roles/
+    GET /roles/active
+    GET /roles/{role_id}
+    POST /roles/
+    PUT /roles/{role_id}
+    PUT /roles/{role_id}/status
+
+Role administration is protected through explicit permissions.
+
+The required permissions are:
+
+    role.view
+    role.create
+    role.update
+    role.delete
+
+The current API implements role viewing, creation, update, and active-state management.
+
+Role deletion is intentionally not exposed through the current API and remains a controlled/deferred operation.
+
+### Active Role Enforcement
+
+Only active roles may participate in authorization.
+
+An authenticated user with an inactive role may successfully authenticate if the user account itself is active, but the inactive role must not grant role-based permissions.
+
+Role administration therefore follows:
+
+    Active User
+        +
+    Active UserRole
+        +
+    Active Role
+        +
+    Required Permission
+        =
+    Authorized Request
+
+If any required authorization condition is not satisfied, the API returns HTTP 403 Forbidden.
+
+### Role Code Stability
+
+Role codes are security identifiers and are not editable through the normal role update API.
+
+The role code is established when the role is created and remains stable during ordinary role administration.
+
+### Role Administration Validation
+
+Role creation prevents duplicate role codes and returns HTTP 409 Conflict when a duplicate role code is submitted.
+
+Role active-state changes are performed through the dedicated status endpoint.
+
+### Current Test Roles
+
+The development/test environment contains controlled roles used for authorization validation:
+
+    ADMIN
+    TEST_ROLE
+    TEST_VIEWER
+
+TEST_VIEWER is retained as an inactive role for restricted-access testing.

@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [v0.11.0] - Sprint 11.2
+
+### Added
+
+- Role administration repository.
+- Role administration service.
+- Role administration schemas.
+- Role administration API.
+- Role listing and active-role filtering.
+- Role creation and update.
+- Role active/inactive management.
+- Role administration permissions.
+- Duplicate role-code validation.
+
+### Security
+
+- Role administration protected by explicit permissions.
+- Inactive roles cannot grant authorization.
+- Restricted-user authorization validated with HTTP 403.
+
+### Testing
+
+- ADMIN role administration validated.
+- Duplicate role creation validated.
+- Role activation/deactivation validated.
+- Restricted-user authorization validated.
+
 ### Security / RBAC
 
 - Completed foundational JWT authentication.

@@ -169,6 +169,26 @@ PERMISSION_CATALOG = [
         "permission_name": "Update Permissions",
         "description": "Activate or deactivate application permissions.",
     },
+    {
+        "permission_code": "role.view",
+        "permission_name": "View Roles",
+        "description": "Allows viewing security roles.",
+    },
+    {
+        "permission_code": "role.create",
+        "permission_name": "Create Roles",
+        "description": "Allows creating security roles.",
+    },
+    {
+        "permission_code": "role.update",
+        "permission_name": "Update Roles",
+        "description": "Allows updating and activating or deactivating security roles.",
+    },
+    {
+        "permission_code": "role.delete",
+        "permission_name": "Delete Roles",
+        "description": "Allows deleting security roles.",
+    },
 ]
 
 

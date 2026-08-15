@@ -7,6 +7,7 @@ from app.routers import business_unit
 from app.routers import database
 from app.routers import department
 from app.routers import designation
+from app.routers import role
 from app.routers import division
 from app.routers import health
 from app.routers import organization
@@ -59,6 +60,11 @@ app.include_router(
     tags=["Designations"],
 )
 
+app.include_router(
+    role.router,
+    prefix="/roles",
+    tags=["Roles"],
+)
 
 app.include_router(
     permission.router,

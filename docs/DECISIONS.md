@@ -269,3 +269,41 @@ An inactive element in this chain prevents access.
 - ADMIN access remains permission-driven rather than hard-coded.
 - The permission catalog can evolve without introducing arbitrary runtime permission creation.
 - Future security administration capabilities can be added under explicit permissions.
+
+---
+
+## Decision: Controlled Role Administration
+
+### Decision
+
+LabGenius will provide application-level administration of security roles rather than relying on direct database administration.
+
+### Rationale
+
+Application-level administration provides:
+
+- controlled validation;
+- consistent authorization;
+- auditability;
+- stable role identifiers;
+- separation between security configuration and database administration.
+
+### Role Code Policy
+
+Role codes are treated as stable security identifiers and cannot be modified through normal role updates.
+
+### Role Deletion Policy
+
+Role deletion is intentionally deferred.
+
+Roles may instead be deactivated so that historical relationships and security configuration are preserved.
+
+### Active-State Policy
+
+Only active roles may participate in authorization.
+
+An inactive role must not grant permissions even when the associated user account and UserRole relationship remain active.
+
+### Consequence
+
+Role administration is implemented as a controlled security-management capability and remains separate from business-domain authorization.
