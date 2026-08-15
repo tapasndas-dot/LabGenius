@@ -896,3 +896,74 @@ The development/test environment contains controlled roles used for authorizatio
     TEST_VIEWER
 
 TEST_VIEWER is retained as an inactive role for restricted-access testing.
+
+---
+
+## 24C. Role-Permission Administration
+
+LabGenius provides controlled administration of the relationship between security roles and application permissions.
+
+The current role-permission endpoints are:
+
+    GET /roles/{role_id}/permissions
+    POST /roles/{role_id}/permissions
+    DELETE /roles/{role_id}/permissions/{permission_id}
+
+### Role-Permission Authorization
+
+Role-permission administration requires:
+
+    role.view
+    role.update
+
+Viewing the permissions assigned to a role requires `role.view`.
+
+Assigning or removing a permission from a role requires `role.update`.
+
+### Assignment Rules
+
+A permission may be assigned to a role only when:
+
+    the role exists;
+    the role is active;
+    the permission exists;
+    the permission is active.
+
+Duplicate role-permission assignments are rejected with HTTP 409 Conflict.
+
+### Active-State Enforcement
+
+Inactive roles cannot receive new permission assignments.
+
+Inactive permissions cannot be assigned to roles.
+
+An inactive permission must not grant authorization even if a historical RolePermission record exists.
+
+### Permission-Driven Authorization
+
+Authorization is evaluated through the following relationship:
+
+    User
+        ↓
+    UserRole
+        ↓
+    Role
+        ↓
+    RolePermission
+        ↓
+    Permission
+
+A protected operation is authorized only when the authenticated user's active role provides the required active permission.
+
+### Validation
+
+The Role-Permission implementation has been validated for:
+
+- permission listing by role;
+- permission assignment;
+- duplicate assignment prevention;
+- permission removal;
+- permission-based authorization;
+- unauthorized operation rejection with HTTP 403 Forbidden.
+
+The authorization model therefore separates authentication, role membership, permission assignment, and endpoint authorization.

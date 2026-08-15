@@ -775,3 +775,73 @@ TEST_ROLE and TEST_VIEWER are controlled development/test roles.
 TEST_VIEWER is intentionally retained as an inactive role for authorization testing.
 
 These test roles must not be treated as production business roles.
+
+---
+
+## 23. Role-Permission Administration Rules
+
+### 23.1 Role-Permission Relationship
+
+A role may have multiple permissions.
+
+A permission may be assigned to multiple roles.
+
+The relationship is maintained through the `role_permissions` entity.
+
+### 23.2 Assignment Uniqueness
+
+A Role-Permission combination must be unique.
+
+The application prevents duplicate assignments and returns:
+
+    HTTP 409 Conflict
+
+### 23.3 Active Role Requirement
+
+Permissions cannot be newly assigned to an inactive role.
+
+### 23.4 Active Permission Requirement
+
+Inactive permissions cannot be assigned to a role.
+
+Inactive permissions must not grant authorization.
+
+### 23.5 Permission Removal
+
+An existing Role-Permission assignment may be removed through the controlled administration API.
+
+Attempting to remove an assignment that does not exist returns:
+
+    HTTP 404 Not Found
+
+### 23.6 Authorization Behavior
+
+A user's effective authorization is determined by the permissions associated with the user's active roles.
+
+For example:
+
+    TEST_ROLE
+        ↓
+    organization.view
+        ↓
+    GET /organizations/
+        ↓
+    Authorized
+
+If the same role does not contain:
+
+    organization.create
+
+then:
+
+    POST /organizations/
+        ↓
+    HTTP 403 Forbidden
+
+### 23.7 Separation of Responsibilities
+
+Role administration and User-Role administration remain separate concerns.
+
+Role-Permission administration controls which permissions a role provides.
+
+User-Role administration controls which roles are assigned to users and will be implemented as a separate security capability.

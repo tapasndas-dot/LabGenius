@@ -436,36 +436,109 @@ TEST_VIEWER remains inactive for future authorization testing.
 
 ---
 
-## Sprint 11.3 — Role ↔ Permission Administration
+# Sprint 11.3 — Role ↔ Permission Administration
 
-Next:
+## Status
 
-- Role-permission assignment API.
-- View permissions assigned to a role.
-- Assign permission to role.
-- Remove permission from role.
-- Prevent duplicate role-permission assignments.
-- Enforce active role and active permission states.
-- Validate ADMIN role permissions.
-- Validate restricted-role behavior.
+    COMPLETE
+
+## Completed Work
+
+### Role-Permission Repository
+
+Implemented:
+
+- Role-permission lookup.
+- Permission assignments by role.
+- Permission assignments by permission.
+- Role-permission removal.
+- Duplicate assignment detection.
+
+### Role-Permission Schemas
+
+Implemented:
+
+- Role-permission assignment request.
+- Role-permission response.
+
+### Role-Permission Service
+
+Implemented:
+
+- Role existence validation.
+- Permission existence validation.
+- Active role validation.
+- Active permission validation.
+- Duplicate assignment protection.
+- Assignment creation.
+- Assignment removal.
+
+### Role-Permission API
+
+Implemented:
+
+    GET /roles/{role_id}/permissions
+    POST /roles/{role_id}/permissions
+    DELETE /roles/{role_id}/permissions/{permission_id}
+
+### Authorization
+
+Implemented:
+
+    role.view
+    role.update
+
+Role-permission administration is protected through the existing permission-based authorization engine.
+
+### Validation
+
+Validated:
+
+- ADMIN can view role permissions.
+- ADMIN can assign permissions.
+- Duplicate assignments return HTTP 409.
+- Assigned permissions are persisted.
+- Assigned permissions affect endpoint authorization.
+- Unauthorized operations return HTTP 403.
+- Permissions can be removed.
+- Removed permissions no longer provide authorization.
+- Inactive roles and permissions are prevented from participating in new assignments.
+
+### End-to-End Authorization Validation
+
+Validated the complete chain:
+
+    User
+        ↓
+    UserRole
+        ↓
+    Role
+        ↓
+    RolePermission
+        ↓
+    Permission
+        ↓
+    Protected API
+
+A controlled TEST_ROLE assignment of `organization.view` successfully allowed organization viewing while an operation requiring `organization.create` remained unauthorized.
 
 ---
 
-## Sprint 11.3 — Role-Permission Management
+# Sprint 11.4 — User ↔ Role Administration
 
-### Status
+Next:
 
-    PLANNED
-
-### Planned Work
-
-- Role-permission assignment API
-- Role-permission removal API
-- Permission assignment validation
-- Active-state validation
-- Duplicate assignment prevention
-- Role permission summary
-- Permission assignment authorization
+- User-role repository.
+- User-role service.
+- User-role schemas.
+- User-role assignment API.
+- View roles assigned to a user.
+- Assign role to user.
+- Remove role from user.
+- Prevent duplicate user-role assignments.
+- Enforce active user, active role, and active UserRole states.
+- Validate effective permissions after role assignment.
+- Validate restricted-user behavior.
 
 ---
 

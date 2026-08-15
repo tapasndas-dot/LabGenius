@@ -307,3 +307,55 @@ An inactive role must not grant permissions even when the associated user accoun
 ### Consequence
 
 Role administration is implemented as a controlled security-management capability and remains separate from business-domain authorization.
+---
+
+## Decision: Role-Permission Administration
+
+### Decision
+
+LabGenius will manage the relationship between roles and permissions through controlled application-level APIs.
+
+### Rationale
+
+The application must be able to determine and administer effective authorization without requiring direct database manipulation.
+
+Application-level management provides:
+
+- validation;
+- authorization;
+- duplicate protection;
+- active-state enforcement;
+- consistent API behavior.
+
+### Active-State Policy
+
+Only active roles and active permissions may participate in new Role-Permission assignments.
+
+Historical assignments remain represented by the relationship model but inactive security entities must not grant authorization.
+
+### Authorization Policy
+
+Role-Permission administration is itself protected through permissions:
+
+    role.view
+    role.update
+
+This maintains a consistent permission-based security model.
+
+### User-Role Separation
+
+Role-Permission management is intentionally separated from User-Role management.
+
+Role-Permission answers:
+
+    What can a role do?
+
+User-Role management answers:
+
+    Which roles does a user have?
+
+These capabilities will be implemented independently.
+
+### Consequence
+
+The LabGenius security foundation now supports effective permission-based authorization from the authenticated user through role membership and permission assignment to protected API operations.

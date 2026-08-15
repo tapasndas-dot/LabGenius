@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## [v0.12.0] - Sprint 11.3
+
+### Added
+
+- Role-Permission repository.
+- Role-Permission service.
+- Role-Permission schemas.
+- Role-Permission administration API.
+- Role permission listing.
+- Permission assignment to roles.
+- Permission removal from roles.
+- Duplicate assignment protection.
+
+### Security
+
+- Role-Permission administration protected by `role.view` and `role.update`.
+- Active-role validation implemented.
+- Active-permission validation implemented.
+- Permission-driven endpoint authorization validated.
+- Unauthorized operations return HTTP 403 Forbidden.
+
+### Testing
+
+- ADMIN role-permission access validated.
+- Permission assignment validated.
+- Duplicate assignment validation validated.
+- Permission removal validated.
+- End-to-end permission authorization validated using TEST_ROLE.
+
 ## [v0.11.0] - Sprint 11.2
 
 ### Added
