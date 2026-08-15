@@ -359,3 +359,58 @@ These capabilities will be implemented independently.
 ### Consequence
 
 The LabGenius security foundation now supports effective permission-based authorization from the authenticated user through role membership and permission assignment to protected API operations.
+
+---
+
+## Decision: User-Role Administration
+
+### Decision
+
+LabGenius will manage User-Role assignments through controlled application-level APIs.
+
+### Rationale
+
+User-role relationships directly determine a user's effective authorization and therefore must not depend on direct database administration.
+
+Application-level management provides:
+
+- validation;
+- authorization;
+- duplicate protection;
+- active-state enforcement;
+- consistent API behavior.
+
+### Authorization Policy
+
+User-Role administration uses the existing user permissions:
+
+    user.view
+    user.update
+
+No separate UserRole permission family is introduced.
+
+### Active-State Policy
+
+Only active users and active roles may participate in new UserRole assignments.
+
+Inactive UserRole records do not contribute to effective authorization.
+
+### Security Model
+
+The effective authorization chain is:
+
+    User
+        ↓
+    UserRole
+        ↓
+    Role
+        ↓
+    RolePermission
+        ↓
+    Permission
+
+This completes the application-level identity and authorization foundation.
+
+### Consequence
+
+LabGenius can now administer the complete security relationship through application APIs without relying on direct database manipulation.

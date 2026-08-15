@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+## [v0.13.0] - Sprint 11.4
+
+### Added
+
+- User-Role repository.
+- User-Role service.
+- User-Role schemas.
+- User-Role administration API.
+- User role listing.
+- Role assignment to users.
+- Role removal from users.
+- Duplicate assignment protection.
+
+### Security
+
+- User-Role administration protected by `user.view` and `user.update`.
+- Active-user validation implemented.
+- Active-role validation implemented.
+- Effective authorization through UserRole → Role → RolePermission → Permission validated.
+- Unauthorized User-Role operations return HTTP 403 Forbidden.
+
+### Testing
+
+- User-role assignment validated.
+- Duplicate assignment validation validated.
+- Inactive-user protection validated.
+- Inactive-role protection validated.
+- Role removal validated.
+- Restricted-user authorization validated.
+
 ## [v0.12.0] - Sprint 11.3
 
 ### Added

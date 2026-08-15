@@ -845,3 +845,63 @@ Role administration and User-Role administration remain separate concerns.
 Role-Permission administration controls which permissions a role provides.
 
 User-Role administration controls which roles are assigned to users and will be implemented as a separate security capability.
+
+---
+
+## 24. User-Role Administration Rules
+
+### 24.1 User-Role Relationship
+
+A user may have multiple roles.
+
+A role may be assigned to multiple users.
+
+The relationship is maintained through the `user_roles` entity.
+
+### 24.2 Assignment Uniqueness
+
+A user-role combination must be unique.
+
+Duplicate assignments return:
+
+    HTTP 409 Conflict
+
+### 24.3 Active User Requirement
+
+A role cannot be newly assigned to an inactive user.
+
+### 24.4 Active Role Requirement
+
+An inactive role cannot be newly assigned to a user.
+
+### 24.5 Role Removal
+
+An existing UserRole assignment may be removed through the controlled API.
+
+Attempting to remove a nonexistent assignment returns:
+
+    HTTP 404 Not Found
+
+### 24.6 Authorization
+
+Viewing a user's roles requires:
+
+    user.view
+
+Changing a user's roles requires:
+
+    user.update
+
+The authorization engine evaluates only active security relationships.
+
+### 24.7 Effective Authorization
+
+A user's effective authorization is derived from the active roles assigned to the user and the active permissions assigned to those roles.
+
+The application therefore separates:
+
+    User identity
+    User-Role assignment
+    Role definition
+    Role-Permission assignment
+    Permission definition

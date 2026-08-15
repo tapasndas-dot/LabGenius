@@ -526,39 +526,107 @@ A controlled TEST_ROLE assignment of `organization.view` successfully allowed or
 
 # Sprint 11.4 — User ↔ Role Administration
 
-Next:
+## Status
 
-- User-role repository.
-- User-role service.
-- User-role schemas.
-- User-role assignment API.
-- View roles assigned to a user.
-- Assign role to user.
-- Remove role from user.
-- Prevent duplicate user-role assignments.
-- Enforce active user, active role, and active UserRole states.
-- Validate effective permissions after role assignment.
-- Validate restricted-user behavior.
+    COMPLETE
+
+## Completed Work
+
+### User-Role Repository
+
+Implemented:
+
+- User-role lookup.
+- User-role assignment lookup.
+- Active UserRole lookup.
+- User-role removal.
+
+### User-Role Schemas
+
+Implemented:
+
+- User-role assignment request.
+- User-role response.
+
+### User-Role Service
+
+Implemented:
+
+- User existence validation.
+- Active-user validation.
+- Role existence validation.
+- Active-role validation.
+- Duplicate assignment protection.
+- Assignment creation.
+- Assignment removal.
+
+### User-Role API
+
+Implemented:
+
+    GET /users/{user_id}/roles
+    POST /users/{user_id}/roles
+    DELETE /users/{user_id}/roles/{role_id}
+
+### Authorization
+
+Implemented:
+
+    user.view
+    user.update
+
+User-Role administration is protected by the existing permission-based authorization engine.
+
+### Validation
+
+Validated:
+
+- Role listing for a user.
+- Role assignment.
+- Duplicate assignment returns HTTP 409.
+- Inactive-user assignment is rejected.
+- Inactive-role assignment is rejected.
+- Role removal.
+- Nonexistent assignment returns HTTP 404.
+- Unauthorized role viewing returns HTTP 403.
+- Unauthorized role modification returns HTTP 403.
+
+### End-to-End Security Validation
+
+Validated the complete chain:
+
+    User
+        ↓
+    UserRole
+        ↓
+    Role
+        ↓
+    RolePermission
+        ↓
+    Permission
+        ↓
+    Protected API
+
+A restricted TEST_VIEWER user successfully authenticated but was denied User-Role administration because the required permissions were absent.
 
 ---
 
-## Sprint 11.4 — User-Role Management
+# Next Phase — Business Application Foundation
 
-### Status
+The core identity and authorization foundation is now complete.
 
-    PLANNED
+Completed security foundation:
 
-### Planned Work
+    Authentication                  COMPLETE
+    User foundation                 COMPLETE
+    Role administration             COMPLETE
+    Permission administration       COMPLETE
+    Role-Permission administration  COMPLETE
+    User-Role administration        COMPLETE
 
-- User-role assignment API
-- User-role removal API
-- Active-state validation
-- Role assignment validation
-- Duplicate assignment prevention
-- User role summary
-- Role assignment authorization
+The next development phase should transition from generic security infrastructure toward LabGenius application business capabilities.
 
----
+Candidate next areas will be evaluated against the Project Vision, domain architecture, and business requirements before implementation.
 
 # Sprint 12 — User Administration & Security Operations
 

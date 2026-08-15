@@ -967,3 +967,70 @@ The Role-Permission implementation has been validated for:
 - unauthorized operation rejection with HTTP 403 Forbidden.
 
 The authorization model therefore separates authentication, role membership, permission assignment, and endpoint authorization.
+
+---
+
+## 24D. User-Role Administration
+
+LabGenius provides controlled application-level administration of User-Role assignments.
+
+The current User-Role endpoints are:
+
+    GET /users/{user_id}/roles
+    POST /users/{user_id}/roles
+    DELETE /users/{user_id}/roles/{role_id}
+
+### User-Role Authorization
+
+Viewing roles assigned to a user requires:
+
+    user.view
+
+Assigning or removing roles requires:
+
+    user.update
+
+### Assignment Rules
+
+A role may be assigned to a user only when:
+
+    the user exists;
+    the user is active;
+    the role exists;
+    the role is active.
+
+Duplicate User-Role assignments are rejected with HTTP 409 Conflict.
+
+### Authorization Impact
+
+A user's effective permissions are determined through active UserRole assignments.
+
+The complete authorization chain is:
+
+    User
+        ↓
+    UserRole
+        ↓
+    Role
+        ↓
+    RolePermission
+        ↓
+    Permission
+
+Inactive UserRole, Role, RolePermission, or Permission records must not contribute to authorization.
+
+### Validation
+
+User-Role administration has been validated for:
+
+- role listing by user;
+- role assignment;
+- duplicate assignment prevention;
+- inactive-user protection;
+- inactive-role protection;
+- role removal;
+- nonexistent assignment handling;
+- permission-based authorization;
+- unauthorized operation rejection with HTTP 403 Forbidden.
+
+Authentication and authorization were separately validated using a restricted TEST_VIEWER account.
