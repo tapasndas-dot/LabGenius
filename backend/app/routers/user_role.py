@@ -74,4 +74,5 @@ def remove_user_role(
         db,
         user_id,
         role_id,
+        actor_user_id=current_user.id,
     )

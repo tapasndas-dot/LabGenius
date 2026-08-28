@@ -1146,3 +1146,42 @@ Sprint 12.3 does not invent a partial revocation mechanism.
 At the v0.14.0 database review, both active users, including the sole ADMIN, were
 already marked for forced password change. On rollout they can still authenticate,
 but must use `/auth/change-password` before resuming permission-protected work.
+
+## 24H. Administrative Security Operations (Sprint 12.4)
+
+Sprint 12.4 is complete. LabGenius protects the final usable ADMIN from
+administrative removal. A usable ADMIN is an active user whose account status
+permits authentication, with an active UserRole assignment to the active `ADMIN`
+role. `force_password_change` does not make an administrator unusable because the
+user can authenticate and complete the required change.
+
+The centralized `AdminSafetyService` guards:
+
+- user deactivation;
+- hard user deletion;
+- removal of an ADMIN UserRole assignment; and
+- deactivation of the ADMIN role.
+
+The guard locks the shared ADMIN role row in PostgreSQL before calculating usable
+administrators. Concurrent guarded changes therefore serialize through the same
+row. An operation that would leave zero usable administrators returns HTTP 409,
+does not mutate the target, and records one `ADMIN_SAFETY_BLOCKED` event with
+actor/target IDs where applicable and only the safe operation category.
+
+Normal failed-password lockout remains possible for an ADMIN. Production should
+maintain at least two usable administrators. Emergency recovery is an operator-
+controlled database procedure using separately governed database access; there
+is no public bootstrap API, hard-coded account, credential, ADMIN ID, or backdoor.
+After recovery, operators must document the incident and restore normal password
+and audit controls through authenticated application workflows.
+
+JWT behavior remains intentionally unchanged. Already-issued access tokens remain
+valid until their configured expiry (currently 60 minutes) after password change
+or reset. A token-version or revocation subsystem is deferred because it would be
+a larger session-management capability, not a low-risk Sprint 12 closure change.
+
+Security-history APIs remain `user.view` protected, newest-first, and bounded to
+1–500 records per request. No advanced Sprint 14 reporting/filtering was added.
+
+With Sprint 12.1–12.4 complete, User Administration & Security Operations is
+ready for closure. Sprint 13 Organization-Level Authorization is next.

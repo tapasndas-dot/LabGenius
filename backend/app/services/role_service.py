@@ -9,6 +9,7 @@ from app.schemas.role import (
     RoleStatusUpdate,
     RoleUpdate,
 )
+from app.services.user.admin_safety_service import AdminSafetyService
 
 
 class RoleService:
@@ -18,6 +19,7 @@ class RoleService:
 
     def __init__(self):
         self.repository = RoleRepository()
+        self.admin_safety_service = AdminSafetyService()
 
     def get_all(
         self,
@@ -119,11 +121,19 @@ class RoleService:
         db: Session,
         role_id: UUID,
         data: RoleStatusUpdate,
+        actor_user_id: UUID | None = None,
     ):
         role = self.get(
             db,
             role_id,
         )
+
+        if not data.is_active:
+            self.admin_safety_service.ensure_role_can_be_deactivated(
+                db,
+                role.id,
+                actor_user_id=actor_user_id,
+            )
 
         role.is_active = data.is_active
 

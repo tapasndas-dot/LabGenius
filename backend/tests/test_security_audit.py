@@ -35,6 +35,7 @@ class SecurityServiceAuditTests(unittest.TestCase):
             )
         )
         self.service.audit_service = Mock()
+        self.service.admin_safety_service = Mock()
 
     @staticmethod
     def _apply_failure(user, attempts, locked_until):

@@ -630,9 +630,8 @@ Candidate next areas will be evaluated against the Project Vision, domain archit
 
 # Sprint 12 — User Administration & Security Operations
 
-Sprint 12 is in progress. Sprint 12.1, 12.2, and 12.3 are complete; Sprint 12
-overall must not be marked complete until Sprint 12.4 administrative closure
-work is finished.
+Sprint 12 is complete. Sprint 12.1, 12.2, 12.3, and 12.4 have passed final
+security regression.
 
 ## Sprint 12.1 — Account Lifecycle & Authentication Security
 
@@ -680,9 +679,9 @@ Completed work:
 
 ### Status
 
-NEXT
+COMPLETE
 
-Planned work:
+Completed work:
 
 - Protect the last active ADMIN from self-deactivation or administrative lockout
 - Define a controlled ADMIN recovery/bootstrap policy
@@ -690,9 +689,18 @@ Planned work:
 - Complete remaining administrative security controls
 - Run the final Sprint 12 security regression and closure review
 
+Implemented centralized, PostgreSQL-serialized last-usable-ADMIN protection,
+safe `ADMIN_SAFETY_BLOCKED` auditing, controlled operator-recovery policy,
+configuration/security-history review, JWT expiry-boundary decision, and full
+Sprint 12.1–12.4 regression.
+
 ---
 
 # Sprint 13 — Organization-Level Authorization
+
+### Status
+
+NEXT
 
 ### Planned Work
 

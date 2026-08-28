@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from app.core.exceptions import (
     DuplicateResourceException,
     ResourceNotFoundException,
+    SecurityConflictException,
     ValidationException,
 )
 
@@ -44,4 +45,14 @@ def register_exception_handlers(app: FastAPI):
             content={
                 "detail": str(exc),
             },
+        )
+
+    @app.exception_handler(SecurityConflictException)
+    async def security_conflict_handler(
+        request: Request,
+        exc: SecurityConflictException,
+    ):
+        return JSONResponse(
+            status_code=409,
+            content={"detail": str(exc)},
         )

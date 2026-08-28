@@ -473,7 +473,7 @@ tested, controlled recovery mechanism until that safeguard exists.
 
 - No ad hoc ADMIN bypass is added to authentication or RBAC.
 - Live security tests must not lock or deactivate the only ADMIN.
-- Sprint 12 remains open until Sprint 12.4 is complete.
+- This deferred safeguard was completed in Sprint 12.4; see ADR-020 and ADR-021.
 
 ---
 
@@ -507,4 +507,64 @@ adding an incomplete revocation mechanism.
 - Password policy logic is not duplicated across routers or services.
 - Password lifecycle actions are atomic with `PASSWORD_CHANGED` or
   `PASSWORD_RESET` events.
-- Sprint 12 remains open for Sprint 12.4 administrative safeguards and closure.
+- Sprint 12.4 supplies the administrative safeguards required for Sprint 12 closure.
+
+---
+
+## ADR-020 — Serialized Last-Usable-ADMIN Protection
+
+### Decision
+
+All existing application operations that can remove usable ADMIN access use one
+`AdminSafetyService`. The service locks the stable ADMIN role row with
+`SELECT ... FOR UPDATE`, calculates usable administrators, and rejects a change
+with HTTP 409 when it would leave zero.
+
+Protected operations are user deactivation, hard deletion, ADMIN assignment
+removal, and ADMIN-role deactivation. `force_password_change` is not a reason to
+exclude an ADMIN because authentication and password remediation remain possible.
+
+Blocked attempts record `ADMIN_SAFETY_BLOCKED` with safe operation metadata.
+
+### Consequences
+
+- Concurrent guarded operations serialize against a shared database row.
+- Ordinary non-ADMIN lifecycle and role operations remain unchanged.
+- Failed-login lockout remains part of normal authentication security and is not bypassed.
+
+## ADR-021 — Controlled ADMIN Recovery Without an Application Backdoor
+
+### Decision
+
+LabGenius will not expose an unauthenticated ADMIN bootstrap/recovery API and will
+not ship hard-coded accounts, IDs, passwords, or default secrets. Production
+should maintain at least two usable ADMIN users.
+
+If all ADMIN access is lost through an exceptional condition such as normal
+failed-login lockout, recovery uses separately authorized database-operator
+access under the deployment's operational controls. The incident must be
+documented, and normal password/security state must subsequently be restored
+through authenticated application workflows.
+
+### Consequences
+
+- Recovery authority remains outside the public application attack surface.
+- Deployment runbooks and database access governance are operational prerequisites.
+
+## ADR-022 — JWT Expiry Is the Sprint 12 Session-Security Boundary
+
+### Decision
+
+Sprint 12 retains stateless JWT behavior. Password changes and resets do not
+invalidate already-issued tokens; tokens remain valid until the centrally
+configured expiry, currently 60 minutes.
+
+A token-security-stamp would require a schema migration and validation on every
+authenticated request, while robust revocation would introduce session state.
+Neither is necessary to safely close Sprint 12, so both remain future work.
+
+### Consequences
+
+- No refresh-token or partial revocation architecture is introduced.
+- Operators understand the maximum current exposure window.
+- Sprint 12 is complete; Sprint 13 Organization-Level Authorization is next.

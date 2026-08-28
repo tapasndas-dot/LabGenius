@@ -25,6 +25,7 @@ from app.core.exceptions import (
     DuplicateResourceException,
     ResourceNotFoundException,
 )
+from app.services.user.admin_safety_service import AdminSafetyService
 
 
 class UserService(BaseService[User]):
@@ -37,6 +38,7 @@ class UserService(BaseService[User]):
         self.division_repository = DivisionRepository()
         self.department_repository = DepartmentRepository()
         self.designation_repository = DesignationRepository()
+        self.admin_safety_service = AdminSafetyService()
 
     def create(
         self,
@@ -167,3 +169,17 @@ class UserService(BaseService[User]):
             db,
             db_object,
         )
+
+    def delete(
+        self,
+        db: Session,
+        db_object: User,
+        actor_user_id=None,
+    ):
+        self.admin_safety_service.ensure_user_can_lose_admin_access(
+            db,
+            db_object.id,
+            actor_user_id=actor_user_id,
+            operation="DELETE_USER",
+        )
+        return self.repository.delete(db, db_object)

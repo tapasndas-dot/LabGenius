@@ -117,6 +117,7 @@ def delete_user(
     service.delete(
         db,
         db_object,
+        actor_user_id=current_user.id,
     )
 
     return {

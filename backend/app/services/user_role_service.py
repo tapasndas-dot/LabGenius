@@ -10,6 +10,7 @@ from app.repositories.user.user_role_repository import (
 from app.repositories.user.user_repository import UserRepository
 from app.repositories.user.role_repository import RoleRepository
 from app.schemas.user_role import UserRoleCreate
+from app.services.user.admin_safety_service import AdminSafetyService
 
 
 class UserRoleService:
@@ -21,6 +22,7 @@ class UserRoleService:
         self.repository = UserRoleRepository()
         self.user_repository = UserRepository()
         self.role_repository = RoleRepository()
+        self.admin_safety_service = AdminSafetyService()
 
     def get_by_user(
         self,
@@ -110,6 +112,7 @@ class UserRoleService:
         db: Session,
         user_id: UUID,
         role_id: UUID,
+        actor_user_id: UUID | None = None,
     ):
         assignment = self.repository.get_assignment(
             db,
@@ -122,6 +125,13 @@ class UserRoleService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User-role assignment not found.",
             )
+
+        self.admin_safety_service.ensure_admin_assignment_can_be_removed(
+            db,
+            user_id,
+            role_id,
+            actor_user_id=actor_user_id,
+        )
 
         self.repository.delete_assignment(
             db,

@@ -12,6 +12,7 @@ from app.repositories.user.security_repository import (
     SecurityRepository,
 )
 from app.services.user.security_audit_service import SecurityAuditService
+from app.services.user.admin_safety_service import AdminSafetyService
 
 
 class SecurityService:
@@ -19,6 +20,7 @@ class SecurityService:
     def __init__(self):
         self.repository = SecurityRepository()
         self.audit_service = SecurityAuditService()
+        self.admin_safety_service = AdminSafetyService()
 
     def get_user(
         self,
@@ -67,6 +69,13 @@ class SecurityService:
         user: User,
         actor_user_id: UUID | None = None,
     ) -> User:
+
+        self.admin_safety_service.ensure_user_can_lose_admin_access(
+            db,
+            user.id,
+            actor_user_id=actor_user_id,
+            operation="DEACTIVATE_USER",
+        )
 
         user.is_active = False
         user.account_status = "INACTIVE"

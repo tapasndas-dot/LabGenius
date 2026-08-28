@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Added — Sprint 12.4 Administrative Security Closure
+
+- Centralized last-usable-ADMIN protection for user deactivation/deletion,
+  ADMIN assignment removal, and ADMIN-role deactivation.
+- PostgreSQL row-lock serialization through the shared ADMIN role.
+- HTTP 409 security-conflict handling for blocked final-ADMIN operations.
+- Safe `ADMIN_SAFETY_BLOCKED` security events.
+- Full Sprint 12.1–12.4 regression coverage.
+
+### Security — Sprint 12.4
+
+- `force_password_change` ADMIN users continue to count as usable because they can remediate.
+- Inactive, actively locked, inactive-assignment, and inactive-role accounts do not count as usable ADMIN backups.
+- No unauthenticated recovery endpoint, hard-coded account, credential, or backdoor was added.
+- JWT expiry remains the current post-password-change risk boundary; token revocation is deferred.
+- Security-history responses remain permission protected, newest-first, and limited to 500 records.
+
+### Sprint 12 Status
+
+- Sprint 12 — User Administration & Security Operations: COMPLETE.
+- Next: Sprint 13 — Organization-Level Authorization.
+
 ### Added — Sprint 12.3 Password Security
 
 - Centralized configurable password policy with 12-character default minimum and

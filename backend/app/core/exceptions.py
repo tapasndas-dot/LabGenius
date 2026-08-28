@@ -13,3 +13,7 @@ class ResourceNotFoundException(LabGeniusException):
 
 class ValidationException(LabGeniusException):
     pass
+
+
+class SecurityConflictException(LabGeniusException):
+    pass

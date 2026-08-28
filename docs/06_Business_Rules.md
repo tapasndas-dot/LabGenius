@@ -998,3 +998,42 @@ until the required change is completed.
 Plaintext passwords and hashes must never be logged or stored in audit details.
 Existing JWTs are not revoked by password changes because revocation/session
 versioning is not currently implemented.
+
+## 28. Administrative Security Closure Rules (Sprint 12.4)
+
+### 28.1 Usable ADMIN
+
+A usable ADMIN requires an active user, an authentication-permitted account
+status, an active ADMIN assignment, and an active ADMIN role. A forced password
+change does not make the account unusable.
+
+### 28.2 Final ADMIN Protection
+
+User deactivation/deletion, ADMIN assignment removal, and ADMIN-role deactivation
+must return HTTP 409 when the operation would leave no usable administrator. The
+rejected operation must leave target state unchanged.
+
+### 28.3 Serialization
+
+ADMIN-removal checks must lock the shared ADMIN role row and retain that lock
+through the mutation transaction so concurrent administrative changes cannot
+independently pass a stale count.
+
+### 28.4 Safety Audit
+
+Rejected final-ADMIN operations create `ADMIN_SAFETY_BLOCKED` with actor and
+target where available and a safe operation name only. Credentials, tokens, and
+authorization headers are prohibited.
+
+### 28.5 Recovery Policy
+
+No public recovery or bootstrap API is permitted. Production must maintain at
+least two usable ADMIN users. Emergency recovery uses separately controlled
+database-operator access and must be followed by incident documentation and
+normal authenticated password/security administration.
+
+### 28.6 JWT Boundary
+
+Access-token expiry is the current risk-control boundary after password mutation.
+Token revocation and session versioning remain deferred rather than introducing
+an incomplete session subsystem during Sprint 12 closure.

@@ -131,4 +131,5 @@ def update_role_status(
         db,
         role_id,
         update,
+        actor_user_id=current_user.id,
     )
