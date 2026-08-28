@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### Added — Sprint 12.3 Password Security
+
+- Centralized configurable password policy with 12-character default minimum and
+  uppercase, lowercase, digit, and special-character requirements.
+- Authenticated `POST /auth/change-password` self-service flow.
+- `user.update`-protected `POST /users/{user_id}/reset-password` administrative flow.
+- `PASSWORD_CHANGED` and `PASSWORD_RESET` security events.
+- `force_password_change` restriction across role- and permission-protected APIs.
+- Password-policy enforcement and lifecycle initialization during user creation.
+
+### Changed — Sprint 12.3
+
+- Password changes update `password_changed_at`, clear forced-change state, and
+  reset temporary login failure state.
+- Administrative resets set forced-change state and clear lock/failure state
+  without activating inactive users.
+
+### Security — Sprint 12.3
+
+- Passwords and hashes are excluded from security-event details and validation messages.
+- Forced-change users retain OAuth2/JWT access only for identity inspection and password change.
+- Existing JWT revocation after password mutation remains deferred because session
+  versioning/revocation infrastructure is not present.
+- Rollout note: existing active accounts currently marked `force_password_change`
+  must complete `/auth/change-password`; OAuth2 login remains available for this.
+
 ### Added — Sprint 12.1 Account Lifecycle Security
 
 - Configurable failed-login threshold and account lockout duration.
@@ -33,7 +59,6 @@
 
 ### Deferred
 
-- Sprint 12.3: password change/reset/policy, `force_password_change`, and `password_changed_at`.
 - Sprint 12.4: last-active-ADMIN protection, controlled recovery, and final Sprint 12 closure.
 
 ## [v0.13.0] - Sprint 11.4

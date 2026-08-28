@@ -18,6 +18,14 @@ oauth2_scheme = OAuth2PasswordBearer(
 user_repository = UserRepository()
 
 
+def ensure_password_change_complete(user: User) -> None:
+    if user.force_password_change:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password change is required before accessing this resource.",
+        )
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -72,6 +80,8 @@ def require_role(
             get_current_user,
         ),
     ):
+        ensure_password_change_complete(current_user)
+
         for user_role in current_user.user_roles:
 
             if not user_role.is_active:
@@ -112,6 +122,8 @@ def require_permission(
             get_current_user,
         ),
     ):
+        ensure_password_change_complete(current_user)
+
         for user_role in current_user.user_roles:
 
             if not user_role.is_active:

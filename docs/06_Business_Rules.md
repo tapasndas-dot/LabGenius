@@ -962,3 +962,39 @@ transaction. Audit failure must not leave the security-state change committed.
 
 Login-history and security-event APIs require `user.view`. Collection and
 user-filtered endpoints use bounded `limit` and `offset` pagination.
+
+## 27. Password Security Rules (Sprint 12.3)
+
+### 27.1 Central Password Policy
+
+User creation, self-service password change, and administrative reset must use
+one configurable policy. By default a password requires at least 12 characters,
+uppercase and lowercase letters, a digit, and a special character. Errors must
+describe rules without echoing submitted credentials.
+
+### 27.2 Self-Service Password Change
+
+An authenticated user must provide the correct current password and matching new
+password confirmation. The new password must satisfy policy and differ from the
+current password. Success updates the hash and `password_changed_at`, clears
+`force_password_change`, resets temporary login failure state, and records
+`PASSWORD_CHANGED` with the user as actor and target.
+
+### 27.3 Administrative Password Reset
+
+Reset requires `user.update`. It sets a policy-compliant hash,
+`password_changed_at`, and `force_password_change=true`; clears failed-login and
+lock state; preserves active/inactive state; and records `PASSWORD_RESET` with
+administrator actor and affected-user target IDs.
+
+### 27.4 Forced Password Change
+
+A forced-change user may authenticate, inspect `/auth/me`, and change the
+password. Role- and permission-protected application access must return HTTP 403
+until the required change is completed.
+
+### 27.5 Credential and Token Rules
+
+Plaintext passwords and hashes must never be logged or stored in audit details.
+Existing JWTs are not revoked by password changes because revocation/session
+versioning is not currently implemented.

@@ -9,16 +9,20 @@ from app.dependencies.database import get_db
 from app.schemas.user.security import (
     UserSecurityResponse,
     AccountUnlockResponse,
+    PasswordResetRequest,
 )
 
 from app.services.user.security_service import (
     SecurityService,
 )
+from app.schemas.auth import PasswordOperationResponse
+from app.services.user.password_service import PasswordService
 
 
 router = APIRouter()
 
 service = SecurityService()
+password_service = PasswordService()
 
 
 @router.get(
@@ -115,3 +119,24 @@ def unlock_user(
         user,
         actor_user_id=current_user.id,
     )
+
+
+@router.post(
+    "/{user_id}/reset-password",
+    response_model=PasswordOperationResponse,
+)
+def reset_user_password(
+    user_id: UUID,
+    request: PasswordResetRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("user.update")),
+):
+    target_user = service.get_user(db, user_id)
+    password_service.reset_password(
+        db,
+        target_user,
+        actor_user_id=current_user.id,
+        new_password=request.new_password,
+        confirm_new_password=request.confirm_new_password,
+    )
+    return PasswordOperationResponse(message="Password reset successfully.")

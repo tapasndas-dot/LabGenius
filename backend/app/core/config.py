@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     MAX_FAILED_LOGIN_ATTEMPTS: int = 5
     ACCOUNT_LOCKOUT_MINUTES: int = 15
 
+    PASSWORD_MIN_LENGTH: int = 12
+    PASSWORD_REQUIRE_UPPERCASE: bool = True
+    PASSWORD_REQUIRE_LOWERCASE: bool = True
+    PASSWORD_REQUIRE_DIGIT: bool = True
+    PASSWORD_REQUIRE_SPECIAL: bool = True
+
     model_config = SettingsConfigDict(
         env_file=str(BASE_DIR / ".env"),
         extra="ignore",

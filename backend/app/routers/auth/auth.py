@@ -11,12 +11,18 @@ from app.auth.dependencies import (
 from app.auth.jwt import create_access_token
 from app.dependencies.database import get_db
 from app.models.user.user import User
-from app.schemas.auth import TokenResponse
+from app.schemas.auth import (
+    PasswordChangeRequest,
+    PasswordOperationResponse,
+    TokenResponse,
+)
+from app.services.user.password_service import PasswordService
 
 
 router = APIRouter()
 
 service = AuthService()
+password_service = PasswordService()
 
 
 @router.post(
@@ -90,3 +96,22 @@ def permission_test(
         "permission": "organization.create",
         "user": current_user.username,
     }
+
+
+@router.post(
+    "/change-password",
+    response_model=PasswordOperationResponse,
+)
+def change_password(
+    request: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    password_service.change_password(
+        db,
+        current_user,
+        current_password=request.current_password,
+        new_password=request.new_password,
+        confirm_new_password=request.confirm_new_password,
+    )
+    return PasswordOperationResponse(message="Password changed successfully.")

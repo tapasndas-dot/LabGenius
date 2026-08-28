@@ -630,8 +630,8 @@ Candidate next areas will be evaluated against the Project Vision, domain archit
 
 # Sprint 12 — User Administration & Security Operations
 
-Sprint 12 is in progress. Sprint 12.1 and 12.2 are complete; Sprint 12 overall
-must not be marked complete until password security and administrative closure
+Sprint 12 is in progress. Sprint 12.1, 12.2, and 12.3 are complete; Sprint 12
+overall must not be marked complete until Sprint 12.4 administrative closure
 work is finished.
 
 ## Sprint 12.1 — Account Lifecycle & Authentication Security
@@ -660,21 +660,27 @@ migration `b7219de4a612`.
 
 ### Status
 
-NEXT
+COMPLETE
 
-Planned work:
+Completed work:
 
 - Password change
 - Controlled password reset
 - Password policy
 - `force_password_change` enforcement and lifecycle
 - `password_changed_at` maintenance
+- Centralized configurable password policy
+- Self-service password change
+- `user.update`-protected administrative reset
+- Forced-change restriction for role/permission-protected endpoints
+- `PASSWORD_CHANGED` and `PASSWORD_RESET` security events
+- Password lifecycle regression tests
 
 ## Sprint 12.4 — Administrative Security Operations / Sprint 12 Closure
 
 ### Status
 
-DEFERRED
+NEXT
 
 Planned work:
 

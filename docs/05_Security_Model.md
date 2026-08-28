@@ -1101,3 +1101,48 @@ Security history APIs are:
 
 All require `user.view` and support bounded `limit`/`offset` pagination.
 Migration `b7219de4a612` creates both audit tables, foreign keys, and indexes.
+
+## 24G. Password Security (Sprint 12.3)
+
+Sprint 12.3 is complete. Password validation is centralized in `PasswordPolicy`
+and configured through application settings. The default policy requires at
+least 12 characters, one uppercase letter, one lowercase letter, one digit, and
+one special character. Validation errors state unmet rules without repeating the
+submitted password.
+
+Authenticated users change their own password through:
+
+    POST /auth/change-password
+
+The operation verifies the current password, requires matching new-password
+confirmation, rejects reuse of the current password, hashes the new password,
+updates `password_changed_at`, clears `force_password_change`, and resets
+temporary failure/lock state. It records `PASSWORD_CHANGED` with the same actor
+and target user ID.
+
+Administrative password reset is available through:
+
+    POST /users/{user_id}/reset-password    user.update
+
+Reset validates and hashes the supplied password, updates
+`password_changed_at`, sets `force_password_change=true`, and clears failure and
+lock state without activating an inactive account. It records `PASSWORD_RESET`
+with administrator actor and affected-user target IDs. Passwords are never
+emailed, generated as defaults, or included in event details.
+
+A user marked `force_password_change=true` may authenticate and receive a JWT,
+access `/auth/me`, and call `/auth/change-password`. Role- and permission-guarded
+application endpoints return HTTP 403 until the password is changed. This keeps
+Swagger OAuth2 login functional while enforcing the required change.
+
+New user creation applies the same centralized policy, initializes
+`password_changed_at`, stores only a hash, and intentionally begins with
+`force_password_change=true`.
+
+Existing JWTs remain valid after password change/reset because token revocation
+and session-version infrastructure do not yet exist. This limitation is explicit;
+Sprint 12.3 does not invent a partial revocation mechanism.
+
+At the v0.14.0 database review, both active users, including the sole ADMIN, were
+already marked for forced password change. On rollout they can still authenticate,
+but must use `/auth/change-password` before resuming permission-protected work.

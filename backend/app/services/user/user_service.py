@@ -1,6 +1,9 @@
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 from app.auth.hashing import hash_password
+from app.auth.password_policy import PasswordPolicy
 
 from app.services.base_service import BaseService
 
@@ -40,6 +43,8 @@ class UserService(BaseService[User]):
         db: Session,
         user: UserCreate,
     ):
+
+        PasswordPolicy.validate(user.password)
 
         # -----------------------------
         # Validate hierarchy
@@ -129,6 +134,8 @@ class UserService(BaseService[User]):
             password_hash=hash_password(
                 user.password
             ),
+            password_changed_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            force_password_change=True,
             timezone=user.timezone,
             language=user.language,
         )

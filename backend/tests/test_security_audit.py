@@ -259,7 +259,7 @@ class SecurityHistoryApiTests(unittest.TestCase):
 
     def test_history_endpoint_requires_user_view(self):
         app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
-            user_roles=[]
+            user_roles=[], force_password_change=False
         )
         response = self.client.get(
             "/security/login-history", headers={"Authorization": "Bearer test-token"}

@@ -43,3 +43,8 @@ class AccountUnlockResponse(BaseModel):
     is_active: bool
     failed_login_attempts: int
     locked_until: datetime | None
+
+
+class PasswordResetRequest(BaseModel):
+    new_password: str
+    confirm_new_password: str

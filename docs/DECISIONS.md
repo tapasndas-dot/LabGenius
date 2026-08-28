@@ -473,4 +473,38 @@ tested, controlled recovery mechanism until that safeguard exists.
 
 - No ad hoc ADMIN bypass is added to authentication or RBAC.
 - Live security tests must not lock or deactivate the only ADMIN.
-- Sprint 12 remains open through Sprint 12.3 and 12.4.
+- Sprint 12 remains open until Sprint 12.4 is complete.
+
+---
+
+## ADR-019 — Central Password Policy and Forced-Change Access
+
+### Decision
+
+Password rules are centralized in a configurable `PasswordPolicy` and applied to
+user creation, self-service change, and administrative reset. Plaintext passwords
+are accepted only as transient request/service inputs and are never persisted,
+logged, or placed in security-event metadata.
+
+Administrative resets require `user.update`, set `force_password_change=true`,
+and preserve account activation state. Self-service change verifies the current
+password and clears forced-change state.
+
+Forced-change users may authenticate and receive a JWT so they can access
+`/auth/me` and `/auth/change-password`. Existing role and permission dependencies
+block ordinary protected access until the password changes.
+
+### Token Decision
+
+Existing JWTs remain valid after password change or reset. Reliable invalidation
+requires token/session versioning or a revocation store, neither of which exists
+in the current architecture. Sprint 12.3 documents this limitation instead of
+adding an incomplete revocation mechanism.
+
+### Consequences
+
+- Swagger OAuth2 authentication remains compatible with forced password changes.
+- Password policy logic is not duplicated across routers or services.
+- Password lifecycle actions are atomic with `PASSWORD_CHANGED` or
+  `PASSWORD_RESET` events.
+- Sprint 12 remains open for Sprint 12.4 administrative safeguards and closure.
