@@ -185,3 +185,16 @@ class User(MasterEntity):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    login_history = relationship(
+        "LoginHistory",
+        back_populates="user",
+        passive_deletes=True,
+    )
+
+    security_events = relationship(
+        "SecurityEvent",
+        foreign_keys="SecurityEvent.target_user_id",
+        back_populates="target",
+        passive_deletes=True,
+    )

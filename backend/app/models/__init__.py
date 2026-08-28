@@ -11,6 +11,8 @@ from .user import (
     Permission,
     UserRole,
     RolePermission,
+    LoginHistory,
+    SecurityEvent,
 )
 
 __all__ = [
@@ -22,4 +24,6 @@ __all__ = [
     "Permission",
     "UserRole",
     "RolePermission",
+    "LoginHistory",
+    "SecurityEvent",
 ]

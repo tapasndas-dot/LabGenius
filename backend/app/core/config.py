@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    MAX_FAILED_LOGIN_ATTEMPTS: int = 5
+    ACCOUNT_LOCKOUT_MINUTES: int = 15
+
     model_config = SettingsConfigDict(
         env_file=str(BASE_DIR / ".env"),
         extra="ignore",
@@ -26,6 +29,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-print("CONFIG FILE:", __file__)
-print("BASE_DIR:", BASE_DIR)

@@ -905,3 +905,60 @@ The application therefore separates:
     Role definition
     Role-Permission assignment
     Permission definition
+
+---
+
+## 25. Account Lifecycle Security Rules (Sprint 12.1)
+
+### 25.1 Failed Login and Lockout
+
+Each wrong password for a known active, unlocked account increments
+`failed_login_attempts`. At the configured threshold the account becomes
+`LOCKED` until `locked_until`. A currently locked account must reject
+authentication before checking the supplied password.
+
+### 25.2 Inactive Accounts
+
+An inactive user cannot authenticate. Unlocking clears lock state but must not
+implicitly activate an inactive account.
+
+### 25.3 Successful Authentication
+
+A successful login resets `failed_login_attempts`, clears `locked_until`, and
+updates `last_login`.
+
+### 25.4 Controlled Security State
+
+Viewing user security state requires `user.view`. Activation, deactivation, and
+unlock require `user.update`. Generic `UserUpdate` must not accept
+`account_status` or `is_active`; security state uses dedicated operations.
+
+## 26. Security History Rules (Sprint 12.2)
+
+### 26.1 Login History
+
+Every login attempt creates a `LoginHistory` record containing the attempted
+username, result, timestamp, failure category where applicable, known user ID,
+IP address, and user agent when available.
+
+### 26.2 Security Events
+
+The event catalog is `LOGIN_SUCCESS`, `LOGIN_FAILURE`, `ACCOUNT_LOCKED`,
+`ACCOUNT_UNLOCKED`, `ACCOUNT_ACTIVATED`, and `ACCOUNT_DEACTIVATED`.
+Administrative events record actor and target IDs.
+
+### 26.3 Credential Exclusion
+
+Audit data must never contain plaintext passwords, password hashes, JWTs,
+authorization headers, client secrets, refresh tokens, or other credentials.
+Credential-like keys are removed from event details.
+
+### 26.4 Transaction Integrity
+
+An account-state change and its audit records must be committed as one
+transaction. Audit failure must not leave the security-state change committed.
+
+### 26.5 History Authorization
+
+Login-history and security-event APIs require `user.view`. Collection and
+user-filtered endpoints use bounded `limit` and `offset` pagination.

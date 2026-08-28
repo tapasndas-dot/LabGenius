@@ -38,12 +38,8 @@ class UserUpdate(BaseModel):
     department_id: UUID | None = None
     designation_id: UUID | None = None
 
-    account_status: str | None = None
-
     timezone: str | None = None
     language: str | None = None
-
-    is_active: bool | None = None
 
 
 class UserResponse(BaseModel):

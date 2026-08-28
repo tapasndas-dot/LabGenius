@@ -3,6 +3,8 @@ from .role import Role
 from .permission import Permission
 from .user_role import UserRole
 from .role_permission import RolePermission
+from .login_history import LoginHistory
+from .security_event import SecurityEvent
 
 __all__ = [
     "User",
@@ -10,4 +12,6 @@ __all__ = [
     "Permission",
     "UserRole",
     "RolePermission",
+    "LoginHistory",
+    "SecurityEvent",
 ]

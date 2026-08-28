@@ -414,3 +414,63 @@ This completes the application-level identity and authorization foundation.
 ### Consequence
 
 LabGenius can now administer the complete security relationship through application APIs without relying on direct database manipulation.
+
+---
+
+## ADR-016 — Dedicated Account Security Operations
+
+### Decision
+
+Account activation, deactivation, lockout, and unlock are security operations and
+must not be exposed through generic user-profile updates. `UserUpdate` excludes
+`account_status` and `is_active`; dedicated APIs require `user.view` or
+`user.update` as appropriate.
+
+Unlock and activation are separate actions. Unlock clears the failure counter
+and lock timestamp but preserves an inactive account's inactive state.
+
+### Consequences
+
+- Account lifecycle changes have explicit authorization and audit points.
+- Generic user editing cannot bypass security-state controls.
+- Administrators must explicitly activate an inactive account.
+
+## ADR-017 — Append-Only Authentication and Security Audit Records
+
+### Decision
+
+LabGenius persists authentication attempts in `LoginHistory` and account security
+activity in `SecurityEvent`. Security-state mutation and audit creation share one
+transaction boundary. Read access reuses `user.view`; no new permission code is
+introduced.
+
+Audit data excludes credentials. Event details are restricted to useful
+non-secret metadata and sanitized for credential-like keys.
+
+### Consequences
+
+- Failed and successful authentication can be investigated without storing secrets.
+- Administrative events identify actor and target accounts.
+- Anonymous failures retain attempted username and request metadata without falsely identifying an actor.
+
+## ADR-018 — Last Active ADMIN Protection Deferred to Sprint 12.4
+
+### Context
+
+The current environment has one ADMIN account (`tapas`). Deactivation or lockout
+of the final active administrator could remove application-level recovery paths.
+
+### Decision
+
+Sprint 12.1/12.2 closure documents, but does not partially implement,
+last-ADMIN protection. Sprint 12.4 will define an atomic last-active-ADMIN
+safeguard and a controlled recovery/bootstrap policy.
+
+Production should maintain at least two active ADMIN users or an explicit,
+tested, controlled recovery mechanism until that safeguard exists.
+
+### Consequences
+
+- No ad hoc ADMIN bypass is added to authentication or RBAC.
+- Live security tests must not lock or deactivate the only ADMIN.
+- Sprint 12 remains open through Sprint 12.3 and 12.4.

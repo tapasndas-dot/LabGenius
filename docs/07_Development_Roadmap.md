@@ -630,18 +630,59 @@ Candidate next areas will be evaluated against the Project Vision, domain archit
 
 # Sprint 12 — User Administration & Security Operations
 
-### Planned Work
+Sprint 12 is in progress. Sprint 12.1 and 12.2 are complete; Sprint 12 overall
+must not be marked complete until password security and administrative closure
+work is finished.
 
-- User administration improvements
-- Account activation/deactivation
-- Account lockout workflow
-- Failed-login handling
-- Login history
+## Sprint 12.1 — Account Lifecycle & Authentication Security
+
+### Status
+
+COMPLETE
+
+Completed: configurable failed-login counting and lockout, lock duration,
+inactive-account rejection, administrative unlock, activation/deactivation,
+successful-login reset, `last_login`, dedicated RBAC-protected user-security
+APIs, and removal of security-state fields from generic `UserUpdate`.
+
+## Sprint 12.2 — Login History & Security Events
+
+### Status
+
+COMPLETE
+
+Completed: persistent `LoginHistory` and `SecurityEvent`, login and lifecycle
+event recording, IP/user-agent capture, actor/target IDs, credential exclusion,
+`user.view`-protected history APIs, pagination, focused regression tests, and
+migration `b7219de4a612`.
+
+## Sprint 12.3 — Password Security
+
+### Status
+
+NEXT
+
+Planned work:
+
 - Password change
-- Password reset
+- Controlled password reset
 - Password policy
-- Security event logging
-- Administrative security operations
+- `force_password_change` enforcement and lifecycle
+- `password_changed_at` maintenance
+
+## Sprint 12.4 — Administrative Security Operations / Sprint 12 Closure
+
+### Status
+
+DEFERRED
+
+Planned work:
+
+- Protect the last active ADMIN from self-deactivation or administrative lockout
+- Define a controlled ADMIN recovery/bootstrap policy
+- Require at least two active ADMIN accounts in production or an explicit recovery mechanism
+- Complete remaining administrative security controls
+- Run the final Sprint 12 security regression and closure review
 
 ---
 

@@ -693,8 +693,8 @@ The LabGenius security model follows these principles:
 The following capabilities are planned for later stages and are not part of the current RBAC foundation:
 
 - refresh tokens;
-- login history;
-- account lockout workflow;
+- password change and reset;
+- password policy enforcement;
 - password reset;
 - password expiration policies;
 - session/device management;
@@ -1034,3 +1034,70 @@ User-Role administration has been validated for:
 - unauthorized operation rejection with HTTP 403 Forbidden.
 
 Authentication and authorization were separately validated using a restricted TEST_VIEWER account.
+
+---
+
+## 24E. Account Lifecycle and Authentication Security (Sprint 12.1)
+
+Sprint 12.1 is complete. User account security state is managed through dedicated
+security operations rather than the generic user update API.
+
+Authentication enforces a configurable failed-login threshold and lockout
+duration. A wrong password increments `failed_login_attempts`; reaching the
+threshold sets `account_status` to `LOCKED` and records `locked_until`. A locked
+account is rejected before password verification, including when the supplied
+password is correct. Inactive accounts are also rejected before verification.
+
+A successful login clears the failure counter and lock timestamp and updates
+`last_login`. Existing user security fields use naive UTC because the current
+PostgreSQL columns are `timestamp without time zone`.
+
+Dedicated operations are available at:
+
+    GET /users/{user_id}/security       user.view
+    PUT /users/{user_id}/activate       user.update
+    PUT /users/{user_id}/deactivate     user.update
+    PUT /users/{user_id}/unlock         user.update
+
+Unlock clears lock state but does not implicitly reactivate an inactive account.
+Activation and deactivation remain distinct administrative actions.
+`account_status` and `is_active` are excluded from `UserUpdate` so generic
+profile updates cannot change account security state.
+
+## 24F. Login History and Security Events (Sprint 12.2)
+
+Sprint 12.2 is complete. Authentication attempts are persisted in the
+append-only `login_history` table with the known user ID, attempted username,
+result, failure category, timezone-aware timestamp, request IP address, and user
+agent when available.
+
+The append-only `security_events` table supports these implemented event types:
+
+    LOGIN_SUCCESS
+    LOGIN_FAILURE
+    ACCOUNT_LOCKED
+    ACCOUNT_UNLOCKED
+    ACCOUNT_ACTIVATED
+    ACCOUNT_DEACTIVATED
+
+Security events support actor and target user IDs. Login failures have no actor
+because possession of a username does not establish identity. Administrative
+operations record the authenticated administrator as actor and the affected
+account as target.
+
+Account-state changes and associated audit records share one commit boundary.
+Low-level Sprint 12 repositories flush changes but do not independently commit.
+
+Audit models contain no password, password hash, JWT, authorization-header,
+client-secret, or token fields. Authentication never passes credentials to the
+audit layer, and credential-like keys are removed recursively from event details.
+
+Security history APIs are:
+
+    GET /security/login-history
+    GET /security/login-history/{user_id}
+    GET /security/events
+    GET /security/events/{user_id}
+
+All require `user.view` and support bounded `limit`/`offset` pagination.
+Migration `b7219de4a612` creates both audit tables, foreign keys, and indexes.

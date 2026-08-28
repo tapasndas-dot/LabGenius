@@ -2,6 +2,40 @@
 
 ## [Unreleased]
 
+### Added — Sprint 12.1 Account Lifecycle Security
+
+- Configurable failed-login threshold and account lockout duration.
+- Failed-login counting, `locked_until`, successful-login reset, and `last_login`.
+- Dedicated user security, activation, deactivation, and unlock APIs.
+- RBAC protection through `user.view` and `user.update`.
+
+### Added — Sprint 12.2 Security History
+
+- Persistent `LoginHistory` and `SecurityEvent` models.
+- Login success/failure and account lock/unlock/activation/deactivation events.
+- Request IP and user-agent capture for login attempts.
+- Actor/target attribution for administrative security events.
+- `user.view`-protected, paginated security-history APIs.
+- Alembic migration `b7219de4a612` for both audit tables and indexes.
+
+### Changed
+
+- Removed account security-state fields from generic `UserUpdate`.
+- Consolidated each security action and audit records into one commit boundary.
+- Unlock preserves inactive state instead of implicitly reactivating an account.
+- Removed configuration startup debug output.
+
+### Security
+
+- Locked and inactive accounts are rejected before password verification.
+- Audit schemas exclude credentials and event metadata removes credential-like keys.
+- Added authentication, lifecycle-event, authorization, pagination, and credential-exclusion tests.
+
+### Deferred
+
+- Sprint 12.3: password change/reset/policy, `force_password_change`, and `password_changed_at`.
+- Sprint 12.4: last-active-ADMIN protection, controlled recovery, and final Sprint 12 closure.
+
 ## [v0.13.0] - Sprint 11.4
 
 ### Added

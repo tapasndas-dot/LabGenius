@@ -15,6 +15,8 @@ from app.routers import organization
 from app.routers import permission
 from app.routers import root
 from app.routers import user_role
+from app.routers import security_history
+from app.routers.user import security as user_security_router
 from app.routers.auth import router as auth_router
 from app.routers.user import router as user_router
 
@@ -112,7 +114,20 @@ app.include_router(
     prefix="/users",
     tags=["Users"],
 )
+
+app.include_router(
+    user_security_router.router,
+    prefix="/users",
+    tags=["User Security"],
+)
+
 app.include_router(
     user_role.router,
     tags=["User Roles"]
+)
+
+app.include_router(
+    security_history.router,
+    prefix="/security",
+    tags=["Security History"],
 )
