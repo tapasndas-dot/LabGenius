@@ -11,6 +11,7 @@ import { RolesPage } from './pages/admin/RolesPage'
 import { RolePermissionsPage } from './pages/admin/RolePermissionsPage'
 import { UserRolesPage } from './pages/admin/UserRolesPage'
 import { AuditPage } from './pages/admin/AuditPage'
+import { ModulesPage } from './pages/admin/ModulesPage'
 import { PublicOnlyRoute, RequireAuthenticated, RequireNormalSession } from './routes/RouteGuards'
 import { useAuth } from './auth/AuthContext'
 import { PermissionGate } from './routes/PermissionGate'
@@ -49,6 +50,7 @@ function App() {
           <Route path="role-permissions" element={<PermissionGate allOf={['role.view', 'permission.view']}><RolePermissionsPage /></PermissionGate>} />
           <Route path="user-roles" element={<PermissionGate allOf={['user.view', 'role.view']}><UserRolesPage /></PermissionGate>} />
           <Route path="audit" element={<PermissionGate anyOf={['audit.view']}><AuditPage /></PermissionGate>} />
+          <Route path="modules" element={<PermissionGate anyOf={['module.view']}><ModulesPage /></PermissionGate>} />
         </Route>
       </Route>
     </Route>

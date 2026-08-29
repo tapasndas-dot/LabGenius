@@ -733,3 +733,28 @@ generic configuration JSON shortcut.
 - Contract Testing extends Core Lab, while Inventory may integrate with QC without being
   hard-wired into it.
 - Existing Sprint 16–24 entities and completed Sprint 16A/16B behavior remain unchanged.
+
+---
+
+## ADR-028 — System Registry with Implicit Core Capabilities
+
+### Status
+
+Accepted and implemented in Sprint 16D.
+
+### Decision
+
+Capability definitions are system-seeded in `modules`; organization choices are stored
+as versioned `organization_modules` rows. PLATFORM and CORE_LAB have `is_core=true`, are
+implicitly available to every organization, and cannot be disabled. This avoids a
+backfill requirement and preserves existing security, Administration, and shared-master
+behavior. Missing optional assignments mean disabled.
+
+The small stable dependency graph is explicit code metadata rather than a premature
+dependency table. Enablement validates prerequisites; disablement rejects enabled
+dependents with 409. Inventory has no QC dependency. Capability state changes use atomic
+expected-version updates and AuditService in one transaction.
+
+Future optional endpoints compose the reusable capability guard with ordinary RBAC.
+Capability failure returns 403; permissions remain independent. Registry definitions are
+system-managed and no public registry mutation API or commercial packaging model exists.

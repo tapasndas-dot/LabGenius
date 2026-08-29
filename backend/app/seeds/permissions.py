@@ -211,6 +211,19 @@ PERMISSION_CATALOG += [
     for action in ("view", "create", "update", "delete")
 ]
 
+PERMISSION_CATALOG += [
+    {
+        "permission_code": "module.view",
+        "permission_name": "View Organization Capabilities",
+        "description": "View the module registry and capability state for the actor's organization.",
+    },
+    {
+        "permission_code": "module.manage",
+        "permission_name": "Manage Organization Capabilities",
+        "description": "Enable or disable optional capabilities for the actor's organization.",
+    },
+]
+
 
 # ---------------------------------------------------------------------------
 # ADMIN role

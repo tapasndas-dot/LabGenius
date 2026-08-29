@@ -1274,6 +1274,13 @@ must enforce these conditions independently. Frontend navigation may combine cap
 enablement with effective permissions for usability, but frontend visibility is not a
 security control.
 
-The module registry and capability guard are planned for Sprint 16D and are not currently
-implemented. Existing authentication, RBAC, organization-scope, and concealment behavior
-remains unchanged.
+Sprint 16D implements a server-authoritative capability guard. Future optional-domain
+routes compose `require_capability(<code>)` with their existing permission dependency;
+both checks must pass. A disabled or inactive capability returns 403 without granting or
+altering RBAC. Existing authentication, Administration, and shared-master routes remain
+backward-compatible and are not retrofitted with optional capability guards.
+
+`module.view` permits inspection of the global system registry and the authenticated
+organization's state. `module.manage` permits enable/disable mutations only for that
+same server-derived organization. PLATFORM and CORE_LAB are mandatory and implicitly
+enabled. Optional capabilities default disabled until assigned.

@@ -23,3 +23,7 @@ class VersionConflictException(LabGeniusException):
     """Raised when an expected-version business mutation is stale."""
 
     pass
+
+
+class CapabilityConflictException(LabGeniusException):
+    pass

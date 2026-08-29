@@ -108,10 +108,9 @@ This classification may expand without changing the separation principle.
 These are technical capability dependencies, not commercial pricing packages. Domain
 architecture must not hard-code subscription plans, pricing tiers, or commercial bundles.
 
-### Proposed Sprint 16D module foundation
+### Sprint 16D module foundation
 
-Sprint 16D will freeze the module registry design. The current proposal, not yet
-implemented, is:
+Sprint 16D implements the module registry design as:
 
 - `modules`: `id`, `code`, `name`, `description`, `capability_class`, `is_active`, and
   an appropriate core/mandatory classification.
@@ -124,8 +123,7 @@ generic configuration JSON shortcut.
 Future optional-module access requires both an enabled organization capability and the
 authenticated user's required permission. Frontend navigation should eventually combine
 organization capability enablement with effective user permissions, while backend APIs
-enforce both independently. This capability guard does not exist yet; it is planned for
-Sprint 16D.
+enforce both independently through composed capability and permission dependencies.
 
 Disabling a module must never delete historical business data. Disablement may make
 functionality and navigation unavailable, but preserves history; re-enablement may
@@ -334,5 +332,3 @@ Instrument Registry and are not part of Sprints 16–24.
 - General workflow engine, universal status enum, or event sourcing
 - Central optimistic locking implementation (required before workflow-heavy QC)
 - Archival/retention automation and reporting/export beyond domain sprint scope
-- Module registry, organization capability assignments, and backend capability guards
-  (planned for Sprint 16D)

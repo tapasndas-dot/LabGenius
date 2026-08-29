@@ -1107,6 +1107,8 @@ an incomplete session subsystem during Sprint 12 closure.
   authorization and structured module configuration.
 - Disabling a module must preserve its historical business data. Module disablement must
   never delete tables or historical rows.
-- Future optional-module operations require both organization capability enablement and
-  the user's applicable permission. This enforcement is planned for Sprint 16D and is
-  not current behavior.
+- Optional-module operations require both organization capability enablement and the
+  user's applicable permission. PLATFORM and CORE_LAB are mandatory and cannot be
+  disabled; optional capabilities default disabled.
+- Enabling requires all declared technical dependencies. A dependency cannot be disabled
+  while an enabled capability requires it. Inventory remains independently optional.

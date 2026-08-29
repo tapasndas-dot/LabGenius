@@ -7,6 +7,7 @@ from app.core.exceptions import (
     SecurityConflictException,
     ValidationException,
     VersionConflictException,
+    CapabilityConflictException,
 )
 
 
@@ -67,3 +68,7 @@ def register_exception_handlers(app: FastAPI):
             status_code=409,
             content={"detail": str(exc)},
         )
+
+    @app.exception_handler(CapabilityConflictException)
+    async def capability_conflict_handler(request: Request, exc: CapabilityConflictException):
+        return JSONResponse(status_code=409, content={"detail": str(exc)})

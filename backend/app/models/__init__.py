@@ -16,6 +16,7 @@ from .user import (
 )
 from .audit_event import AuditEvent
 from .business import InstrumentType, Location, Manufacturer, Material
+from .module import Module, OrganizationModule
 
 __all__ = [
     "Organization",
@@ -33,4 +34,6 @@ __all__ = [
     "Manufacturer",
     "InstrumentType",
     "Material",
+    "Module",
+    "OrganizationModule",
 ]

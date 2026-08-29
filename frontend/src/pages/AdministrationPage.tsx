@@ -8,6 +8,7 @@ const sections = [
   { to: 'role-permissions', label: 'Role permissions', permissions: ['role.view', 'permission.view'], requireAll: true },
   { to: 'user-roles', label: 'User roles', permissions: ['user.view', 'role.view'], requireAll: true },
   { to: 'audit', label: 'Audit', permissions: ['audit.view'] },
+  { to: 'modules', label: 'Capabilities', permissions: ['module.view'] },
 ] as const
 
 export function AdministrationPage() {

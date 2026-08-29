@@ -1,5 +1,5 @@
 export const ADMINISTRATION_PERMISSIONS = [
-  'user.view', 'role.view', 'permission.view', 'audit.view',
+  'user.view', 'role.view', 'permission.view', 'audit.view', 'module.view',
 ] as const
 
 export const MASTER_VIEW_PERMISSIONS = [

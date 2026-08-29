@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — Sprint 16D Module Capability Foundation
+
+- Added the system-managed capability registry and versioned organization capability
+  assignments with restrictive ownership and no historical-data deletion behavior.
+- Added dependency-aware enable/disable services, atomic audit events, expected-version
+  conflicts, `module.view`/`module.manage`, and the reusable backend capability guard.
+- PLATFORM and CORE_LAB are mandatory, implicitly available capabilities; optional
+  assignments default disabled, preserving existing Administration and shared Masters.
+- Added organization capability APIs, centralized frontend capability context, and the
+  permission-aware Administration capability page.
+- Sprint 16 is complete; no future-domain workflows or commercial package logic were added.
+
 ### Added — Sprint 16C Frontend Shared Masters
 
 - Added permission-aware Masters navigation and guarded pages for Locations,
