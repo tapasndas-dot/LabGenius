@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Validated — Sprint 17 Instrument / Asset Registry Closure
+
+- Completed integrated backend, frontend, database, migration, startup, OpenAPI,
+  permission-seed, capability, authorization, concurrency, audit, and hygiene validation.
+- Final scope includes the shared Instrument Registry, hierarchy and shared-master
+  ownership, optional Stability Chamber Profile foundation, `INSTRUMENTS` capability,
+  permission-specific organization scope (`SELF` is responsible user), transactional
+  audit, expected-version concurrency, and frontend management UI.
+- Calibration, Maintenance, Qualification, QC Instrument usage, and Stability workflows
+  remain intentionally deferred future modules.
+
 ### Added — Sprint 17C Instrument Registry Frontend
 
 - Added the capability- and permission-aware `/app/instruments` route and navigation.

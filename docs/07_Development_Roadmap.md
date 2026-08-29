@@ -774,7 +774,7 @@ the approved dependency sequence for Sprints 16–24:
 5. Sprint 17A — Instrument / Asset Registry domain and database foundation — COMPLETE
 6. Sprint 17B — Instrument Registry API, authorization, scope, capability, and audit — COMPLETE
 7. Sprint 17C — Instrument Registry frontend — COMPLETE
-8. Sprint 17 — Instrument Registry closure — IN PROGRESS
+8. Sprint 17 — Instrument / Asset Registry — COMPLETE
 9. Sprint 18 — QC Master Data
 10. Sprint 19 — Sample Registration & Test Generation
 11. Sprint 20 — Analyst Assignment & Workbench
@@ -803,8 +803,16 @@ approved design baseline.
 
 Sprint 16 is complete across 16A–16D. Sprint 17A established the Instrument
 Registry domain/database foundation, Sprint 17B added its secured, capability-
-gated, scoped, audited API, and Sprint 17C added its frontend. Sprint 17 remains
-open for closure validation.
+gated, scoped, audited API, and Sprint 17C added its frontend. Sprint 17D completed
+integration validation; Sprint 17 — Instrument / Asset Registry is complete.
+
+The delivered registry includes hierarchy ownership, shared Instrument Type,
+Manufacturer, and Location references, optional responsible-user ownership,
+`INSTRUMENTS` capability and permission enforcement, SQL-level organization scope
+(`SELF` means responsible user), transactional audit, expected-version concurrency,
+the optional one-to-one Stability Chamber Profile foundation, and the management UI.
+Calibration, Maintenance, Qualification, QC Instrument usage, and Stability workflows
+remain future modules.
 
 ---
 
