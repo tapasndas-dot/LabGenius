@@ -151,17 +151,17 @@ class PermissionCatalogTests(unittest.TestCase):
         codes = [item["permission_code"] for item in PERMISSION_CATALOG]
         expected = {
             f"{resource}.{action}"
-            for resource in ("location", "manufacturer", "instrument_type", "material")
+            for resource in ("location", "manufacturer", "instrument_type", "material", "instrument")
             for action in ("view", "create", "update", "delete")
         }
         self.assertEqual({code for code in codes if code.split(".")[0] in {
-            "location", "manufacturer", "instrument_type", "material"
+            "location", "manufacturer", "instrument_type", "material", "instrument"
         }}, expected)
         self.assertEqual(len(codes), len(set(codes)))
 
     def test_no_future_domain_permissions_were_added(self):
         codes = {item["permission_code"] for item in PERMISSION_CATALOG}
-        forbidden_prefixes = ("instrument.", "qc_", "sample.", "stability.", "calibration.", "maintenance.")
+        forbidden_prefixes = ("qc_", "sample.", "stability.", "calibration.", "maintenance.")
         self.assertFalse(any(code.startswith(forbidden_prefixes) for code in codes))
 
 

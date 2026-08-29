@@ -207,6 +207,7 @@ PERMISSION_CATALOG += [
         ("manufacturer", "Manufacturer"),
         ("instrument_type", "Instrument Type"),
         ("material", "Material"),
+        ("instrument", "Instrument"),
     )
     for action in ("view", "create", "update", "delete")
 ]

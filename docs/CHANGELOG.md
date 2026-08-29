@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added — Sprint 17A Instrument Registry Foundation
+
+- Added the organization-owned Instrument model, controlled operational status and
+  criticality, hierarchy/shared-master references, responsible user, and governance flags.
+- Added the optional one-to-one Stability Chamber Profile foundation without workflows,
+  monitoring, alarms, schedules, or a separate chamber registry.
+- Added flush-only repository/service foundations with normalization, active same-organization
+  reference validation, SQL filtering, and atomic expected-version updates.
+- Added `instrument.view/create/update/delete` permissions and the single-head Sprint 17A
+  migration; Sprint 17 remains open for APIs and frontend.
+
 ### Added — Sprint 16D Module Capability Foundation
 
 - Added the system-managed capability registry and versioned organization capability
