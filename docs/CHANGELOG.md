@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added — Sprint 17B Instrument Registry API and Security
+
+- Added list/detail/create/update/activate/deactivate/delete Instrument APIs with
+  strict schemas, safe conflicts, optimistic concurrency, and transactional audit.
+- Enforced operation permissions together with the organization `INSTRUMENTS`
+  capability and SQL-level organization hierarchy scope predicates.
+- Froze Instrument SELF scope as `responsible_user_id == authenticated user.id`;
+  SELF alone cannot create Instruments or reassign their ownership hierarchy.
+- Preserved 404 concealment, active/status separation, and the Sprint 17A schema.
+
 ### Added — Sprint 17A Instrument Registry Foundation
 
 - Added the organization-owned Instrument model, controlled operational status and

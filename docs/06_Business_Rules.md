@@ -1093,6 +1093,9 @@ an incomplete session subsystem during Sprint 12 closure.
   results, review, and finalization. Stability has no separate result engine.
 - Organization-owned root business records are scope filtered by the backend. Children
   normally inherit access through their parent relationship.
+- Instrument Registry SELF scope means `responsible_user_id == authenticated user.id`.
+  It never means created-by, same department, or unassigned responsibility. SELF alone
+  cannot create an Instrument or reassign its ownership hierarchy.
 - Every business domain must define SELF explicitly. In QC analyst workflows SELF means
   currently assigned work, not all records created by the actor.
 - Referenced master data is normally deactivated rather than hard deleted.

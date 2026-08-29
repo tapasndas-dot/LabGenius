@@ -772,14 +772,15 @@ the approved dependency sequence for Sprints 16–24:
 3. Sprint 16C — Frontend Shared Masters + Sprint Validation — COMPLETE
 4. Sprint 16D — Module Capability Foundation — COMPLETE
 5. Sprint 17A — Instrument / Asset Registry domain and database foundation — COMPLETE
-6. Sprint 17 — Instrument / Asset Registry APIs and frontend — IN PROGRESS
-7. Sprint 18 — QC Master Data
-8. Sprint 19 — Sample Registration & Test Generation
-9. Sprint 20 — Analyst Assignment & Workbench
-10. Sprint 21 — Result Entry, Review & Finalization
-11. Sprint 22 — QC Operational Dashboard
-12. Sprint 23 — Stability Protocol & Study Management
-13. Sprint 24 — Stability Pull Scheduling & QC Integration
+6. Sprint 17B — Instrument Registry API, authorization, scope, capability, and audit — COMPLETE
+7. Sprint 17 — Instrument Registry frontend and closure — IN PROGRESS
+8. Sprint 18 — QC Master Data
+9. Sprint 19 — Sample Registration & Test Generation
+10. Sprint 20 — Analyst Assignment & Workbench
+11. Sprint 21 — Result Entry, Review & Finalization
+12. Sprint 22 — QC Operational Dashboard
+13. Sprint 23 — Stability Protocol & Study Management
+14. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -800,7 +801,8 @@ See the [Business Domain Blueprint](08_Business_Domain_Blueprint.md) for the
 approved design baseline.
 
 Sprint 16 is complete across 16A–16D. Sprint 17A established the Instrument
-Registry domain/database foundation; Sprint 17 remains open for APIs and frontend.
+Registry domain/database foundation and Sprint 17B added its secured, capability-
+gated, scoped, audited API. Sprint 17 remains open for frontend and closure.
 
 ---
 

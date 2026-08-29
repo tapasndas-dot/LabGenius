@@ -2,7 +2,7 @@ from enum import StrEnum
 from types import SimpleNamespace
 
 from fastapi import HTTPException, status
-from sqlalchemy import false
+from sqlalchemy import false, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ValidationException
@@ -12,6 +12,7 @@ from app.models.organization.designation import Designation
 from app.models.organization.division import Division
 from app.models.organization.organization import Organization
 from app.models.user.user import User
+from app.models.business.instrument import Instrument
 
 
 class AccessScope(StrEnum):
@@ -120,6 +121,71 @@ class OrganizationScopeService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Organization scope is required for this shared master.",
             )
+
+    def filter_instruments(self, query, actor: User, permission_code: str):
+        """Apply the permission-specific Instrument scope as SQL predicates."""
+        scope = self.resolve_scope(actor, permission_code)
+        query = query.filter(Instrument.organization_id == actor.organization_id)
+        if scope == AccessScope.ORGANIZATION:
+            return query
+        if scope == AccessScope.BUSINESS_UNIT:
+            divisions = select(Division.id).where(
+                Division.business_unit_id == actor.business_unit_id
+            )
+            departments = select(Department.id).where(
+                Department.division_id.in_(divisions)
+            )
+            return query.filter(or_(
+                Instrument.business_unit_id == actor.business_unit_id,
+                Instrument.division_id.in_(divisions),
+                Instrument.department_id.in_(departments),
+            ))
+        if scope == AccessScope.DIVISION:
+            departments = select(Department.id).where(
+                Department.division_id == actor.division_id
+            )
+            return query.filter(or_(
+                Instrument.division_id == actor.division_id,
+                Instrument.department_id.in_(departments),
+            ))
+        if scope == AccessScope.DEPARTMENT:
+            return query.filter(Instrument.department_id == actor.department_id)
+        return query.filter(Instrument.responsible_user_id == actor.id)
+
+    def can_place_instrument(
+        self, db: Session, actor: User, permission_code: str, values: dict
+    ) -> bool:
+        """Authorize a validated target hierarchy for create or reassignment."""
+        scope = self.resolve_scope(actor, permission_code)
+        if scope == AccessScope.ORGANIZATION:
+            return True
+        if scope == AccessScope.SELF:
+            return False
+
+        business_unit_id = values.get("business_unit_id")
+        division_id = values.get("division_id")
+        department_id = values.get("department_id")
+        division = db.query(Division).filter(Division.id == division_id).first() if division_id else None
+        department = (
+            db.query(Department).filter(Department.id == department_id).first()
+            if department_id else None
+        )
+        effective_division_id = division_id or (
+            department.division_id if department is not None else None
+        )
+        effective_division = division or (
+            db.query(Division).filter(Division.id == effective_division_id).first()
+            if effective_division_id else None
+        )
+        effective_business_unit_id = business_unit_id or (
+            effective_division.business_unit_id
+            if effective_division is not None else None
+        )
+        if scope == AccessScope.BUSINESS_UNIT:
+            return effective_business_unit_id == actor.business_unit_id
+        if scope == AccessScope.DIVISION:
+            return effective_division_id == actor.division_id
+        return department_id == actor.department_id
 
     def validate_hierarchy(
         self,

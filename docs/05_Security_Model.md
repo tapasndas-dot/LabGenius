@@ -1188,6 +1188,16 @@ ready for closure. Sprint 13 Organization-Level Authorization is next.
 
 ## 24I. Organization-Level Authorization (Sprint 13)
 
+### Instrument Registry scope
+
+Instrument API authorization requires both the operation-specific `instrument.*`
+permission and the organization's enabled `INSTRUMENTS` capability. Instrument
+lists are filtered in SQL, and inaccessible direct UUIDs are concealed with 404.
+`SELF` has one explicit meaning for Instruments: `responsible_user_id` equals the
+authenticated user ID. It does not mean created-by or department membership, and
+an unassigned Instrument is not visible through SELF alone. SELF cannot authorize
+creation or hierarchy reassignment by itself.
+
 Sprint 13 is complete. Data scope is stored per `UserRole`, allowing the same
 role to have different reach for different users without making role definitions
 organization-specific. Supported levels are `ORGANIZATION`, `BUSINESS_UNIT`,

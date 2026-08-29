@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.core.exceptions import (
     DuplicateResourceException, ResourceNotFoundException, ValidationException,
@@ -16,6 +18,8 @@ from app.models.organization.division import Division
 from app.models.organization.department import Department
 from app.models.user.user import User
 from app.repositories.business.instrument_repository import InstrumentRepository
+from app.services.audit_service import AuditAction, AuditService
+from app.services.organization_scope_service import AccessScope, OrganizationScopeService
 from .normalization import normalize_code, normalize_name, normalize_optional
 from .organization_master_service import VERSION_CONFLICT_MESSAGE
 
@@ -23,6 +27,8 @@ from .organization_master_service import VERSION_CONFLICT_MESSAGE
 class InstrumentService:
     def __init__(self, repository: InstrumentRepository | None = None):
         self.repository = repository or InstrumentRepository()
+        self.audit_service = AuditService()
+        self.scope_service = OrganizationScopeService()
 
     @staticmethod
     def _active(db: Session, model, record_id, message: str):
@@ -129,3 +135,158 @@ class InstrumentService:
         db.add(profile)
         db.flush()
         return profile
+
+    def scoped_query(self, db: Session, actor, permission_code: str):
+        return self.scope_service.filter_instruments(
+            self.repository.query(db), actor, permission_code
+        )
+
+    def list_scoped(
+        self, db: Session, actor, permission_code: str, *, limit: int = 100,
+        offset: int = 0, search: str | None = None,
+        is_active: bool | None = None, **filters,
+    ):
+        query = self.repository.apply_list_filters(
+            self.scoped_query(db, actor, permission_code), search=search,
+            is_active=is_active, **filters,
+        )
+        return query.order_by(
+            Instrument.instrument_code.asc(), Instrument.id.asc()
+        ).offset(offset).limit(limit).all()
+
+    def get_scoped(
+        self, db: Session, actor, instrument_id: UUID, permission_code: str
+    ) -> Instrument:
+        record = self.scoped_query(db, actor, permission_code).filter(
+            Instrument.id == instrument_id
+        ).first()
+        if record is None:
+            raise ResourceNotFoundException("Instrument not found.")
+        return record
+
+    def _ensure_target_scope(
+        self, db: Session, actor, permission_code: str, values: dict
+    ) -> None:
+        if not self.scope_service.can_place_instrument(
+            db, actor, permission_code, values
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Target Instrument hierarchy is outside the authorized scope.",
+            )
+
+    def create_scoped(self, db: Session, actor, values: dict) -> Instrument:
+        normalized = self.normalize(values)
+        if self.scope_service.resolve_scope(
+            actor, "instrument.create"
+        ) == AccessScope.SELF:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="SELF scope cannot create Instruments.",
+            )
+        self.validate_references(db, actor.organization_id, normalized)
+        self._ensure_target_scope(db, actor, "instrument.create", normalized)
+        try:
+            record = self.create(db, actor.organization_id, normalized)
+            self.audit_service.record_create(
+                db, entity=record, actor=actor, owner=record
+            )
+            db.commit()
+            db.refresh(record)
+            return record
+        except IntegrityError as exc:
+            db.rollback()
+            raise DuplicateResourceException(
+                "An instrument with this code already exists."
+            ) from exc
+        except Exception:
+            db.rollback()
+            raise
+
+    def update_scoped(
+        self, db: Session, actor, instrument_id: UUID, expected_version: int,
+        values: dict,
+    ) -> Instrument:
+        record = self.get_scoped(db, actor, instrument_id, "instrument.update")
+        before = self.audit_service.snapshot(record)
+        hierarchy_fields = ("business_unit_id", "division_id", "department_id")
+        hierarchy_changed = any(
+            field in values and values[field] != getattr(record, field)
+            for field in hierarchy_fields
+        )
+        merged = {
+            field: values.get(field, getattr(record, field))
+            for field in hierarchy_fields
+        }
+        if hierarchy_changed:
+            if self.scope_service.resolve_scope(
+                actor, "instrument.update"
+            ) == AccessScope.SELF:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="SELF scope cannot reassign Instrument hierarchy.",
+                )
+            self._ensure_target_scope(db, actor, "instrument.update", merged)
+        try:
+            updated = self.update_expected(
+                db, actor.organization_id, instrument_id, expected_version, values
+            )
+            self.audit_service.record_update(
+                db, entity=updated, actor=actor, owner=updated, before=before
+            )
+            db.commit()
+            db.refresh(updated)
+            return updated
+        except IntegrityError as exc:
+            db.rollback()
+            raise DuplicateResourceException(
+                "Instrument update conflicts with an existing or referenced record."
+            ) from exc
+        except Exception:
+            db.rollback()
+            raise
+
+    def set_active_scoped(
+        self, db: Session, actor, instrument_id: UUID, expected_version: int,
+        is_active: bool,
+    ) -> Instrument:
+        record = self.get_scoped(db, actor, instrument_id, "instrument.update")
+        before = self.audit_service.snapshot(record)
+        try:
+            updated = self.update_expected(
+                db, actor.organization_id, instrument_id, expected_version,
+                {"is_active": is_active},
+            )
+            self.audit_service.record_update(
+                db, entity=updated, actor=actor, owner=updated, before=before,
+                action=(AuditAction.ACTIVATE if is_active else AuditAction.DEACTIVATE),
+            )
+            db.commit()
+            db.refresh(updated)
+            return updated
+        except Exception:
+            db.rollback()
+            raise
+
+    def delete_scoped(
+        self, db: Session, actor, instrument_id: UUID, expected_version: int
+    ) -> None:
+        record = self.get_scoped(db, actor, instrument_id, "instrument.delete")
+        before = self.audit_service.snapshot(record)
+        try:
+            if not self.repository.delete_expected(
+                db, actor.organization_id, instrument_id, expected_version
+            ):
+                raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+            self.audit_service.record_delete(
+                db, entity=record, actor=actor, owner=record, before=before
+            )
+            db.commit()
+        except IntegrityError as exc:
+            db.rollback()
+            raise DuplicateResourceException(
+                "This instrument is referenced and cannot be deleted."
+            ) from exc
+        except Exception:
+            db.rollback()
+            raise
