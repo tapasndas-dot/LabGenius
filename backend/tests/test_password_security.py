@@ -291,6 +291,35 @@ class PasswordApiTests(unittest.TestCase):
             "/auth/me", headers={"Authorization": "Bearer test-token"}
         )
         self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertTrue(body["force_password_change"])
+        self.assertEqual(body["permissions"], [])
+        self.assertTrue({"password", "password_hash", "token", "locked_until"}.isdisjoint(body))
+
+    def test_me_returns_false_force_password_change_and_effective_permissions(self):
+        active_permission = SimpleNamespace(
+            permission_code="user.view", is_active=True,
+        )
+        inactive_permission = SimpleNamespace(
+            permission_code="user.update", is_active=False,
+        )
+        role = SimpleNamespace(
+            is_active=True,
+            role_permissions=[
+                SimpleNamespace(is_active=True, permission=active_permission),
+                SimpleNamespace(is_active=True, permission=inactive_permission),
+            ],
+        )
+        self.user.force_password_change = False
+        self.user.user_roles = [SimpleNamespace(is_active=True, role=role)]
+
+        response = self.client.get(
+            "/auth/me", headers={"Authorization": "Bearer test-token"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["force_password_change"])
+        self.assertEqual(response.json()["permissions"], ["user.view"])
 
     def test_forced_user_can_access_change_password(self):
         with patch.object(auth_router.password_service, "change_password") as change:

@@ -17,3 +17,13 @@ export function authenticate(username: string, password: string): Promise<AuthTo
 export function getCurrentUser(): Promise<CurrentUser> {
   return apiRequest<CurrentUser>('/auth/me')
 }
+
+export type PasswordChangeRequest = {
+  current_password: string
+  new_password: string
+  confirm_new_password: string
+}
+
+export function changePassword(request: PasswordChangeRequest): Promise<{ message: string }> {
+  return apiRequest('/auth/change-password', { method: 'POST', body: request })
+}

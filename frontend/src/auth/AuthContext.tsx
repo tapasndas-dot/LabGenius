@@ -19,7 +19,7 @@ type AuthContextValue = {
   isInitializing: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => void
-  refreshUser: () => Promise<void>
+  refreshUser: () => Promise<CurrentUser>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -51,7 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      setUser(await getCurrentUser())
+      const currentUser = await getCurrentUser()
+      setUser(currentUser)
+      return currentUser
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         logout()

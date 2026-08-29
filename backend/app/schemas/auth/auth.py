@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -23,3 +25,12 @@ class PasswordChangeRequest(BaseModel):
 
 class PasswordOperationResponse(BaseModel):
     message: str
+
+
+class CurrentUserResponse(BaseModel):
+    id: UUID
+    username: str
+    email: str
+    display_name: str
+    force_password_change: bool
+    permissions: list[str]

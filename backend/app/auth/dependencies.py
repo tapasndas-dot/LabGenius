@@ -18,6 +18,19 @@ oauth2_scheme = OAuth2PasswordBearer(
 user_repository = UserRepository()
 
 
+def get_effective_permission_codes(user: User) -> list[str]:
+    """Return safe, deduplicated permission codes from the active RBAC chain."""
+    codes: set[str] = set()
+    for user_role in user.user_roles:
+        if not user_role.is_active or user_role.role is None or not user_role.role.is_active:
+            continue
+        for mapping in user_role.role.role_permissions:
+            permission = mapping.permission
+            if mapping.is_active and permission is not None and permission.is_active:
+                codes.add(permission.permission_code)
+    return sorted(codes)
+
+
 def ensure_password_change_complete(user: User) -> None:
     if user.force_password_change:
         raise HTTPException(
@@ -124,37 +137,8 @@ def require_permission(
     ):
         ensure_password_change_complete(current_user)
 
-        for user_role in current_user.user_roles:
-
-            if not user_role.is_active:
-                continue
-
-            role = user_role.role
-
-            if role is None:
-                continue
-
-            if not role.is_active:
-                continue
-
-            for role_permission in role.role_permissions:
-
-                if not role_permission.is_active:
-                    continue
-
-                permission = role_permission.permission
-
-                if permission is None:
-                    continue
-
-                if not permission.is_active:
-                    continue
-
-                if (
-                    permission.permission_code
-                    == permission_code
-                ):
-                    return current_user
+        if permission_code in get_effective_permission_codes(current_user):
+            return current_user
 
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

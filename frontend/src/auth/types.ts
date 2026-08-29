@@ -8,7 +8,6 @@ export type CurrentUser = {
   username: string
   email: string
   display_name: string
-  // The backend does not currently return this from /auth/me. Keeping it
-  // optional makes Task 15B routing ready when the contract is expanded.
-  force_password_change?: boolean
+  force_password_change: boolean
+  permissions: string[]
 }

@@ -4,4 +4,5 @@ from .auth import (
     TokenPayload,
     PasswordChangeRequest,
     PasswordOperationResponse,
+    CurrentUserResponse,
 )

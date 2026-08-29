@@ -55,3 +55,49 @@ button:disabled { cursor: not-allowed; opacity: .62; }
   .login-header { gap: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .app-loading span { animation: none; } }
+
+.password-page, .status-page { min-height: 100svh; display: grid; place-items: center; padding: 32px 20px; box-sizing: border-box; }
+.password-card, .status-card, .content-card {
+  width: min(100%, 560px); padding: 36px; border: 1px solid #dce5e3;
+  border-radius: 16px; background: #fff; box-shadow: 0 18px 50px rgba(20,55,51,.09);
+  box-sizing: border-box;
+}
+.password-card header > p, .policy-note, .content-card > p, .status-card > p {
+  color: #60716e; line-height: 1.55;
+}
+.password-card .eyebrow, .content-card .eyebrow { color: #0f766e; }
+.policy-note { padding: 12px; border-radius: 8px; background: #f1f7f5; font-size: .88rem; }
+.text-button { min-height: 38px; margin-top: 8px; padding: 7px 12px; background: transparent; color: #0f766e; }
+.text-button:hover:not(:disabled) { background: #e8f2f0; }
+.status-page { background: #f3f7f6; text-align: center; }
+.status-code { margin: 0 0 8px; color: #0f766e !important; font-size: .8rem; font-weight: 800; letter-spacing: .15em; }
+.button-link { display: inline-flex; margin-top: 18px; padding: 11px 18px; border-radius: 9px; background: #0f766e; color: #fff; text-decoration: none; font-weight: 700; }
+
+.app-shell { min-height: 100svh; background: #f3f7f6; }
+.app-header {
+  min-height: 72px; display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; padding: 0 28px; border-bottom: 1px solid #dce5e3; background: #fff;
+}
+.product-link { display: flex; align-items: center; gap: 12px; color: #152522; text-decoration: none; }
+.product-link > span:last-child, .user-menu > span { display: flex; flex-direction: column; }
+.product-link small, .user-menu small { color: #71817e; font-size: .75rem; }
+.user-menu { display: flex; align-items: center; gap: 16px; text-align: right; font-size: .88rem; }
+.user-menu .text-button { margin: 0; }
+.app-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100svh - 73px); }
+.app-sidebar { padding: 24px 14px; border-right: 1px solid #dce5e3; background: #fff; }
+.app-sidebar nav { display: grid; gap: 5px; }
+.app-sidebar a { padding: 10px 12px; border-radius: 8px; color: #49605c; text-decoration: none; font-weight: 650; }
+.app-sidebar a:hover { background: #f1f7f5; }
+.app-sidebar a.active { background: #dff0ec; color: #0a625c; }
+.app-content { padding: 36px; }
+.content-card { width: 100%; max-width: 760px; box-shadow: none; }
+
+@media (max-width: 700px) {
+  .app-header { padding: 10px 16px; }
+  .product-link small, .user-menu span { display: none; }
+  .app-body { grid-template-columns: 1fr; }
+  .app-sidebar { padding: 8px 12px; border-right: 0; border-bottom: 1px solid #dce5e3; }
+  .app-sidebar nav { display: flex; }
+  .app-content { padding: 20px; }
+  .password-card, .status-card, .content-card { padding: 26px 20px; }
+}

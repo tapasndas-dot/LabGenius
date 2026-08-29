@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.auth.auth_service import AuthService
 from app.auth.dependencies import (
     get_current_user,
+    get_effective_permission_codes,
     require_permission,
     require_role,
 )
@@ -15,6 +16,7 @@ from app.schemas.auth import (
     PasswordChangeRequest,
     PasswordOperationResponse,
     TokenResponse,
+    CurrentUserResponse,
 )
 from app.services.user.password_service import PasswordService
 
@@ -53,6 +55,7 @@ def login(
 
 @router.get(
     "/me",
+    response_model=CurrentUserResponse,
 )
 def get_me(
     current_user: User = Depends(
@@ -64,6 +67,8 @@ def get_me(
         "username": current_user.username,
         "email": current_user.email,
         "display_name": current_user.display_name,
+        "force_password_change": current_user.force_password_change,
+        "permissions": get_effective_permission_codes(current_user),
     }
 
 

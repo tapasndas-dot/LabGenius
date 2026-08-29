@@ -20,9 +20,28 @@ is not equivalent to an HttpOnly cookie: XSS could expose browser storage. Token
 are never rendered or logged and are cleared on logout and conclusive 401 or
 session-restoration failure.
 
-`/auth/me` does not currently return `force_password_change`. The frontend user
-type accepts it when available; Task 15B must add forced-password-change routing
-after the backend contract exposes the flag.
+`/auth/me` returns identity, `force_password_change`, and safe effective permission
+codes. On startup the app restores this summary before routing. Unauthenticated
+users are sent to `/login`; forced-change users are restricted to
+`/change-password`; normal authenticated users enter the nested `/app` shell.
+
+The password form posts the backend's exact `current_password`, `new_password`,
+and `confirm_new_password` contract. After success it reloads `/auth/me` and enters
+the application only after the backend confirms the forced-change flag is clear.
+
+Navigation uses effective permission codes only to hide unavailable choices. This
+is a UX feature, not an authorization boundary: FastAPI remains authoritative for
+RBAC and organization scope on every request. The frontend does not reproduce
+organization hierarchy scope calculations.
+
+Current route foundation:
+
+- `/login`
+- `/change-password`
+- `/app`
+- `/app/administration` (Task 15C placeholder only)
+- `/not-authorized`
+- routing-level not found handling
 
 ## Commands
 
