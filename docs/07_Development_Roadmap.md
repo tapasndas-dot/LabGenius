@@ -764,18 +764,21 @@ scoped user administration, role/assignment administration, and audit browsing.
 
 # Business-Domain / Process Module Development
 
-The platform foundation is complete. Business Domain Blueprint v1.0 establishes
+The platform foundation is complete. Business Domain Blueprint v1.1 establishes
 the approved dependency sequence for Sprints 16–24:
 
-1. Sprint 16 — Shared Business Domain Foundation
-2. Sprint 17 — Instrument / Asset Registry
-3. Sprint 18 — QC Master Data
-4. Sprint 19 — Sample Registration & Test Generation
-5. Sprint 20 — Analyst Assignment & Workbench
-6. Sprint 21 — Result Entry, Review & Finalization
-7. Sprint 22 — QC Operational Dashboard
-8. Sprint 23 — Stability Protocol & Study Management
-9. Sprint 24 — Stability Pull Scheduling & QC Integration
+1. Sprint 16A — Database + Shared Business Foundation — COMPLETE
+2. Sprint 16B — APIs + Authorization + Audit — COMPLETE
+3. Sprint 16C — Frontend Shared Masters + Sprint Validation
+4. Sprint 16D — Module Capability Foundation
+5. Sprint 17 — Instrument / Asset Registry
+6. Sprint 18 — QC Master Data
+7. Sprint 19 — Sample Registration & Test Generation
+8. Sprint 20 — Analyst Assignment & Workbench
+9. Sprint 21 — Result Entry, Review & Finalization
+10. Sprint 22 — QC Operational Dashboard
+11. Sprint 23 — Stability Protocol & Study Management
+12. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 

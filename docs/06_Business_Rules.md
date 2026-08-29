@@ -1097,3 +1097,16 @@ an incomplete session subsystem during Sprint 12 closure.
   currently assigned work, not all records created by the actor.
 - Referenced master data is normally deactivated rather than hard deleted.
 - No universal workflow status enum exists; bounded domains own their status vocabulary.
+
+## 33. Industry-Neutral and Optional-Capability Rules
+
+- LabGenius has an industry-neutral laboratory core. Pharmaceutical QC/R&D is the first
+  reference implementation; industry-specific domains extend rather than duplicate the
+  common Sample/Test/Method/Specification/Assignment/Result foundation.
+- Optional module enablement is organization-specific and remains separate from RBAC
+  authorization and structured module configuration.
+- Disabling a module must preserve its historical business data. Module disablement must
+  never delete tables or historical rows.
+- Future optional-module operations require both organization capability enablement and
+  the user's applicable permission. This enforcement is planned for Sprint 16D and is
+  not current behavior.

@@ -1,6 +1,6 @@
 # LabGenius Business Domain Blueprint
 
-**Version:** 1.0  
+**Version:** 1.1
 **Status:** Approved Design Baseline  
 **Implementation horizon:** Sprints 16–24
 
@@ -8,6 +8,10 @@ This document is the permanent design baseline for the first LabGenius business
 domains. Implementation discoveries that require an architectural change must be
 recorded explicitly in a future blueprint revision; implementations must not silently
 change this baseline.
+
+Version 1.1 adds an industry-neutral product boundary and a future modular-capability
+architecture. It does not change the approved Test / Method / Specification / Sample /
+Assignment / Result design or the Sprint 16–24 entity architecture.
 
 ## 1. Architectural principles
 
@@ -25,6 +29,8 @@ change this baseline.
   HTTP translation in routers/schemas.
 - The backend remains the authorization and workflow authority. Frontend controls are
   usability aids, not security boundaries.
+- Keep the shared laboratory core industry-neutral where practical. Pharmaceutical
+  QC/R&D is the first reference implementation, not the boundary of the platform.
 
 ## 2. Locked cross-domain decisions
 
@@ -44,6 +50,87 @@ change this baseline.
 9. Central optimistic concurrency must be strengthened before workflow-heavy QC work.
 10. There is no universal workflow-status enum; each bounded domain owns its vocabulary.
 11. Business forms use permission-aware lookup/select controls, not manual UUID entry.
+12. Industry-specific capabilities extend the common laboratory core; they do not
+    redefine or duplicate it.
+13. Organization capability enablement, user authorization, and module configuration
+    are separate concerns.
+
+## 2A. Version 1.1 — Industry neutrality and modular capabilities
+
+### Industry-neutral laboratory core
+
+LabGenius is an industry-neutral laboratory operations platform. Pharmaceutical QC/R&D
+is its first reference implementation, while the shared architecture must also support
+chemical, contract, food, environmental, industrial/material, R&D, and other laboratories
+using comparable testing workflows.
+
+Organization, Location, Material/Sample, Test, Method, Specification, Instrument,
+Assignment, Result, Review, and Audit remain shared concepts where practical.
+Pharmaceutical-specific capabilities—including Stability, OOS/OOT, GMP-specific
+controls, and batch disposition—are optional domain extensions and are not assumptions
+for every organization.
+
+### Capability concerns
+
+Three concerns remain distinct:
+
+1. **Module enablement:** whether an organization has a capability enabled.
+2. **Authorization:** what an individual user may do within an enabled capability through
+   the existing RBAC and organization-scope model.
+3. **Module configuration:** how the enabled capability behaves for that organization.
+
+Module enablement is not RBAC, RBAC is not module licensing, and configuration is
+separate from both. Backend enforcement is authoritative; frontend visibility alone is
+not a security control.
+
+### Provisional capability classes
+
+| Class | Current conceptual capabilities |
+|---|---|
+| PLATFORM | Authentication/Security, RBAC, organization hierarchy, Audit, and common platform services |
+| CORE LAB | Shared laboratory masters and the common Sample/Test/Assignment/Result foundation as implemented |
+| OPTIONAL SHARED | Instrument / Asset Registry |
+| OPTIONAL DOMAIN | Stability, Calibration, Maintenance, Qualification, Inventory, and Contract Testing |
+
+This classification may expand without changing the separation principle.
+
+### Technical dependencies
+
+- Stability depends on Core Lab and on the Instrument Registry for chamber usage.
+- Calibration depends on Platform and the Instrument Registry; it does not inherently
+  require QC.
+- Maintenance and Qualification depend on Platform and the Instrument Registry.
+- Contract Testing depends on Core Lab and may later add customer submission, request,
+  and reporting capabilities.
+- Inventory may operate over Platform/shared masters and integrate with QC, but must not
+  be hard-wired into QC.
+
+These are technical capability dependencies, not commercial pricing packages. Domain
+architecture must not hard-code subscription plans, pricing tiers, or commercial bundles.
+
+### Proposed Sprint 16D module foundation
+
+Sprint 16D will freeze the module registry design. The current proposal, not yet
+implemented, is:
+
+- `modules`: `id`, `code`, `name`, `description`, `capability_class`, `is_active`, and
+  an appropriate core/mandatory classification.
+- `organization_modules`: `id`, `organization_id`, `module_id`, `is_enabled`,
+  `enabled_at`, `disabled_at`, `version`, and appropriate timestamps.
+
+Important operational configuration must use structured domain settings rather than a
+generic configuration JSON shortcut.
+
+Future optional-module access requires both an enabled organization capability and the
+authenticated user's required permission. Frontend navigation should eventually combine
+organization capability enablement with effective user permissions, while backend APIs
+enforce both independently. This capability guard does not exist yet; it is planned for
+Sprint 16D.
+
+Disabling a module must never delete historical business data. Disablement may make
+functionality and navigation unavailable, but preserves history; re-enablement may
+restore access subject to permissions and lifecycle rules. Tables and historical rows
+must never be deleted as a module-disablement mechanism.
 
 ## 3. Modelling conventions
 
@@ -200,6 +287,9 @@ configured. The approved direction is a central concurrency contract (version ch
 consistent conflict response, and regression tests) before workflow-heavy QC result
 implementation. This document does not claim that protection currently exists.
 
+Module disablement also preserves historical integrity: it never deletes business data,
+tables, or historical rows.
+
 ## 7. Dependency sequence
 
 ```text
@@ -244,3 +334,5 @@ Instrument Registry and are not part of Sprints 16–24.
 - General workflow engine, universal status enum, or event sourcing
 - Central optimistic locking implementation (required before workflow-heavy QC)
 - Archival/retention automation and reporting/export beyond domain sprint scope
+- Module registry, organization capability assignments, and backend capability guards
+  (planned for Sprint 16D)

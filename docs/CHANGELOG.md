@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Documentation — Business Domain Blueprint v1.1
+
+- Established LabGenius as an industry-neutral laboratory platform with pharmaceutical
+  QC/R&D as the first reference implementation.
+- Approved the separation of organization module enablement, user RBAC authorization,
+  and structured module configuration.
+- Added provisional capability classes, technical dependency rules, historical-data
+  preservation on disablement, and the proposed Sprint 16D module foundation.
+- Planning documentation only; no module registry, capability guard, pricing/package
+  logic, schema, backend, or frontend implementation was added.
+
 ### Documentation — Business Domain Blueprint v1.0
 
 - Approved the permanent business-domain architecture baseline for Sprints 16–24.

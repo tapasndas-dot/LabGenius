@@ -1262,3 +1262,18 @@ Business permissions will follow the existing `<domain>.<action>` direction and 
 introduced incrementally during their implementation sprints. This blueprint documentation
 does not create or claim any Sprint 16+ permission codes. Domain-specific SELF behavior
 must be explicit; QC analyst SELF means actively assigned work.
+
+## 24M. Future Optional-Module Authorization
+
+Organization module enablement does not replace RBAC, and RBAC does not represent module
+licensing or enablement. Module configuration is a third, separate concern.
+
+Future optional-module APIs require both the organization's enabled capability and the
+authenticated user's applicable active permission and organization scope. Backend APIs
+must enforce these conditions independently. Frontend navigation may combine capability
+enablement with effective permissions for usability, but frontend visibility is not a
+security control.
+
+The module registry and capability guard are planned for Sprint 16D and are not currently
+implemented. Existing authentication, RBAC, organization-scope, and concealment behavior
+remains unchanged.

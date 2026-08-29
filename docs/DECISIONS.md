@@ -690,3 +690,46 @@ this baseline.
 Shared Masters → Instruments → QC Masters → Samples → Assignments → Results → QC
 Dashboard → Stability Protocols/Studies → Stability Pulls → existing QC testing engine.
 Calibration, Maintenance, and Qualification follow later and reuse the registry.
+
+---
+
+## ADR-027 — Industry-Neutral Core and Organization-Selectable Capabilities
+
+### Status
+
+Accepted as the Business Domain Blueprint v1.1 baseline.
+
+### Decisions
+
+1. LabGenius is an industry-neutral laboratory operations platform. Pharmaceutical
+   QC/R&D is the first reference implementation, not a restriction on the shared core.
+2. Industry-specific capabilities extend the common laboratory architecture and must
+   not redefine or duplicate its Organization, Location, Material/Sample, Test, Method,
+   Specification, Instrument, Assignment, Result, Review, and Audit concepts.
+3. Organization module enablement, individual authorization through RBAC, and module
+   configuration are separate concerns. Backend enforcement remains authoritative.
+4. Future optional-module access requires both organization capability enablement and
+   the user's required permission. This enforcement is planned for Sprint 16D and is not
+   implemented by this decision record.
+5. Module disablement never deletes historical business data, tables, or rows.
+6. Modules declare technical dependencies. Those dependencies are not commercial
+   subscription plans, pricing tiers, or product bundles.
+7. Sprint 16D, after Sprint 16C and before Sprint 17, will freeze and implement the
+   Module Capability Foundation.
+
+### Proposed Foundation
+
+The provisional design uses a global `modules` catalog and organization-owned
+`organization_modules` assignments with enablement state, lifecycle timestamps, and
+optimistic versioning. Exact table and field design remains proposed until Sprint 16D.
+Important operational settings will use structured domain configuration rather than a
+generic configuration JSON shortcut.
+
+### Consequences
+
+- Stability depends on Core Lab and the Instrument Registry for chambers.
+- Calibration, Maintenance, and Qualification depend on the Instrument Registry;
+  Calibration does not inherently require QC.
+- Contract Testing extends Core Lab, while Inventory may integrate with QC without being
+  hard-wired into it.
+- Existing Sprint 16–24 entities and completed Sprint 16A/16B behavior remain unchanged.
