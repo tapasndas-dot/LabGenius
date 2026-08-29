@@ -2,6 +2,7 @@ from enum import StrEnum
 from types import SimpleNamespace
 
 from fastapi import HTTPException, status
+from sqlalchemy import false
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ValidationException
@@ -91,6 +92,34 @@ class OrganizationScopeService:
     def ensure_can_access_user(self, actor: User, target: User, permission_code: str) -> None:
         if not self.can_access_user(actor, target, permission_code):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    def filter_shared_masters(self, query, actor: User, permission_code: str, model):
+        """Scope organization-owned masters that have no lower-level ownership.
+
+        Any qualifying hierarchy scope remains anchored to the actor's organization.
+        SELF has no row meaning for shared reference masters and therefore returns none.
+        """
+        scope = self.resolve_scope(actor, permission_code)
+        if scope == AccessScope.SELF:
+            return query.filter(false())
+        return query.filter(model.organization_id == actor.organization_id)
+
+    def ensure_can_access_shared_master(
+        self, actor: User, target, permission_code: str, *, resource_name: str = "Record"
+    ) -> None:
+        scope = self.resolve_scope(actor, permission_code)
+        if scope == AccessScope.SELF or target.organization_id != actor.organization_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"{resource_name} not found.",
+            )
+
+    def ensure_can_create_shared_master(self, actor: User, permission_code: str) -> None:
+        if self.resolve_scope(actor, permission_code) == AccessScope.SELF:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Organization scope is required for this shared master.",
+            )
 
     def validate_hierarchy(
         self,

@@ -19,6 +19,7 @@ from app.routers import root
 from app.routers import user_role
 from app.routers import security_history
 from app.routers import audit
+from app.routers import instrument_type, location, manufacturer, material
 from app.core.request_context import RequestContext, reset_request_context, set_request_context
 from app.routers.user import security as user_security_router
 from app.routers.auth import router as auth_router
@@ -153,3 +154,8 @@ app.include_router(
 )
 
 app.include_router(audit.router, prefix="/audit", tags=["Audit"])
+
+app.include_router(location.router, prefix="/locations", tags=["Locations"])
+app.include_router(manufacturer.router, prefix="/manufacturers", tags=["Manufacturers"])
+app.include_router(instrument_type.router, prefix="/instrument-types", tags=["Instrument Types"])
+app.include_router(material.router, prefix="/materials", tags=["Materials"])

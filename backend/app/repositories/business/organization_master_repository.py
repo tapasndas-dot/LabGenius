@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 from uuid import UUID
 
-from sqlalchemy import delete, func, update
+from sqlalchemy import delete, func, or_, update
 from sqlalchemy.orm import Session
 
 from app.database.base_entities import MasterEntity
@@ -31,6 +31,25 @@ class OrganizationMasterRepository(Generic[MasterType]):
         return db.query(self.model).filter(
             self.model.organization_id == organization_id
         ).order_by(self.model.code).all()
+
+    def query(self, db: Session):
+        return db.query(self.model)
+
+    def apply_list_filters(
+        self, query, *, search: str | None = None, is_active: bool | None = None,
+        **filters,
+    ):
+        if search:
+            pattern = f"%{search.strip()}%"
+            query = query.filter(or_(
+                self.model.code.ilike(pattern), self.model.name.ilike(pattern)
+            ))
+        if is_active is not None:
+            query = query.filter(self.model.is_active == is_active)
+        for field, value in filters.items():
+            if value is not None:
+                query = query.filter(getattr(self.model, field) == value)
+        return query
 
     def add(self, db: Session, record: MasterType) -> MasterType:
         db.add(record)

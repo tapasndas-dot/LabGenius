@@ -10,7 +10,7 @@ from .organization_master_service import OrganizationMasterService
 
 class LocationService(OrganizationMasterService[Location]):
     def __init__(self, repository: LocationRepository | None = None):
-        super().__init__(repository or LocationRepository())
+        super().__init__(repository or LocationRepository(), "location")
 
     @staticmethod
     def _validate_type(value: str) -> str:
@@ -51,3 +51,22 @@ class LocationService(OrganizationMasterService[Location]):
         if "parent_location_id" in values:
             self._validate_parent(db, organization_id, values["parent_location_id"], record_id)
         return self._mutate(db, organization_id, record_id, expected_version, values)
+
+    def create_scoped(self, db: Session, actor, values: dict) -> Location:
+        self.scope_service.ensure_can_create_shared_master(actor, "location.create")
+        normalized = self._normalize_common(values)
+        normalized["location_type"] = self._validate_type(normalized["location_type"])
+        self._validate_parent(db, actor.organization_id, normalized.get("parent_location_id"))
+        if self.repository.get_by_code(db, actor.organization_id, normalized["code"]):
+            from app.core.exceptions import DuplicateResourceException
+            raise DuplicateResourceException(self._duplicate_message())
+        record = Location(organization_id=actor.organization_id, **normalized)
+        return self._add_and_commit_create(db, record, actor)
+
+    def update_for_actor(self, db: Session, actor, record_id: UUID, expected_version: int, values: dict):
+        values = self._normalize_common(values)
+        if "location_type" in values:
+            values["location_type"] = self._validate_type(values["location_type"])
+        if "parent_location_id" in values:
+            self._validate_parent(db, actor.organization_id, values["parent_location_id"], record_id)
+        return self.update_scoped(db, actor, record_id, expected_version, values, "location.update")
