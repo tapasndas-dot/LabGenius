@@ -17,6 +17,8 @@ import { useAuth } from './auth/AuthContext'
 import { PermissionGate } from './routes/PermissionGate'
 import { MasterPage } from './pages/masters/MasterPage'
 import { MastersIndex, MastersLayout } from './pages/masters/MastersLayout'
+import { InstrumentPage } from './pages/instruments/InstrumentPage'
+import { CapabilityGate } from './routes/CapabilityGate'
 import './App.css'
 
 function UnknownRoute() {
@@ -43,6 +45,7 @@ function App() {
           <Route path="instrument-types" element={<PermissionGate anyOf={['instrument_type.view']}><MasterPage kind="instrument_type" /></PermissionGate>} />
           <Route path="materials" element={<PermissionGate anyOf={['material.view']}><MasterPage kind="material" /></PermissionGate>} />
         </Route>
+        <Route path="instruments" element={<CapabilityGate capability="INSTRUMENTS" permission="instrument.view"><InstrumentPage /></CapabilityGate>} />
         <Route path="administration" element={<AdministrationPage />}>
           <Route index element={<AdministrationIndex />} />
           <Route path="users" element={<PermissionGate anyOf={['user.view']}><UsersPage /></PermissionGate>} />

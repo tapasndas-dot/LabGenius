@@ -5,15 +5,19 @@ import { useAuthorization } from './useAuthorization'
 import { canUseCapability } from './capabilities'
 
 type CapabilityContextValue = { capabilities: string[]; isLoading: boolean; refreshCapabilities: () => Promise<void>; hasCapability: (code: string) => boolean; canUse: (capability: string, permission: string) => boolean }
-const CapabilityContext = createContext<CapabilityContextValue | null>(null)
+const unavailableCapabilities: CapabilityContextValue = {
+  capabilities: [], isLoading: false, refreshCapabilities: async () => undefined,
+  hasCapability: () => false, canUse: () => false,
+}
+const CapabilityContext = createContext<CapabilityContextValue>(unavailableCapabilities)
 
 export function CapabilityProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth(); const { permissions } = useAuthorization()
-  const [capabilities, setCapabilities] = useState<string[]>([]); const [isLoading, setLoading] = useState(false)
+  const { user, isInitializing } = useAuth(); const { permissions } = useAuthorization()
+  const [capabilities, setCapabilities] = useState<string[]>([]); const [isLoading, setLoading] = useState(true)
   const refreshCapabilities = useCallback(async () => {
-    if (!user) { setCapabilities([]); return }
+    if (!user) { setCapabilities([]); setLoading(isInitializing); return }
     setLoading(true); try { setCapabilities(await modulesApi.enabled()) } catch { setCapabilities([]) } finally { setLoading(false) }
-  }, [user])
+  }, [isInitializing, user])
   useEffect(() => { queueMicrotask(() => void refreshCapabilities()) }, [refreshCapabilities])
   const value = useMemo(() => ({ capabilities, isLoading, refreshCapabilities,
     hasCapability: (code: string) => capabilities.includes(code),
@@ -23,4 +27,4 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useCapabilities() { const value = useContext(CapabilityContext); if (!value) throw new Error('useCapabilities must be used within CapabilityProvider.'); return value }
+export function useCapabilities() { return useContext(CapabilityContext) }

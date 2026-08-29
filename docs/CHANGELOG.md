@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added — Sprint 17C Instrument Registry Frontend
+
+- Added the capability- and permission-aware `/app/instruments` route and navigation.
+- Added responsive Instrument list, filters, pagination, create/edit forms, controlled
+  status/criticality choices, and permission-specific lifecycle actions.
+- Added human-readable shared-master, hierarchy, and responsible-user lookups with
+  dependent hierarchy selection and safe lookup-unavailable behavior.
+- Added expected-version mutations, stale-conflict refresh, confirmation prompts, and
+  focused frontend coverage. Chamber-profile editing remains deferred.
+
 ### Added — Sprint 17B Instrument Registry API and Security
 
 - Added list/detail/create/update/activate/deactivate/delete Instrument APIs with
