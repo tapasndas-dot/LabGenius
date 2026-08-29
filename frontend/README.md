@@ -1,75 +1,32 @@
-# React + TypeScript + Vite
+# LabGenius Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React, TypeScript, and Vite frontend for LabGenius.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Start FastAPI on `http://127.0.0.1:8000`, then run `npm install` and
+`npm run dev`. The default browser API base is `/api`; Vite proxies that prefix
+to `VITE_API_PROXY_TARGET` and removes `/api`. This avoids adding a development-
+only CORS exception to the backend. Copy `.env.example` to `.env.local` only for
+local overrides. Production can set `VITE_API_BASE_URL` to its same-origin API
+prefix or deployed backend URL without source changes.
 
-## React Compiler
+## Authentication
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Login posts OAuth2 form data to `/auth/login`; restoration calls `/auth/me`.
+The stateless backend has no refresh-token or secure session-cookie flow, so Task
+15A stores the bearer token through one `localStorage` adapter. This persistence
+is not equivalent to an HttpOnly cookie: XSS could expose browser storage. Tokens
+are never rendered or logged and are cleared on logout and conclusive 401 or
+session-restoration failure.
 
-## Expanding the ESLint configuration
+`/auth/me` does not currently return `force_password_change`. The frontend user
+type accepts it when available; Task 15B must add forced-password-change routing
+after the backend contract exposes the flag.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Commands
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+- `npm run dev`
+- `npm run build`
+- `npm run lint`
+- `npm test`
