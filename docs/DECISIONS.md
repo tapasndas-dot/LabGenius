@@ -653,3 +653,40 @@ optimistic-lock guarantees.
 
 Sprint 15 completes the platform foundation. Business-domain/process development is
 next, but the first module requires an explicit sequencing decision.
+
+---
+
+## ADR-026 — Business Domain Blueprint v1.0 Baseline
+
+### Status
+
+Approved Design Baseline for Sprints 16–24. Architectural changes discovered during
+implementation require an explicit later blueprint revision and must not silently alter
+this baseline.
+
+### Decisions
+
+1. One Instrument Registry serves QC, Stability Chambers, Calibration, Maintenance,
+   and Qualification.
+2. Stability has no separate result engine. Stability Pulls create or link QC Samples
+   and reuse the QC testing workflow.
+3. Test is what is measured, Method is how it is measured, and Specification is the
+   acceptance criteria; these are separate concepts.
+4. Approved Methods, Specifications, and Stability Protocols preserve immutable version
+   history rather than overwrite.
+5. Finalized operational records are not ordinary editable CRUD records.
+6. Existing JWT, RBAC, permission, organization-scope, and audit services are reused.
+7. Organization-owned root records carry ownership; children normally inherit scope
+   through their parents rather than duplicating hierarchy fields.
+8. Business SELF is domain-specific. QC analyst SELF means work actively assigned to
+   the authenticated analyst, not everything they created.
+9. Version columns exist, but SQLAlchemy mapper-level optimistic locking is not configured.
+   Central optimistic concurrency must be implemented before workflow-heavy QC work.
+10. Each bounded domain owns its statuses; there is no universal workflow status enum.
+11. Business forms use reusable permission-aware lookups instead of manual UUID entry.
+
+### Sequence
+
+Shared Masters → Instruments → QC Masters → Samples → Assignments → Results → QC
+Dashboard → Stability Protocols/Studies → Stability Pulls → existing QC testing engine.
+Calibration, Maintenance, and Qualification follow later and reuse the registry.

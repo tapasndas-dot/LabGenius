@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Documentation — Business Domain Blueprint v1.0
+
+- Approved the permanent business-domain architecture baseline for Sprints 16–24.
+- Established the implementation sequence from shared masters and instruments through
+  QC operations and Stability-to-QC integration.
+- Added entity, relationship, ownership, versioning, audit, historical-integrity, and
+  concurrency direction for future business domains.
+- Architecture and documentation only; no business-domain production code was added.
+
 ### Added — Sprint 15 Frontend Foundation
 
 - React/TypeScript/Vite foundation with configurable API client and JWT restoration.

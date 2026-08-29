@@ -1084,3 +1084,16 @@ an incomplete session subsystem during Sprint 12 closure.
 - Authorization summaries refresh only after relevant role/assignment changes.
 - Audit UI is read-only and bounded. Returned version fields do not imply optimistic
   locking; mapper-level concurrency enforcement remains future backend work.
+
+## 32. Cross-Domain Business Baseline
+
+- Approved and finalized definitions and operational history cannot be casually
+  overwritten; corrections and new versions must preserve prior meaning.
+- Stability Pulls create or link QC Samples and reuse QC Sample Tests, assignments,
+  results, review, and finalization. Stability has no separate result engine.
+- Organization-owned root business records are scope filtered by the backend. Children
+  normally inherit access through their parent relationship.
+- Every business domain must define SELF explicitly. In QC analyst workflows SELF means
+  currently assigned work, not all records created by the actor.
+- Referenced master data is normally deactivated rather than hard deleted.
+- No universal workflow status enum exists; bounded domains own their status vocabulary.

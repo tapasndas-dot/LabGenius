@@ -762,25 +762,38 @@ scoped user administration, role/assignment administration, and audit browsing.
 
 ---
 
-# Sprint 16 — Business Modules
+# Business-Domain / Process Module Development
 
-### Status
+The platform foundation is complete. Business Domain Blueprint v1.0 establishes
+the approved dependency sequence for Sprints 16–24:
 
-SEQUENCING DECISION REQUIRED
+1. Sprint 16 — Shared Business Domain Foundation
+2. Sprint 17 — Instrument / Asset Registry
+3. Sprint 18 — QC Master Data
+4. Sprint 19 — Sample Registration & Test Generation
+5. Sprint 20 — Analyst Assignment & Workbench
+6. Sprint 21 — Result Entry, Review & Finalization
+7. Sprint 22 — QC Operational Dashboard
+8. Sprint 23 — Stability Protocol & Study Management
+9. Sprint 24 — Stability Pull Scheduling & QC Integration
 
-### Planned Work
+Dependency direction:
 
-- Asset Management
-- Calibration Management
-- Service Management
-- Stability Management
-- Laboratory workflows
-- Customer management
-- Field-service workflows
+    Shared Masters
+      → Instruments
+      → QC Masters
+      → Samples
+      → Assignments
+      → Results
+      → QC Dashboard
+      → Stability Protocols / Studies
+      → Stability Pulls
+      → existing QC testing engine
 
-The platform foundation is complete. Business-domain/process module development
-is next. This candidate list is not an implementation order; the first module
-requires an explicit product sequencing decision.
+Calibration, Maintenance, and Qualification remain later domains that reuse the
+shared Instrument Registry; they are not implementation scope for Sprints 16–24.
+See the [Business Domain Blueprint](08_Business_Domain_Blueprint.md) for the
+approved design baseline.
 
 ---
 

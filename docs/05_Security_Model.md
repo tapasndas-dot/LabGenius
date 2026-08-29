@@ -1250,3 +1250,15 @@ workflow until refreshed backend state confirms clearance. Effective permissions
 UI visibility only; FastAPI RBAC and organization scope remain the security boundary.
 401 clears invalid auth, 403 preserves the session. Administration uses dedicated user
 security endpoints, selectively refreshes authorization, and keeps audit history read-only.
+
+## 24L. Future Business-Domain Authorization
+
+Business domains reuse the existing JWT authentication, permission-based RBAC,
+`OrganizationScopeService`, direct-ID concealment, and `AuditService`. Organization-owned
+roots carry the ownership needed for scope filtering; child access normally resolves
+through a scoped parent rather than duplicating hierarchy columns.
+
+Business permissions will follow the existing `<domain>.<action>` direction and will be
+introduced incrementally during their implementation sprints. This blueprint documentation
+does not create or claim any Sprint 16+ permission codes. Domain-specific SELF behavior
+must be explicit; QC analyst SELF means actively assigned work.
