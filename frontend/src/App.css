@@ -42,6 +42,7 @@ button:disabled { cursor: not-allowed; opacity: .62; }
   margin: 8px 0 0; padding: 10px 12px; border-radius: 8px;
   background: #fef2f2; color: #a12828; font-size: .88rem; line-height: 1.4;
 }
+.form-success { margin: 0; padding: 10px 12px; border-radius: 8px; background: #e7f6ed; color: #17663a; font-size: .88rem; }
 .app-loading { background: #f3f7f6; }
 .app-loading span {
   width: 30px; height: 30px; border: 3px solid #cbdad7;
@@ -139,6 +140,9 @@ td small { display: block; margin-top: 3px; color: #71817e; }
 .record-meta dt { font-weight: 700; }.record-meta dd { margin: 0; overflow-wrap: anywhere; }
 .pagination { justify-content: flex-end; }.pagination span { color: #60716e; font-size: .85rem; }
 .json-view { max-height: 360px; overflow: auto; padding: 14px; border-radius: 8px; background: #152522; color: #d9ebe7; font-size: .78rem; }
+.status-pill { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: .76rem; font-weight: 700; }
+.status-pill.active { background: #e1f3e8; color: #17663a; }.status-pill.inactive { background: #f3eeee; color: #795050; }
+.refresh-button { justify-self: start; }.master-detail { margin-top: 4px; }.master-detail .record-meta > div { display: contents; }
 @media (max-width: 700px) {
   .form-grid { grid-template-columns: 1fr; }
   .admin-page-header { flex-direction: column; }

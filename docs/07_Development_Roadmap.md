@@ -769,7 +769,7 @@ the approved dependency sequence for Sprints 16–24:
 
 1. Sprint 16A — Database + Shared Business Foundation — COMPLETE
 2. Sprint 16B — APIs + Authorization + Audit — COMPLETE
-3. Sprint 16C — Frontend Shared Masters + Sprint Validation
+3. Sprint 16C — Frontend Shared Masters + Sprint Validation — COMPLETE
 4. Sprint 16D — Module Capability Foundation
 5. Sprint 17 — Instrument / Asset Registry
 6. Sprint 18 — QC Master Data

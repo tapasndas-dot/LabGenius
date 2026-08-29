@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { ADMINISTRATION_PERMISSIONS } from '../auth/permissions'
+import { ADMINISTRATION_PERMISSIONS, MASTER_VIEW_PERMISSIONS } from '../auth/permissions'
 import { useAuthorization } from '../auth/useAuthorization'
 
 export function ApplicationShell() {
@@ -20,6 +20,7 @@ export function ApplicationShell() {
     <div className="app-body">
       <aside className="app-sidebar"><nav aria-label="Primary navigation">
         <NavLink to="/app" end>Home</NavLink>
+        {hasAnyPermission(MASTER_VIEW_PERMISSIONS) && <NavLink to="/app/masters">Masters</NavLink>}
         {hasAnyPermission(ADMINISTRATION_PERMISSIONS) && <NavLink to="/app/administration">Administration</NavLink>}
       </nav></aside>
       <main className="app-content"><Outlet /></main>

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — Sprint 16C Frontend Shared Masters
+
+- Added permission-aware Masters navigation and guarded pages for Locations,
+  Manufacturers, Instrument Types, and Materials.
+- Added shared typed CRUD, filtering, pagination, detail, status, delete-confirmation,
+  safe error, and optimistic-concurrency UI patterns.
+- Added a reusable human-readable lookup/select foundation for parent Locations.
+- Completed Sprint 16 frontend/backend/database closure validation while leaving Sprint
+  16D Module Capability Foundation as the next task; Sprint 16 overall remains open.
+- Updated the transitive `nanoid` dependency to the patched release; npm audit reports
+  zero known vulnerabilities.
+
 ### Documentation — Business Domain Blueprint v1.1
 
 - Established LabGenius as an industry-neutral laboratory platform with pharmaceutical

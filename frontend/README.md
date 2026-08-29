@@ -39,6 +39,10 @@ Current route foundation:
 - `/login`
 - `/change-password`
 - `/app`
+- `/app/masters/locations`
+- `/app/masters/manufacturers`
+- `/app/masters/instrument-types`
+- `/app/masters/materials`
 - `/app/administration/users`
 - `/app/administration/roles`
 - `/app/administration/role-permissions`
@@ -57,6 +61,20 @@ Audit history is read-only and paginated.
 User creation hierarchy UUIDs remain backend-validated and are never invented or
 hard-coded. API `version` values are displayed where returned, but mapper-level
 optimistic locking is not yet a backend guarantee.
+
+## Shared masters
+
+The Masters area provides permission-aware CRUD for Locations, Manufacturers,
+Instrument Types, and Materials. Lists use backend search, active-state filtering,
+pagination, and organization isolation. Create/update/status/delete actions appear only
+for their exact effective permissions; FastAPI still enforces every operation.
+
+Business-master update, activation, deactivation, and delete requests preserve the
+record's expected `version`. A stale 409 remains visible and offers a current-data
+refresh instead of overwriting. Location parents use an accessible active-location
+lookup showing code and name while storing the UUID internally.
+
+Module-capability navigation and guards are intentionally absent until Sprint 16D.
 
 ## Commands
 

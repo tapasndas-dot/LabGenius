@@ -14,6 +14,8 @@ import { AuditPage } from './pages/admin/AuditPage'
 import { PublicOnlyRoute, RequireAuthenticated, RequireNormalSession } from './routes/RouteGuards'
 import { useAuth } from './auth/AuthContext'
 import { PermissionGate } from './routes/PermissionGate'
+import { MasterPage } from './pages/masters/MasterPage'
+import { MastersIndex, MastersLayout } from './pages/masters/MastersLayout'
 import './App.css'
 
 function UnknownRoute() {
@@ -33,6 +35,13 @@ function App() {
       <Route path="/not-authorized" element={<NotAuthorizedPage />} />
       <Route path="/app" element={<ApplicationShell />}>
         <Route index element={<HomePage />} />
+        <Route path="masters" element={<MastersLayout />}>
+          <Route index element={<MastersIndex />} />
+          <Route path="locations" element={<PermissionGate anyOf={['location.view']}><MasterPage kind="location" /></PermissionGate>} />
+          <Route path="manufacturers" element={<PermissionGate anyOf={['manufacturer.view']}><MasterPage kind="manufacturer" /></PermissionGate>} />
+          <Route path="instrument-types" element={<PermissionGate anyOf={['instrument_type.view']}><MasterPage kind="instrument_type" /></PermissionGate>} />
+          <Route path="materials" element={<PermissionGate anyOf={['material.view']}><MasterPage kind="material" /></PermissionGate>} />
+        </Route>
         <Route path="administration" element={<AdministrationPage />}>
           <Route index element={<AdministrationIndex />} />
           <Route path="users" element={<PermissionGate anyOf={['user.view']}><UsersPage /></PermissionGate>} />
