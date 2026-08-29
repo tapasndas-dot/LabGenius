@@ -12,6 +12,7 @@ from app.repositories.user.role_repository import RoleRepository
 from app.schemas.user_role import UserRoleCreate
 from app.services.user.admin_safety_service import AdminSafetyService
 from app.services.organization_scope_service import OrganizationScopeService
+from app.services.audit_service import AuditAction, AuditService
 
 
 class UserRoleService:
@@ -25,6 +26,7 @@ class UserRoleService:
         self.role_repository = RoleRepository()
         self.admin_safety_service = AdminSafetyService()
         self.scope_service = OrganizationScopeService()
+        self.audit_service = AuditService()
 
     def get_by_user(
         self,
@@ -112,10 +114,16 @@ class UserRoleService:
             access_scope=data.access_scope,
         )
 
-        return self.repository.create(
-            db,
-            assignment,
+        db.add(assignment)
+        db.flush()
+        self.audit_service.record_action(
+            db, action=AuditAction.ASSIGN, entity_type="UserRole",
+            entity_id=assignment.id, actor=actor, owner=user,
+            changes={"assigned": self.audit_service.snapshot(assignment)},
         )
+        db.commit()
+        db.refresh(assignment)
+        return assignment
 
     def remove_role(
         self,
@@ -146,10 +154,14 @@ class UserRoleService:
             actor_user_id=actor.id,
         )
 
-        self.repository.delete_assignment(
-            db,
-            assignment,
+        before = self.audit_service.snapshot(assignment)
+        self.audit_service.record_action(
+            db, action=AuditAction.UNASSIGN, entity_type="UserRole",
+            entity_id=assignment.id, actor=actor, owner=user,
+            changes={"unassigned": before},
         )
+        db.delete(assignment)
+        db.commit()
 
         return {
             "message": "Role removed from user successfully."

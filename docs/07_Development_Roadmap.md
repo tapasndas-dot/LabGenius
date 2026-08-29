@@ -723,14 +723,15 @@ assignment administration.
 
 ### Status
 
-NEXT
+COMPLETE
 
-### Planned Work
+### Completed Work
 
-- Audit logging
-- Security event logging
-- User activity tracking
-- Role/permission change history
+- Append-only application audit logging
+- Central safe change capture and credential sanitization
+- Request UUID and direct client-IP context
+- User, role, user-role, and role-permission administrative auditing
+- `audit.view` and organization-scoped read APIs
 - Data change history
 - Administrative action history
 - Compliance reporting foundation
@@ -738,6 +739,10 @@ NEXT
 ---
 
 # Sprint 15 — Frontend Foundation
+
+### Status
+
+NEXT
 
 ### Planned Work
 

@@ -605,3 +605,30 @@ user's department but remains a job/workflow attribute rather than a scope level
 - Existing ADMIN assignments are backfilled to ORGANIZATION; other assignments
   default safely to SELF.
 - Sprint 13 is complete; Sprint 14 Audit & Compliance Foundation is next.
+
+---
+
+## ADR-024 — Append-Only Application Audit Events
+
+### Decision
+
+Application changes use a distinct `AuditEvent`; authentication remains in
+`LoginHistory` and security activity in `SecurityEvent`. Audit events use a minimal
+UUID base, have no active/version/update fields, and have no mutation API. The varied
+target ID is intentionally not an FK; nullable actor/hierarchy FKs use SET NULL.
+
+`AuditService` captures scalar snapshots, changed fields only for updates, pre-delete
+state, optional reasons, and extensible actions. One recursive sanitizer is shared with
+`SecurityAuditService`. Audited services add the mutation and audit row to one transaction.
+
+Middleware generates a request UUID, returns `X-Request-ID`, and captures the direct
+client address without trusting proxy headers. Reads require `audit.view` plus SQL-level
+organization scope. SELF shows actor-owned events only; direct denial is concealed as 404.
+
+### Consequences
+
+Indexes support timestamp, actor, action, organization, and entity lookup. No purge or
+fixed retention is implemented. This improves traceability but is not certification and
+does not implement electronic signatures. Existing model version columns are not mapped
+as SQLAlchemy optimistic-lock columns; broader concurrency redesign is deferred. Sprint
+14 is complete and Sprint 15 Frontend Foundation is next.

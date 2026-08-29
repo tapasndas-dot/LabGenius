@@ -1053,3 +1053,23 @@ an incomplete session subsystem during Sprint 12 closure.
   scope.
 - Designation is not an authorization boundary.
 - Role and permission catalogs remain global configuration operations.
+
+## 30. Audit and Compliance Foundation Rules (Sprint 14)
+
+- Successful audited mutations and their `AuditEvent` commit in one database
+  transaction; rollback removes both. Failed attempts are not application audit events.
+- UPDATE stores only changed safe before/after values. CREATE stores a scalar-column
+  snapshot; DELETE stores a safe pre-delete snapshot.
+- Actions use extensible uppercase strings. Current actions are CREATE, UPDATE, DELETE,
+  ACTIVATE, DEACTIVATE, ASSIGN, and UNASSIGN.
+- Reasons are optional and do not constitute an electronic signature.
+- Audit lists are SQL-filtered, newest-first, and limited to 1–500 rows.
+- Audit records have no normal update, soft-delete, or delete operation. Retention and
+  archival are deployment/customer-policy decisions; no automated purge exists.
+- Global catalog operations retain the actor's organization for safely scoped history;
+  organization-owned user operations retain the target hierarchy.
+- Existing version columns are a foundation only; SQLAlchemy mapper-level optimistic
+  locking is not configured. Sprint 14 does not introduce event sourcing.
+- This foundation supports traceability but does not establish 21 CFR Part 11, EU Annex
+  11, GxP, data-integrity, or electronic-signature compliance. Validation, SOPs,
+  qualification, infrastructure, backup/restore, retention, and customer controls remain.

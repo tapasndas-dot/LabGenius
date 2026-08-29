@@ -10,6 +10,7 @@ from app.schemas.role import (
     RoleUpdate,
 )
 from app.services.user.admin_safety_service import AdminSafetyService
+from app.services.audit_service import AuditAction, AuditService
 
 
 class RoleService:
@@ -20,6 +21,7 @@ class RoleService:
     def __init__(self):
         self.repository = RoleRepository()
         self.admin_safety_service = AdminSafetyService()
+        self.audit_service = AuditService()
 
     def get_all(
         self,
@@ -73,6 +75,7 @@ class RoleService:
         self,
         db: Session,
         data: RoleCreate,
+        actor=None,
     ):
         existing = self.repository.get_by_code(
             db,
@@ -94,27 +97,31 @@ class RoleService:
             description=data.description,
         )
 
-        return self.repository.create(
-            db,
-            role,
-        )
+        db.add(role)
+        db.flush()
+        self.audit_service.record_create(db, entity=role, actor=actor, owner=actor)
+        db.commit()
+        db.refresh(role)
+        return role
 
     def update(
         self,
         db: Session,
         role,
         data: RoleUpdate,
+        actor=None,
     ):
+        before = self.audit_service.snapshot(role)
         if data.role_name is not None:
             role.role_name = data.role_name
 
         if data.description is not None:
             role.description = data.description
 
-        return self.repository.update(
-            db,
-            role,
-        )
+        self.audit_service.record_update(db, entity=role, actor=actor, before=before, owner=actor)
+        db.commit()
+        db.refresh(role)
+        return role
 
     def update_status(
         self,
@@ -122,6 +129,7 @@ class RoleService:
         role_id: UUID,
         data: RoleStatusUpdate,
         actor_user_id: UUID | None = None,
+        actor=None,
     ):
         role = self.get(
             db,
@@ -135,9 +143,11 @@ class RoleService:
                 actor_user_id=actor_user_id,
             )
 
+        before = self.audit_service.snapshot(role)
         role.is_active = data.is_active
-
-        return self.repository.update(
-            db,
-            role,
-        )
+        action = AuditAction.ACTIVATE if data.is_active else AuditAction.DEACTIVATE
+        self.audit_service.record_update(db, entity=role, actor=actor, before=before,
+                                         owner=actor, action=action)
+        db.commit()
+        db.refresh(role)
+        return role

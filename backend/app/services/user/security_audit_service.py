@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.user.login_history import LoginHistory
 from app.models.user.security_event import SecurityEvent
 from app.repositories.user.security_audit_repository import SecurityAuditRepository
+from app.core.sanitization import sanitize
 
 
 class SecurityAuditService:
@@ -78,15 +79,7 @@ class SecurityAuditService:
 
     @classmethod
     def _sanitize_details(cls, value: Any) -> Any:
-        if isinstance(value, dict):
-            return {
-                key: cls._sanitize_details(item)
-                for key, item in value.items()
-                if key.lower() not in cls._PROHIBITED_DETAIL_KEYS
-            }
-        if isinstance(value, list):
-            return [cls._sanitize_details(item) for item in value]
-        return value
+        return sanitize(value)
 
     def list_login_history(self, db: Session, **kwargs) -> list[LoginHistory]:
         return self.repository.list_login_history(db, **kwargs)

@@ -28,6 +28,11 @@ from app.models.user.role_permission import RolePermission
 # ---------------------------------------------------------------------------
 
 PERMISSION_CATALOG = [
+    {
+        "permission_code": "audit.view",
+        "permission_name": "View Audit Events",
+        "description": "View application audit events within assigned organization scope.",
+    },
     # Organization
     {
         "permission_code": "organization.view",

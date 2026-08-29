@@ -13,6 +13,7 @@ from app.repositories.user.security_repository import (
 )
 from app.services.user.security_audit_service import SecurityAuditService
 from app.services.user.admin_safety_service import AdminSafetyService
+from app.services.audit_service import AuditAction, AuditService
 
 
 class SecurityService:
@@ -21,6 +22,7 @@ class SecurityService:
         self.repository = SecurityRepository()
         self.audit_service = SecurityAuditService()
         self.admin_safety_service = AdminSafetyService()
+        self.application_audit_service = AuditService()
 
     def get_user(
         self,
@@ -47,6 +49,7 @@ class SecurityService:
         actor_user_id: UUID | None = None,
     ) -> User:
 
+        before = self.application_audit_service.snapshot(user)
         user.is_active = True
 
         if user.account_status != "LOCKED":
@@ -58,6 +61,10 @@ class SecurityService:
             event_type=SecurityAuditService.ACCOUNT_ACTIVATED,
             actor_user_id=actor_user_id,
             target_user_id=user.id,
+        )
+        self.application_audit_service.record_update(
+            db, entity=user, actor=actor_user_id,
+            before=before, action=AuditAction.ACTIVATE,
         )
         db.commit()
         db.refresh(user)
@@ -77,6 +84,7 @@ class SecurityService:
             operation="DEACTIVATE_USER",
         )
 
+        before = self.application_audit_service.snapshot(user)
         user.is_active = False
         user.account_status = "INACTIVE"
 
@@ -86,6 +94,10 @@ class SecurityService:
             event_type=SecurityAuditService.ACCOUNT_DEACTIVATED,
             actor_user_id=actor_user_id,
             target_user_id=user.id,
+        )
+        self.application_audit_service.record_update(
+            db, entity=user, actor=actor_user_id,
+            before=before, action=AuditAction.DEACTIVATE,
         )
         db.commit()
         db.refresh(user)

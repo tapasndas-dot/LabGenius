@@ -22,6 +22,7 @@ from app.core.exceptions import (
 )
 from app.services.user.admin_safety_service import AdminSafetyService
 from app.services.organization_scope_service import OrganizationScopeService
+from app.services.audit_service import AuditService
 
 
 class UserService(BaseService[User]):
@@ -31,6 +32,7 @@ class UserService(BaseService[User]):
 
         self.admin_safety_service = AdminSafetyService()
         self.scope_service = OrganizationScopeService()
+        self.audit_service = AuditService()
 
     def get_all_scoped(self, db: Session, actor: User):
         return self.scope_service.filter_users(db, actor, "user.view").all()
@@ -111,10 +113,12 @@ class UserService(BaseService[User]):
             language=user.language,
         )
 
-        return self.repository.create(
-            db,
-            db_object,
-        )
+        db.add(db_object)
+        db.flush()
+        self.audit_service.record_create(db, entity=db_object, actor=actor)
+        db.commit()
+        db.refresh(db_object)
+        return db_object
 
     def update(
         self,
@@ -126,6 +130,7 @@ class UserService(BaseService[User]):
 
         self.scope_service.ensure_can_access_user(actor, db_object, "user.update")
 
+        before = self.audit_service.snapshot(db_object)
         data = update.model_dump(
             exclude_unset=True,
         )
@@ -137,11 +142,6 @@ class UserService(BaseService[User]):
                 value,
             )
 
-        return self.repository.update(
-            db,
-            db_object,
-        )
-
         self.scope_service.validate_hierarchy(
             db,
             organization_id=db_object.organization_id,
@@ -150,6 +150,12 @@ class UserService(BaseService[User]):
             department_id=data.get("department_id", db_object.department_id),
             designation_id=data.get("designation_id", db_object.designation_id),
         )
+        self.audit_service.record_update(
+            db, entity=db_object, actor=actor, before=before
+        )
+        db.commit()
+        db.refresh(db_object)
+        return db_object
 
     def delete(
         self,
@@ -164,4 +170,9 @@ class UserService(BaseService[User]):
             actor_user_id=actor.id,
             operation="DELETE_USER",
         )
-        return self.repository.delete(db, db_object)
+        before = self.audit_service.snapshot(db_object)
+        self.audit_service.record_delete(
+            db, entity=db_object, actor=actor, before=before
+        )
+        db.delete(db_object)
+        db.commit()

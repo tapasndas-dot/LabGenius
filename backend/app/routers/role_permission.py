@@ -58,6 +58,7 @@ def assign_permission(
         db,
         role_id,
         data,
+        current_user,
     )
 
 
@@ -78,4 +79,5 @@ def remove_permission(
         db,
         role_id,
         permission_id,
+        current_user,
     )

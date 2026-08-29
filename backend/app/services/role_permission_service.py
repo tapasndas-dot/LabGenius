@@ -14,6 +14,7 @@ from app.repositories.user.role_permission_repository import (
 from app.schemas.role_permission import (
     RolePermissionCreate,
 )
+from app.services.audit_service import AuditAction, AuditService
 
 
 class RolePermissionService:
@@ -23,6 +24,7 @@ class RolePermissionService:
 
     def __init__(self):
         self.repository = RolePermissionRepository()
+        self.audit_service = AuditService()
 
     def get_by_role(
         self,
@@ -39,6 +41,7 @@ class RolePermissionService:
         db: Session,
         role_id: UUID,
         data: RolePermissionCreate,
+        actor=None,
     ):
         role = (
             db.query(Role)
@@ -95,16 +98,23 @@ class RolePermissionService:
             permission_id=data.permission_id,
         )
 
-        return self.repository.create(
-            db,
-            assignment,
+        db.add(assignment)
+        db.flush()
+        self.audit_service.record_action(
+            db, action=AuditAction.ASSIGN, entity_type="RolePermission",
+            entity_id=assignment.id, actor=actor, owner=actor,
+            changes={"assigned": self.audit_service.snapshot(assignment)},
         )
+        db.commit()
+        db.refresh(assignment)
+        return assignment
 
     def remove_permission(
         self,
         db: Session,
         role_id: UUID,
         permission_id: UUID,
+        actor=None,
     ):
         assignment = self.repository.get_assignment(
             db,
@@ -118,10 +128,14 @@ class RolePermissionService:
                 detail="Role-permission assignment not found.",
             )
 
-        self.repository.delete_assignment(
-            db,
-            assignment,
+        before = self.audit_service.snapshot(assignment)
+        self.audit_service.record_action(
+            db, action=AuditAction.UNASSIGN, entity_type="RolePermission",
+            entity_id=assignment.id, actor=actor, owner=actor,
+            changes={"unassigned": before},
         )
+        db.delete(assignment)
+        db.commit()
 
         return {
             "message": "Permission removed from role successfully."

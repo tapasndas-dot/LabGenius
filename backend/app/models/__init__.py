@@ -14,6 +14,7 @@ from .user import (
     LoginHistory,
     SecurityEvent,
 )
+from .audit_event import AuditEvent
 
 __all__ = [
     "Organization",
@@ -26,4 +27,5 @@ __all__ = [
     "RolePermission",
     "LoginHistory",
     "SecurityEvent",
+    "AuditEvent",
 ]

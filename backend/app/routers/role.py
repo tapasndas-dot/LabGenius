@@ -84,6 +84,7 @@ def create_role(
     return service.create(
         db,
         role,
+        current_user,
     )
 
 
@@ -131,5 +132,7 @@ def update_role_status(
         db,
         role_id,
         update,
+        current_user,
         actor_user_id=current_user.id,
+        actor=current_user,
     )

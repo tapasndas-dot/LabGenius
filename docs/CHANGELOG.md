@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added — Sprint 14 Audit & Compliance Foundation
+
+- Append-only `AuditEvent` records with actor, entity identity, hierarchy ownership,
+  safe JSONB changes, optional reason, request UUID, source IP, and source type.
+- Atomic auditing for user CRUD and activation/deactivation, role create/update/status,
+  user-role assignment/removal, and role-permission assignment/removal.
+- Read-only audit APIs with bounded SQL pagination, filters, newest-first ordering,
+  `audit.view`, and organization scope.
+- Server-generated `X-Request-ID` values and shared recursive sanitization.
+- Migration `e7a4c1d9b302`; idempotent ADMIN seeding updated for `audit.view`.
+
+### Fixed — Sprint 14
+
+- Restored reachable organizational hierarchy validation during user updates.
+
+### Compliance Position
+
+- This traceability foundation is not certification of 21 CFR Part 11, EU Annex 11,
+  GxP, data-integrity compliance, or electronic-signature compliance.
+
 ### Added — Sprint 13 Organization-Level Authorization
 
 - Per-UserRole ORGANIZATION, BUSINESS_UNIT, DIVISION, DEPARTMENT, and SELF scopes.

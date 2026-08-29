@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from uuid import uuid4
+
+from fastapi import FastAPI, Request
 
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
@@ -16,6 +18,8 @@ from app.routers import permission
 from app.routers import root
 from app.routers import user_role
 from app.routers import security_history
+from app.routers import audit
+from app.core.request_context import RequestContext, reset_request_context, set_request_context
 from app.routers.user import security as user_security_router
 from app.routers.auth import router as auth_router
 from app.routers.user import router as user_router
@@ -28,6 +32,22 @@ app = FastAPI(
 
 
 register_exception_handlers(app)
+
+
+@app.middleware("http")
+async def request_context_middleware(request: Request, call_next):
+    request_id = str(uuid4())
+    token = set_request_context(RequestContext(
+        request_id=request_id,
+        source_ip=request.client.host if request.client else None,
+    ))
+    request.state.request_id = request_id
+    try:
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+    finally:
+        reset_request_context(token)
 
 
 app.include_router(
@@ -131,3 +151,5 @@ app.include_router(
     prefix="/security",
     tags=["Security History"],
 )
+
+app.include_router(audit.router, prefix="/audit", tags=["Audit"])

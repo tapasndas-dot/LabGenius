@@ -1212,3 +1212,29 @@ user-role assignment are scope protected.
 Migration `d40a6c87e913` adds constrained `user_roles.access_scope`, defaults
 existing non-ADMIN assignments to `SELF`, and backfills ADMIN assignments to
 `ORGANIZATION`.
+
+## 24J. Application Audit Foundation (Sprint 14)
+
+`LoginHistory`, `SecurityEvent`, and `AuditEvent` remain separate. Login history
+records authentication attempts; security events record account/security activity;
+audit events record successful application and administrative changes. A lifecycle
+operation may create both a security event and an audit event.
+
+`AuditEvent` is append-only and does not inherit mutable `MasterEntity` fields such
+as `is_active`, `version`, or `updated_at`. No mutation/delete API is exposed. Target
+`entity_id` has no polymorphic FK, so history survives target deletion. Nullable actor
+and hierarchy FKs use `ON DELETE SET NULL`.
+
+Every HTTP request receives a server-generated UUID returned as `X-Request-ID`;
+untrusted inbound values are ignored. Direct `Request.client.host` is captured as the
+baseline source IP. Proxy-aware attribution is a deployment concern and forwarded-for
+headers are not trusted.
+
+The `audit.view` permission and its assignment scope are both required. Organization,
+BU, division, and department scopes filter ownership in SQL. SELF is conservative:
+only events performed by that actor are visible. Global/unowned events are hidden by
+normal scopes. Direct UUID lookup uses the same scope and returns 404 on denial.
+
+Sanitization is shared by application and security auditing and recursively removes
+password, token, JWT, authorization, API-key, secret, database-password, and credential
+keys. Current JWTs still remain valid until expiry because revocation is not implemented.
