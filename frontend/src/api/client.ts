@@ -2,7 +2,7 @@ import { tokenStorage } from '../auth/tokenStorage'
 import { API_BASE_URL } from './config'
 
 type ApiErrorBody = {
-  detail?: string
+  detail?: string | Array<{ loc?: Array<string | number>; msg?: string }>
 }
 
 export class ApiError extends Error {
@@ -32,7 +32,12 @@ export function setUnauthorizedHandler(handler?: () => void): void {
 async function parseError(response: Response): Promise<string> {
   try {
     const body = (await response.json()) as ApiErrorBody
-    return typeof body.detail === 'string' ? body.detail : 'Request failed.'
+    if (typeof body.detail === 'string') return body.detail
+    if (Array.isArray(body.detail)) {
+      const messages = body.detail.map((item) => item.msg).filter(Boolean)
+      if (messages.length) return messages.join(' ')
+    }
+    return 'Request failed.'
   } catch {
     return 'Request failed.'
   }

@@ -1238,3 +1238,15 @@ normal scopes. Direct UUID lookup uses the same scope and returns 404 on denial.
 Sanitization is shared by application and security auditing and recursively removes
 password, token, JWT, authorization, API-key, secret, database-password, and credential
 keys. Current JWTs still remain valid until expiry because revocation is not implemented.
+
+## 24K. Frontend Authentication and Authorization (Sprint 15)
+
+React authenticates through `/auth/login`, centrally stores the stateless bearer JWT in
+`localStorage`, and restores `/auth/me`. This is not equivalent to an HttpOnly cookie;
+XSS hardening and a future session/refresh architecture remain relevant.
+
+Protected routes wait for restoration. Forced-password users remain in the password
+workflow until refreshed backend state confirms clearance. Effective permissions control
+UI visibility only; FastAPI RBAC and organization scope remain the security boundary.
+401 clears invalid auth, 403 preserves the session. Administration uses dedicated user
+security endpoints, selectively refreshes authorization, and keeps audit history read-only.

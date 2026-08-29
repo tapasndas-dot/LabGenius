@@ -39,9 +39,24 @@ Current route foundation:
 - `/login`
 - `/change-password`
 - `/app`
-- `/app/administration` (Task 15C placeholder only)
+- `/app/administration/users`
+- `/app/administration/roles`
+- `/app/administration/role-permissions`
+- `/app/administration/user-roles`
+- `/app/administration/audit`
 - `/not-authorized`
 - routing-level not found handling
+
+## Administration
+
+Administration tabs are shown from effective permission codes. Users are always
+the backend-scoped result set; dedicated lifecycle and password APIs are used.
+Role and assignment changes that can alter the current session refresh `/auth/me`.
+Audit history is read-only and paginated.
+
+User creation hierarchy UUIDs remain backend-validated and are never invented or
+hard-coded. API `version` values are displayed where returned, but mapper-level
+optimistic locking is not yet a backend guarantee.
 
 ## Commands
 

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — Sprint 15 Frontend Foundation
+
+- React/TypeScript/Vite foundation with configurable API client and JWT restoration.
+- Protected and forced-password routes, application shell, safe 403/404 handling.
+- Effective-permission navigation with backend authorization remaining authoritative.
+- Scoped users, roles, role/user assignments, access scopes, and read-only audit UI.
+- Selective `/auth/me` refresh after authorization-changing operations.
+
+### Security — Sprint 15
+
+- Centralized `localStorage` JWT handling documents its XSS trade-off.
+- Organization scope remains server-enforced and is not reimplemented in React.
+
 ### Added — Sprint 14 Audit & Compliance Foundation
 
 - Append-only `AuditEvent` records with actor, entity identity, hierarchy ownership,

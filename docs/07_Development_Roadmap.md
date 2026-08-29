@@ -742,9 +742,9 @@ COMPLETE
 
 ### Status
 
-NEXT
+COMPLETE
 
-### Planned Work
+### Completed Work
 
 - React application foundation
 - Authentication integration
@@ -756,9 +756,17 @@ NEXT
 - User/role administration UI
 - Organization hierarchy UI
 
+Completed across Tasks 15A–15C: centralized API/JWT authentication, protected
+and forced-password routes, application shell, permission-aware navigation,
+scoped user administration, role/assignment administration, and audit browsing.
+
 ---
 
 # Sprint 16 — Business Modules
+
+### Status
+
+SEQUENCING DECISION REQUIRED
 
 ### Planned Work
 
@@ -769,6 +777,10 @@ NEXT
 - Laboratory workflows
 - Customer management
 - Field-service workflows
+
+The platform foundation is complete. Business-domain/process module development
+is next. This candidate list is not an implementation order; the first module
+requires an explicit product sequencing decision.
 
 ---
 

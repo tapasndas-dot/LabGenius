@@ -1073,3 +1073,14 @@ an incomplete session subsystem during Sprint 12 closure.
 - This foundation supports traceability but does not establish 21 CFR Part 11, EU Annex
   11, GxP, data-integrity, or electronic-signature compliance. Validation, SOPs,
   qualification, infrastructure, backup/restore, retention, and customer controls remain.
+
+## 31. Frontend Foundation Rules (Sprint 15)
+
+- Backend RBAC and organization scope are authoritative; hidden UI never grants access.
+- Forced-password users remain restricted until backend state is refreshed and cleared.
+- User lifecycle/password/delete operations use dedicated endpoints and preserve final-
+  ADMIN safeguards; a rejected 409 must remain visibly failed.
+- User lists contain only backend-scoped results; safe 404 concealment remains intact.
+- Authorization summaries refresh only after relevant role/assignment changes.
+- Audit UI is read-only and bounded. Returned version fields do not imply optimistic
+  locking; mapper-level concurrency enforcement remains future backend work.

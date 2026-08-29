@@ -632,3 +632,24 @@ fixed retention is implemented. This improves traceability but is not certificat
 does not implement electronic signatures. Existing model version columns are not mapped
 as SQLAlchemy optimistic-lock columns; broader concurrency redesign is deferred. Sprint
 14 is complete and Sprint 15 Frontend Foundation is next.
+
+---
+
+## ADR-025 — Frontend Authorization Is Advisory
+
+### Decision
+
+React uses a centralized API client, AuthContext, protected routes, and effective
+permission codes from `/auth/me`. Permissions determine visible navigation/actions;
+FastAPI RBAC plus organization scope remains authoritative. React does not calculate
+hierarchy scope. Forced-password routing requires refreshed backend confirmation.
+
+The stateless JWT uses one `localStorage` adapter with an explicit interim XSS trade-off.
+Administration covers scoped users, roles, assignments, and read-only audit. Relevant
+authorization changes selectively refresh `/auth/me`. Version fields do not claim
+optimistic-lock guarantees.
+
+### Consequences
+
+Sprint 15 completes the platform foundation. Business-domain/process development is
+next, but the first module requires an explicit sequencing decision.
