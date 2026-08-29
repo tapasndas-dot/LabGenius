@@ -1037,3 +1037,19 @@ normal authenticated password/security administration.
 Access-token expiry is the current risk-control boundary after password mutation.
 Token revocation and session versioning remain deferred rather than introducing
 an incomplete session subsystem during Sprint 12 closure.
+
+## 29. Organization Scope Rules (Sprint 13)
+
+- Every scoped operation requires both its RBAC permission and an applicable
+  active `UserRole.access_scope`.
+- Scope levels are ORGANIZATION, BUSINESS_UNIT, DIVISION, DEPARTMENT, and SELF.
+- No scope crosses the authenticated user's organization.
+- Multiple roles combine only when they grant the same requested permission;
+  the broadest qualifying scope is effective.
+- Lists must filter in SQL. Direct UUID operations outside scope return 404.
+- User create/update must validate Organization → Business Unit → Division →
+  Department and Designation → Department consistency.
+- Assignment scope cannot exceed the assigning user's effective `user.update`
+  scope.
+- Designation is not an authorization boundary.
+- Role and permission catalogs remain global configuration operations.

@@ -30,7 +30,7 @@ def get_users(
         ),
     ),
 ):
-    return service.get_all(db)
+    return service.get_all_scoped(db, current_user)
 
 
 @router.get(
@@ -46,9 +46,11 @@ def get_user(
         ),
     ),
 ):
-    return service.get(
+    return service.get_scoped(
         db,
         user_id,
+        current_user,
+        "user.view",
     )
 
 
@@ -68,6 +70,7 @@ def create_user(
     return service.create(
         db,
         user,
+        current_user,
     )
 
 
@@ -85,15 +88,18 @@ def update_user(
         ),
     ),
 ):
-    db_object = service.get(
+    db_object = service.get_scoped(
         db,
         user_id,
+        current_user,
+        "user.update",
     )
 
     return service.update(
         db,
         db_object,
         update,
+        current_user,
     )
 
 
@@ -109,15 +115,17 @@ def delete_user(
         ),
     ),
 ):
-    db_object = service.get(
+    db_object = service.get_scoped(
         db,
         user_id,
+        current_user,
+        "user.delete",
     )
 
     service.delete(
         db,
         db_object,
-        actor_user_id=current_user.id,
+        actor=current_user,
     )
 
     return {

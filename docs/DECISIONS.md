@@ -568,3 +568,40 @@ Neither is necessary to safely close Sprint 12, so both remain future work.
 - No refresh-token or partial revocation architecture is introduced.
 - Operators understand the maximum current exposure window.
 - Sprint 12 is complete; Sprint 13 Organization-Level Authorization is next.
+
+---
+
+## ADR-023 — Permission-Specific Scope on UserRole
+
+### Decision
+
+Organizational access scope is persisted on `UserRole`, not User or Role. This
+supports one user with multiple roles and the same reusable role with different
+scope assignments. Scope values are ORGANIZATION, BUSINESS_UNIT, DIVISION,
+DEPARTMENT, and SELF.
+
+Effective scope is resolved independently for each permission. Only active
+assignments whose active roles and active role-permission mappings grant the
+requested permission participate; the broadest qualifying scope wins. Assignment
+scope cannot exceed the administrator's effective `user.update` scope.
+
+### Isolation and Filtering
+
+All scope remains anchored inside the user's organization. User collection
+queries apply SQL filters, and direct objects are separately checked with 404 on
+denial to limit UUID-based information disclosure. Hierarchy relationships are
+validated centrally.
+
+### Catalog and Designation Decision
+
+Role and permission catalogs remain global security configuration and are not
+organization-scoped in Sprint 13. Designation is validated as belonging to the
+user's department but remains a job/workflow attribute rather than a scope level.
+
+### Consequences
+
+- Future entities with organization, BU, division, department, or owner IDs can
+  reuse the same scope service without a generic policy-engine redesign.
+- Existing ADMIN assignments are backfilled to ORGANIZATION; other assignments
+  default safely to SELF.
+- Sprint 13 is complete; Sprint 14 Audit & Compliance Foundation is next.

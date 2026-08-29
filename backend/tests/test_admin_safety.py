@@ -176,6 +176,9 @@ class AdminSafetyServiceTests(unittest.TestCase):
         service = UserRoleService()
         service.repository = Mock()
         service.repository.get_assignment.return_value = assignment
+        service.user_repository = Mock()
+        service.user_repository.get.return_value = SimpleNamespace(id=self.target_id)
+        service.scope_service = Mock()
         service.admin_safety_service = Mock()
         service.admin_safety_service.ensure_admin_assignment_can_be_removed.side_effect = (
             SecurityConflictException(AdminSafetyService.BLOCK_MESSAGE)
@@ -186,7 +189,7 @@ class AdminSafetyServiceTests(unittest.TestCase):
                 self.db,
                 self.target_id,
                 self.admin_role.id,
-                actor_user_id=self.actor_id,
+                SimpleNamespace(id=self.actor_id),
             )
 
         service.repository.delete_assignment.assert_not_called()
@@ -236,8 +239,12 @@ class AdminSafetyApiTests(unittest.TestCase):
         role = SimpleNamespace(is_active=True, role_permissions=[role_permission])
         self.actor = SimpleNamespace(
             id=uuid4(),
+            organization_id=uuid4(),
+            business_unit_id=uuid4(),
+            division_id=uuid4(),
+            department_id=uuid4(),
             force_password_change=False,
-            user_roles=[SimpleNamespace(is_active=True, role=role)],
+            user_roles=[SimpleNamespace(is_active=True, role=role, access_scope="ORGANIZATION")],
         )
         app.dependency_overrides[get_db] = lambda: Mock()
         app.dependency_overrides[get_current_user] = lambda: self.actor
@@ -251,7 +258,7 @@ class AdminSafetyApiTests(unittest.TestCase):
             patch.object(
                 user_security_router.service,
                 "get_user",
-                return_value=SimpleNamespace(id=target_id),
+                return_value=SimpleNamespace(id=target_id, organization_id=self.actor.organization_id),
             ),
             patch.object(
                 user_security_router.service,

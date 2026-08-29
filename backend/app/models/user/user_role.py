@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base_entities import MasterEntity
@@ -16,6 +16,10 @@ class UserRole(MasterEntity):
             "user_id",
             "role_id",
             name="uq_user_role",
+        ),
+        CheckConstraint(
+            "access_scope IN ('ORGANIZATION', 'BUSINESS_UNIT', 'DIVISION', 'DEPARTMENT', 'SELF')",
+            name="ck_user_roles_access_scope",
         ),
     )
 
@@ -37,4 +41,11 @@ class UserRole(MasterEntity):
     role = relationship(
         "Role",
         back_populates="user_roles",
+    )
+
+    access_scope: Mapped[str] = mapped_column(
+        String(30),
+        default="SELF",
+        server_default=text("'SELF'"),
+        nullable=False,
     )

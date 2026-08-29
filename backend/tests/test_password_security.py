@@ -233,14 +233,7 @@ class UserCreationPasswordTests(unittest.TestCase):
         self.service.repository.get_by_username.return_value = None
         self.service.repository.get_by_email.return_value = None
         self.service.repository.get_by_employee_code.return_value = None
-        for repository_name in (
-            "organization_repository",
-            "business_unit_repository",
-            "division_repository",
-            "department_repository",
-            "designation_repository",
-        ):
-            getattr(self.service, repository_name).get = Mock(return_value=object())
+        self.service.scope_service = Mock()
 
     @staticmethod
     def make_user(password: str) -> UserCreate:
@@ -261,11 +254,11 @@ class UserCreationPasswordTests(unittest.TestCase):
 
     def test_user_creation_rejects_noncompliant_password(self):
         with self.assertRaises(ValidationException):
-            self.service.create(Mock(), self.make_user("weak"))
+            self.service.create(Mock(), self.make_user("weak"), Mock())
         self.service.repository.create.assert_not_called()
 
     def test_user_creation_initializes_password_lifecycle(self):
-        created = self.service.create(Mock(), self.make_user(COMPLIANT_PASSWORD))
+        created = self.service.create(Mock(), self.make_user(COMPLIANT_PASSWORD), Mock())
 
         self.assertTrue(verify_password(COMPLIANT_PASSWORD, created.password_hash))
         self.assertIsNotNone(created.password_changed_at)
@@ -277,6 +270,10 @@ class PasswordApiTests(unittest.TestCase):
         self.client = TestClient(app)
         self.user = SimpleNamespace(
             id=uuid4(),
+            organization_id=uuid4(),
+            business_unit_id=uuid4(),
+            division_id=uuid4(),
+            department_id=uuid4(),
             username="forced-user",
             email="forced@example.com",
             display_name="Forced User",
@@ -342,9 +339,9 @@ class PasswordApiTests(unittest.TestCase):
             role_permissions=[role_permission],
         )
         self.user.force_password_change = False
-        self.user.user_roles = [SimpleNamespace(is_active=True, role=role)]
+        self.user.user_roles = [SimpleNamespace(is_active=True, role=role, access_scope="ORGANIZATION")]
         target_id = uuid4()
-        target = SimpleNamespace(id=target_id)
+        target = SimpleNamespace(id=target_id, organization_id=self.user.organization_id)
 
         with (
             patch.object(

@@ -700,7 +700,7 @@ Sprint 12.1–12.4 regression.
 
 ### Status
 
-NEXT
+COMPLETE
 
 ### Planned Work
 
@@ -712,9 +712,18 @@ NEXT
 - Organizational data isolation
 - Multi-organization authorization rules
 
+Implemented per-UserRole access scopes, permission-specific multi-role
+resolution, strict organization isolation, SQL-level user filtering, direct-ID
+enforcement, centralized hierarchy validation, and scoped user/security/role
+assignment administration.
+
 ---
 
 # Sprint 14 — Audit & Compliance Foundation
+
+### Status
+
+NEXT
 
 ### Planned Work
 

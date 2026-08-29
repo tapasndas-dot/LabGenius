@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Added — Sprint 13 Organization-Level Authorization
+
+- Per-UserRole ORGANIZATION, BUSINESS_UNIT, DIVISION, DEPARTMENT, and SELF scopes.
+- Permission-specific multi-role scope resolution.
+- Central hierarchy validation and reusable scope filtering/access helpers.
+- SQL-filtered and direct-ID-protected user administration.
+- Scope enforcement for user security and user-role administration.
+- Migration `d40a6c87e913`, including ADMIN organization-scope backfill.
+
+### Security — Sprint 13
+
+- Strict cross-organization isolation with 404 responses for out-of-scope users.
+- Role assignment scope escalation protection.
+- Designation retained as a workflow/job attribute, not an access boundary.
+- Role and permission catalogs remain global configuration.
+
 ### Added — Sprint 12.4 Administrative Security Closure
 
 - Centralized last-usable-ADMIN protection for user deactivation/deletion,

@@ -17,12 +17,14 @@ from app.services.user.security_service import (
 )
 from app.schemas.auth import PasswordOperationResponse
 from app.services.user.password_service import PasswordService
+from app.services.organization_scope_service import OrganizationScopeService
 
 
 router = APIRouter()
 
 service = SecurityService()
 password_service = PasswordService()
+scope_service = OrganizationScopeService()
 
 
 @router.get(
@@ -42,6 +44,7 @@ def get_user_security(
         db,
         user_id,
     )
+    scope_service.ensure_can_access_user(current_user, user, "user.view")
 
     return user
 
@@ -63,6 +66,7 @@ def activate_user(
         db,
         user_id,
     )
+    scope_service.ensure_can_access_user(current_user, user, "user.update")
 
     return service.activate(
         db,
@@ -88,6 +92,7 @@ def deactivate_user(
         db,
         user_id,
     )
+    scope_service.ensure_can_access_user(current_user, user, "user.update")
 
     return service.deactivate(
         db,
@@ -113,6 +118,7 @@ def unlock_user(
         db,
         user_id,
     )
+    scope_service.ensure_can_access_user(current_user, user, "user.update")
 
     return service.unlock(
         db,
@@ -132,6 +138,7 @@ def reset_user_password(
     current_user=Depends(require_permission("user.update")),
 ):
     target_user = service.get_user(db, user_id)
+    scope_service.ensure_can_access_user(current_user, target_user, "user.update")
     password_service.reset_password(
         db,
         target_user,

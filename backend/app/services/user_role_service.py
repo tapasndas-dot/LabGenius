@@ -11,6 +11,7 @@ from app.repositories.user.user_repository import UserRepository
 from app.repositories.user.role_repository import RoleRepository
 from app.schemas.user_role import UserRoleCreate
 from app.services.user.admin_safety_service import AdminSafetyService
+from app.services.organization_scope_service import OrganizationScopeService
 
 
 class UserRoleService:
@@ -23,11 +24,13 @@ class UserRoleService:
         self.user_repository = UserRepository()
         self.role_repository = RoleRepository()
         self.admin_safety_service = AdminSafetyService()
+        self.scope_service = OrganizationScopeService()
 
     def get_by_user(
         self,
         db: Session,
         user_id: UUID,
+        actor,
     ):
         user = self.user_repository.get(
             db,
@@ -39,6 +42,8 @@ class UserRoleService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found.",
             )
+
+        self.scope_service.ensure_can_access_user(actor, user, "user.view")
 
         return self.repository.get_by_user(
             db,
@@ -50,6 +55,7 @@ class UserRoleService:
         db: Session,
         user_id: UUID,
         data: UserRoleCreate,
+        actor,
     ):
         user = self.user_repository.get(
             db,
@@ -61,6 +67,9 @@ class UserRoleService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found.",
             )
+
+        self.scope_service.ensure_can_access_user(actor, user, "user.update")
+        self.scope_service.ensure_scope_not_escalated(actor, "user.update", data.access_scope)
 
         if not user.is_active:
             raise HTTPException(
@@ -100,6 +109,7 @@ class UserRoleService:
         assignment = UserRole(
             user_id=user_id,
             role_id=data.role_id,
+            access_scope=data.access_scope,
         )
 
         return self.repository.create(
@@ -112,7 +122,7 @@ class UserRoleService:
         db: Session,
         user_id: UUID,
         role_id: UUID,
-        actor_user_id: UUID | None = None,
+        actor,
     ):
         assignment = self.repository.get_assignment(
             db,
@@ -126,11 +136,14 @@ class UserRoleService:
                 detail="User-role assignment not found.",
             )
 
+        user = self.user_repository.get(db, user_id)
+        self.scope_service.ensure_can_access_user(actor, user, "user.update")
+
         self.admin_safety_service.ensure_admin_assignment_can_be_removed(
             db,
             user_id,
             role_id,
-            actor_user_id=actor_user_id,
+            actor_user_id=actor.id,
         )
 
         self.repository.delete_assignment(

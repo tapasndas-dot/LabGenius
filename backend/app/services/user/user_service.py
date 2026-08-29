@@ -10,11 +10,6 @@ from app.services.base_service import BaseService
 from app.models.user.user import User
 
 from app.repositories.user.user_repository import UserRepository
-from app.repositories.organization_repository import OrganizationRepository
-from app.repositories.business_unit_repository import BusinessUnitRepository
-from app.repositories.division_repository import DivisionRepository
-from app.repositories.department_repository import DepartmentRepository
-from app.repositories.designation_repository import DesignationRepository
 
 from app.schemas.user.user import (
     UserCreate,
@@ -26,6 +21,7 @@ from app.core.exceptions import (
     ResourceNotFoundException,
 )
 from app.services.user.admin_safety_service import AdminSafetyService
+from app.services.organization_scope_service import OrganizationScopeService
 
 
 class UserService(BaseService[User]):
@@ -33,64 +29,37 @@ class UserService(BaseService[User]):
     def __init__(self):
         super().__init__(UserRepository())
 
-        self.organization_repository = OrganizationRepository()
-        self.business_unit_repository = BusinessUnitRepository()
-        self.division_repository = DivisionRepository()
-        self.department_repository = DepartmentRepository()
-        self.designation_repository = DesignationRepository()
         self.admin_safety_service = AdminSafetyService()
+        self.scope_service = OrganizationScopeService()
+
+    def get_all_scoped(self, db: Session, actor: User):
+        return self.scope_service.filter_users(db, actor, "user.view").all()
+
+    def get_scoped(self, db: Session, user_id, actor: User, permission_code: str):
+        user = self.repository.get(db, user_id)
+        if user is None:
+            raise ResourceNotFoundException("User not found.")
+        self.scope_service.ensure_can_access_user(actor, user, permission_code)
+        return user
 
     def create(
         self,
         db: Session,
         user: UserCreate,
+        actor: User,
     ):
 
         PasswordPolicy.validate(user.password)
 
-        # -----------------------------
-        # Validate hierarchy
-        # -----------------------------
-
-        if self.organization_repository.get(
+        self.scope_service.validate_hierarchy(
             db,
-            user.organization_id,
-        ) is None:
-            raise ResourceNotFoundException(
-                "Organization not found."
-            )
-
-        if self.business_unit_repository.get(
-            db,
-            user.business_unit_id,
-        ) is None:
-            raise ResourceNotFoundException(
-                "Business Unit not found."
-            )
-
-        if self.division_repository.get(
-            db,
-            user.division_id,
-        ) is None:
-            raise ResourceNotFoundException(
-                "Division not found."
-            )
-
-        if self.department_repository.get(
-            db,
-            user.department_id,
-        ) is None:
-            raise ResourceNotFoundException(
-                "Department not found."
-            )
-
-        if self.designation_repository.get(
-            db,
-            user.designation_id,
-        ) is None:
-            raise ResourceNotFoundException(
-                "Designation not found."
-            )
+            organization_id=user.organization_id,
+            business_unit_id=user.business_unit_id,
+            division_id=user.division_id,
+            department_id=user.department_id,
+            designation_id=user.designation_id,
+        )
+        self.scope_service.ensure_can_access_user(actor, user, "user.create")
 
         # -----------------------------
         # Duplicate checks
@@ -152,7 +121,10 @@ class UserService(BaseService[User]):
         db: Session,
         db_object: User,
         update: UserUpdate,
+        actor: User,
     ):
+
+        self.scope_service.ensure_can_access_user(actor, db_object, "user.update")
 
         data = update.model_dump(
             exclude_unset=True,
@@ -170,16 +142,26 @@ class UserService(BaseService[User]):
             db_object,
         )
 
+        self.scope_service.validate_hierarchy(
+            db,
+            organization_id=db_object.organization_id,
+            business_unit_id=db_object.business_unit_id,
+            division_id=db_object.division_id,
+            department_id=data.get("department_id", db_object.department_id),
+            designation_id=data.get("designation_id", db_object.designation_id),
+        )
+
     def delete(
         self,
         db: Session,
         db_object: User,
-        actor_user_id=None,
+        actor: User,
     ):
+        self.scope_service.ensure_can_access_user(actor, db_object, "user.delete")
         self.admin_safety_service.ensure_user_can_lose_admin_access(
             db,
             db_object.id,
-            actor_user_id=actor_user_id,
+            actor_user_id=actor.id,
             operation="DELETE_USER",
         )
         return self.repository.delete(db, db_object)

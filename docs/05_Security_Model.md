@@ -1185,3 +1185,30 @@ Security-history APIs remain `user.view` protected, newest-first, and bounded to
 
 With Sprint 12.1–12.4 complete, User Administration & Security Operations is
 ready for closure. Sprint 13 Organization-Level Authorization is next.
+
+## 24I. Organization-Level Authorization (Sprint 13)
+
+Sprint 13 is complete. Data scope is stored per `UserRole`, allowing the same
+role to have different reach for different users without making role definitions
+organization-specific. Supported levels are `ORGANIZATION`, `BUSINESS_UNIT`,
+`DIVISION`, `DEPARTMENT`, and `SELF`.
+
+RBAC determines what operation is allowed; scope determines which records the
+permission applies to. Scope is resolved per permission using only active role
+assignments whose active role and active permission mapping grant that permission.
+When multiple qualifying assignments exist, the broadest scope wins. An unrelated
+role cannot broaden another permission.
+
+All scopes remain anchored to the authenticated user's own organization and
+hierarchy IDs. User lists are filtered in SQL, while direct lookup/mutation uses
+the same centralized `OrganizationScopeService` and returns 404 outside scope.
+User create/update hierarchy chains are centrally validated.
+
+Designation remains a job/workflow attribute and must belong to the selected
+department, but it is not a data-access boundary. Role and permission catalogs
+remain global security configuration; user administration, user security, and
+user-role assignment are scope protected.
+
+Migration `d40a6c87e913` adds constrained `user_roles.access_scope`, defaults
+existing non-ADMIN assignments to `SELF`, and backfills ADMIN assignments to
+`ORGANIZATION`.

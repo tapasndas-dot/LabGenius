@@ -33,6 +33,7 @@ def get_user_roles(
     return service.get_by_user(
         db,
         user_id,
+        current_user,
     )
 
 
@@ -54,6 +55,7 @@ def assign_user_role(
         db,
         user_id,
         data,
+        current_user,
     )
 
 
@@ -74,5 +76,5 @@ def remove_user_role(
         db,
         user_id,
         role_id,
-        actor_user_id=current_user.id,
+        current_user,
     )

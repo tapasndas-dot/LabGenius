@@ -9,6 +9,7 @@ class UserRoleCreate(BaseModel):
     """
 
     role_id: UUID
+    access_scope: str = "SELF"
 
 
 class UserRoleResponse(BaseModel):
@@ -19,6 +20,7 @@ class UserRoleResponse(BaseModel):
     id: UUID
     user_id: UUID
     role_id: UUID
+    access_scope: str
     is_active: bool
     version: int
 
