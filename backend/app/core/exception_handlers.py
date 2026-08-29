@@ -6,6 +6,7 @@ from app.core.exceptions import (
     ResourceNotFoundException,
     SecurityConflictException,
     ValidationException,
+    VersionConflictException,
 )
 
 
@@ -51,6 +52,16 @@ def register_exception_handlers(app: FastAPI):
     async def security_conflict_handler(
         request: Request,
         exc: SecurityConflictException,
+    ):
+        return JSONResponse(
+            status_code=409,
+            content={"detail": str(exc)},
+        )
+
+    @app.exception_handler(VersionConflictException)
+    async def version_conflict_handler(
+        request: Request,
+        exc: VersionConflictException,
     ):
         return JSONResponse(
             status_code=409,

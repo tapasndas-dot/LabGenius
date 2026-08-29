@@ -15,6 +15,7 @@ from .user import (
     SecurityEvent,
 )
 from .audit_event import AuditEvent
+from .business import InstrumentType, Location, Manufacturer, Material
 
 __all__ = [
     "Organization",
@@ -28,4 +29,8 @@ __all__ = [
     "LoginHistory",
     "SecurityEvent",
     "AuditEvent",
+    "Location",
+    "Manufacturer",
+    "InstrumentType",
+    "Material",
 ]

@@ -196,6 +196,21 @@ PERMISSION_CATALOG = [
     },
 ]
 
+PERMISSION_CATALOG += [
+    {
+        "permission_code": f"{resource}.{action}",
+        "permission_name": f"{action.title()} {display_name}",
+        "description": f"{action.title()} {display_name.lower()} records within the actor's organization.",
+    }
+    for resource, display_name in (
+        ("location", "Location"),
+        ("manufacturer", "Manufacturer"),
+        ("instrument_type", "Instrument Type"),
+        ("material", "Material"),
+    )
+    for action in ("view", "create", "update", "delete")
+]
+
 
 # ---------------------------------------------------------------------------
 # ADMIN role

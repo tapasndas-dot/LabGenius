@@ -17,3 +17,9 @@ class ValidationException(LabGeniusException):
 
 class SecurityConflictException(LabGeniusException):
     pass
+
+
+class VersionConflictException(LabGeniusException):
+    """Raised when an expected-version business mutation is stale."""
+
+    pass
