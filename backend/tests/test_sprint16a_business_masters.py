@@ -161,8 +161,9 @@ class PermissionCatalogTests(unittest.TestCase):
 
     def test_no_future_domain_permissions_were_added(self):
         codes = {item["permission_code"] for item in PERMISSION_CATALOG}
-        forbidden_prefixes = ("qc_", "sample.", "stability.", "calibration.", "maintenance.")
+        forbidden_prefixes = ("qc_", "stability.", "calibration.", "maintenance.")
         self.assertFalse(any(code.startswith(forbidden_prefixes) for code in codes))
+        self.assertTrue(any(code.startswith("sample.") for code in codes))
 
 
 if __name__ == "__main__":

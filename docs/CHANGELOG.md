@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Validated — Sprint 19D automation and release validation
+
+- Completed the full backend regression: 190 tests passed, 0 failed, 0 skipped, with 8
+  warnings from existing pytest collection deprecations and no functional regressions.
+- Completed the full frontend validation: lint passed, production build passed, and the
+  dependency audit reported 0 vulnerabilities.
+- Confirmed the single `f19a0c6e8b05` Alembic head with no schema drift, FastAPI startup and
+  OpenAPI health, the `/auth/login` token URL, and the expected Sprint 19 Sample permissions.
+- Manual browser acceptance remains pending and is not claimed by this validation.
+
 ### Added — Sprint 19C Sample Registration frontend
 
 - Added the permission-protected `/app/samples` workspace with backend-paginated
