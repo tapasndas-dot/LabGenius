@@ -776,13 +776,14 @@ the approved dependency sequence for Sprints 16–24:
 7. Sprint 17C — Instrument Registry frontend — COMPLETE
 8. Sprint 17 — Instrument / Asset Registry — COMPLETE
 9. Sprint 18A — QC Test and Method domain/database foundation — COMPLETE
-10. Sprint 18 — QC Master Data APIs, UI, and closure — IN PROGRESS
-11. Sprint 19 — Sample Registration & Test Generation
-12. Sprint 20 — Analyst Assignment & Workbench
-13. Sprint 21 — Result Entry, Review & Finalization
-14. Sprint 22 — QC Operational Dashboard
-15. Sprint 23 — Stability Protocol & Study Management
-16. Sprint 24 — Stability Pull Scheduling & QC Integration
+10. Sprint 18B — Specification version-tree domain/database foundation — COMPLETE
+11. Sprint 18 — QC Master Data APIs, UI, and closure — IN PROGRESS
+12. Sprint 19 — Sample Registration & Test Generation
+13. Sprint 20 — Analyst Assignment & Workbench
+14. Sprint 21 — Result Entry, Review & Finalization
+15. Sprint 22 — QC Operational Dashboard
+16. Sprint 23 — Stability Protocol & Study Management
+17. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -815,10 +816,13 @@ the optional one-to-one Stability Chamber Profile foundation, and the management
 Calibration, Maintenance, Qualification, QC Instrument usage, and Stability workflows
 remain future modules.
 
-Sprint 18A establishes independent organization-owned Test and Method headers,
+Sprint 18A established independent organization-owned Test and Method headers,
 historical Method Versions, and structured Method Parameters. Only DRAFT Method
-Versions and their parameters may be structurally modified through normal domain
-services. Sprint 18 remains open; Specifications, APIs, and frontend are not part of 18A.
+Versions and their parameters may be structurally modified through normal domain services.
+Sprint 18B adds Material-owned Specification headers and historically controlled
+Specification Version/Test/Limit trees. A Specification Test preserves an exact Method
+Version reference, and approved trees never follow newer methods dynamically. Sprint 18
+remains open for APIs, authorization/audit integration, frontend, and closure validation.
 
 ---
 

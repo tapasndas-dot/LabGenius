@@ -25,7 +25,6 @@ class Sprint18AContractTests(unittest.TestCase):
         }
         self.assertEqual({code for code in codes if code.split(".")[0] in {"test", "method"}}, expected)
         self.assertEqual(len(codes), len(set(codes)))
-        self.assertFalse(any(code.startswith("specification.") for code in codes))
 
     def test_test_and_method_are_independent_masters(self):
         self.assertEqual(Test.__tablename__, "qc_tests")

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added — Sprint 18B Specification Foundation
+
+- Added organization-owned, Material-linked Specification headers and historical
+  Specification Version/Test/Limit trees with restrictive relationships.
+- Added exact Test-to-Method-Version bindings within Specification Versions; approved
+  Specifications never dynamically follow later Method Versions.
+- Added seven precision-safe limit criteria with domain semantic validation, DRAFT-only
+  tree mutation, approval-readiness validation, and expected-version concurrency.
+- Added four future Specification API permissions, a single-head PostgreSQL migration,
+  flush-only repositories/services, and focused coverage. Sprint 18 remains open.
+
 ### Added — Sprint 18A QC Test and Method Foundation
 
 - Added independent organization-owned Test and Method masters; Test remains what is

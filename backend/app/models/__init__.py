@@ -15,7 +15,7 @@ from .user import (
     SecurityEvent,
 )
 from .audit_event import AuditEvent
-from .business import Instrument, InstrumentType, Location, Manufacturer, Material, Method, MethodParameter, MethodVersion, StabilityChamberProfile, Test
+from .business import Instrument, InstrumentType, Location, Manufacturer, Material, Method, MethodParameter, MethodVersion, Specification, SpecificationLimit, SpecificationTest, SpecificationVersion, StabilityChamberProfile, Test
 from .module import Module, OrganizationModule
 
 __all__ = [
@@ -42,4 +42,5 @@ __all__ = [
     "Method",
     "MethodVersion",
     "MethodParameter",
+    "Specification", "SpecificationVersion", "SpecificationTest", "SpecificationLimit",
 ]

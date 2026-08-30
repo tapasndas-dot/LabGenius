@@ -1106,6 +1106,17 @@ an incomplete session subsystem during Sprint 12 closure.
 - Method Versions begin as DRAFT. Normal structural edits, parameter edits, and hard
   deletes are prohibited once a version is APPROVED, RETIRED, or SUPERSEDED. This
   immutability boundary preserves history but is not an approval or e-signature workflow.
+- A Specification is an organization-owned acceptance-requirement header for one
+  Material; Product is not duplicated as a separate concept.
+- A Specification Test binds a Test to an exact optional Method Version within one
+  Specification Version. An approved Specification never dynamically follows a later
+  Method Version.
+- Only DRAFT Specification Versions and their Test/Limit tree may be structurally
+  changed. APPROVED, RETIRED, and SUPERSEDED trees are historically immutable through
+  normal domain operations; future changes require a new Specification Version.
+- Specification Limits use BETWEEN, MINIMUM, MAXIMUM, numeric EQUAL, TEXT_MATCH,
+  BOOLEAN, or INFORMATIONAL criteria. EQUAL is numeric; textual equality uses
+  TEXT_MATCH.
 
 ## 33. Industry-Neutral and Optional-Capability Rules
 

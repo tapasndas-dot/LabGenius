@@ -210,6 +210,7 @@ PERMISSION_CATALOG += [
         ("instrument", "Instrument"),
         ("test", "Test"),
         ("method", "Method"),
+        ("specification", "Specification"),
     )
     for action in ("view", "create", "update", "delete")
 ]
