@@ -775,13 +775,14 @@ the approved dependency sequence for Sprints 16–24:
 6. Sprint 17B — Instrument Registry API, authorization, scope, capability, and audit — COMPLETE
 7. Sprint 17C — Instrument Registry frontend — COMPLETE
 8. Sprint 17 — Instrument / Asset Registry — COMPLETE
-9. Sprint 18 — QC Master Data
-10. Sprint 19 — Sample Registration & Test Generation
-11. Sprint 20 — Analyst Assignment & Workbench
-12. Sprint 21 — Result Entry, Review & Finalization
-13. Sprint 22 — QC Operational Dashboard
-14. Sprint 23 — Stability Protocol & Study Management
-15. Sprint 24 — Stability Pull Scheduling & QC Integration
+9. Sprint 18A — QC Test and Method domain/database foundation — COMPLETE
+10. Sprint 18 — QC Master Data APIs, UI, and closure — IN PROGRESS
+11. Sprint 19 — Sample Registration & Test Generation
+12. Sprint 20 — Analyst Assignment & Workbench
+13. Sprint 21 — Result Entry, Review & Finalization
+14. Sprint 22 — QC Operational Dashboard
+15. Sprint 23 — Stability Protocol & Study Management
+16. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -813,6 +814,11 @@ Manufacturer, and Location references, optional responsible-user ownership,
 the optional one-to-one Stability Chamber Profile foundation, and the management UI.
 Calibration, Maintenance, Qualification, QC Instrument usage, and Stability workflows
 remain future modules.
+
+Sprint 18A establishes independent organization-owned Test and Method headers,
+historical Method Versions, and structured Method Parameters. Only DRAFT Method
+Versions and their parameters may be structurally modified through normal domain
+services. Sprint 18 remains open; Specifications, APIs, and frontend are not part of 18A.
 
 ---
 

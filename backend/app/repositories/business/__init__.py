@@ -3,6 +3,7 @@ from .location_repository import LocationRepository
 from .manufacturer_repository import ManufacturerRepository
 from .material_repository import MaterialRepository
 from .instrument_repository import InstrumentRepository
+from .qc_method_repository import MethodParameterRepository, MethodRepository, MethodVersionRepository, TestRepository
 
 __all__ = [
     "InstrumentTypeRepository",
@@ -10,4 +11,8 @@ __all__ = [
     "ManufacturerRepository",
     "MaterialRepository",
     "InstrumentRepository",
+    "TestRepository",
+    "MethodRepository",
+    "MethodVersionRepository",
+    "MethodParameterRepository",
 ]

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added — Sprint 18A QC Test and Method Foundation
+
+- Added independent organization-owned Test and Method masters; Test remains what is
+  measured and Method remains how it is performed, with no premature direct link.
+- Added historical Method Versions with controlled lifecycle status, effectivity,
+  expected-version concurrency, and DRAFT-only structural mutation protection.
+- Added industry-neutral structured Method Parameters with controlled value types and
+  DRAFT-version immutability inheritance.
+- Added eight future API permissions, restrictive PostgreSQL tables and constraints,
+  flush-only repositories/services, and focused PostgreSQL coverage. Sprint 18 remains open.
+
 ### Validated — Sprint 17 Instrument / Asset Registry Closure
 
 - Completed integrated backend, frontend, database, migration, startup, OpenAPI,

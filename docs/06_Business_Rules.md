@@ -1100,6 +1100,12 @@ an incomplete session subsystem during Sprint 12 closure.
   currently assigned work, not all records created by the actor.
 - Referenced master data is normally deactivated rather than hard deleted.
 - No universal workflow status enum exists; bounded domains own their status vocabulary.
+- Test and Method are independent shared laboratory masters: Test defines what is
+  measured, while Method defines how work is performed. Their future binding belongs to
+  a Specification Test rather than a mandatory direct relationship.
+- Method Versions begin as DRAFT. Normal structural edits, parameter edits, and hard
+  deletes are prohibited once a version is APPROVED, RETIRED, or SUPERSEDED. This
+  immutability boundary preserves history but is not an approval or e-signature workflow.
 
 ## 33. Industry-Neutral and Optional-Capability Rules
 
