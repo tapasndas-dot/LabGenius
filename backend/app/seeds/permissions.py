@@ -198,6 +198,15 @@ PERMISSION_CATALOG = [
 
 PERMISSION_CATALOG += [
     {
+        "permission_code": f"sample.{action}",
+        "permission_name": f"{action.title()} Samples",
+        "description": f"{action.title()} operational Samples within assigned organization scope.",
+    }
+    for action in ("view", "create", "update", "cancel")
+]
+
+PERMISSION_CATALOG += [
+    {
         "permission_code": f"{resource}.{action}",
         "permission_name": f"{action.title()} {display_name}",
         "description": f"{action.title()} {display_name.lower()} records within the actor's organization.",

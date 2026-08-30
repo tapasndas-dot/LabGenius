@@ -1,5 +1,22 @@
 # LabGenius Business Rules
 
+## Sprint 19A Sample foundation
+
+- A Sample is an organization-owned operational record with optional Business Unit,
+  Division, and Department ownership. Supplied hierarchy references must belong to the
+  Sample organization and be internally consistent.
+- Registration stores one exact, approved Specification Version belonging to the
+  selected Material. Later Specification or Method versions never retarget an existing
+  Sample or generated Sample Test.
+- Sample Test generation is deterministic and idempotent. Each generated child retains
+  the exact Specification Test, Test, and configured Method Version selected at
+  registration; `(sample_id, specification_test_id)` is unique.
+- Approved Specification trees are structurally immutable, so historical limits remain
+  traceable through the frozen Specification Test. Sprint 19A does not duplicate limits.
+- Operational `SELF` scope is deferred until active analyst assignment is introduced;
+  it must not mean the user who created the Sample.
+- Samples and Sample Tests favor cancellation/finalization over destructive deletion.
+
 ## 1. Purpose
 
 This document defines the business rules governing the LabGenius platform foundation, identity management, organizational hierarchy, and access control.

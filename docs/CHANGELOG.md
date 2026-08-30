@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — Sprint 19A Sample foundation
+
+- Added organization/hierarchy-owned `qc_samples` with organization-unique normalized
+  Sample numbers, exact approved Specification Version binding, optimistic versioning,
+  Blueprint-aligned status checks, and industry-neutral priority checks.
+- Added restrictive `sample_tests` children that freeze exact Specification Test, Test,
+  and Method Version references and generate idempotently in source order.
+- Preserved Specification Limit traceability through immutable approved Specification
+  Test trees; result, assignment, workflow API, and operational `SELF` semantics remain
+  deferred.
+- Added `sample.view`, `sample.create`, `sample.update`, and `sample.cancel` permissions.
+
 ### Validated — Sprint 18E QC Release Readiness
 
 - Completed the full automated regression: 173 backend tests and 48 frontend tests

@@ -13,6 +13,7 @@ from app.models.organization.division import Division
 from app.models.organization.organization import Organization
 from app.models.user.user import User
 from app.models.business.instrument import Instrument
+from app.models.business.sample import Sample
 
 
 class AccessScope(StrEnum):
@@ -151,6 +152,30 @@ class OrganizationScopeService:
         if scope == AccessScope.DEPARTMENT:
             return query.filter(Instrument.department_id == actor.department_id)
         return query.filter(Instrument.responsible_user_id == actor.id)
+
+    def filter_samples(self, query, actor: User, permission_code: str):
+        """Apply operational Sample hierarchy scope; SELF awaits assignments."""
+        scope = self.resolve_scope(actor, permission_code)
+        query = query.filter(Sample.organization_id == actor.organization_id)
+        if scope == AccessScope.ORGANIZATION:
+            return query
+        if scope == AccessScope.BUSINESS_UNIT:
+            divisions = select(Division.id).where(Division.business_unit_id == actor.business_unit_id)
+            departments = select(Department.id).where(Department.division_id.in_(divisions))
+            return query.filter(or_(
+                Sample.business_unit_id == actor.business_unit_id,
+                Sample.division_id.in_(divisions),
+                Sample.department_id.in_(departments),
+            ))
+        if scope == AccessScope.DIVISION:
+            departments = select(Department.id).where(Department.division_id == actor.division_id)
+            return query.filter(or_(
+                Sample.division_id == actor.division_id,
+                Sample.department_id.in_(departments),
+            ))
+        if scope == AccessScope.DEPARTMENT:
+            return query.filter(Sample.department_id == actor.department_id)
+        return query.filter(false())
 
     def can_place_instrument(
         self, db: Session, actor: User, permission_code: str, values: dict
