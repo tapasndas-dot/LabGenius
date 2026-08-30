@@ -781,14 +781,15 @@ the approved dependency sequence for Sprints 16–24:
 12. Sprint 18D — QC shared-master frontend — COMPLETE
 13. Sprint 18E — automated regression and release-readiness validation — COMPLETE
 14. Sprint 18 — QC Master Data manual acceptance and closure — COMPLETE (`v0.22.0`)
-15. Sprint 19A — Sample and SampleTest domain/database foundation — IN PROGRESS
+15. Sprint 19A — Sample and SampleTest domain/database foundation — IMPLEMENTED
 16. Sprint 19B — secured Sample APIs, operational scope, audit, and concurrency — IMPLEMENTED
-17. Sprint 19C+ — remaining Sample delivery and acceptance
-18. Sprint 20 — Analyst Assignment & Workbench
-19. Sprint 21 — Result Entry, Review & Finalization
-20. Sprint 22 — QC Operational Dashboard
-21. Sprint 23 — Stability Protocol & Study Management
-22. Sprint 24 — Stability Pull Scheduling & QC Integration
+17. Sprint 19C — Sample Registration and SampleTest frontend — IMPLEMENTED
+18. Sprint 19D+ — remaining Sample acceptance and closure
+19. Sprint 20 — Analyst Assignment & Workbench
+20. Sprint 21 — Result Entry, Review & Finalization
+21. Sprint 22 — QC Operational Dashboard
+22. Sprint 23 — Stability Protocol & Study Management
+23. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 

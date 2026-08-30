@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added — Sprint 19C Sample Registration frontend
+
+- Added the permission-protected `/app/samples` workspace with backend-paginated
+  Sample browsing, filters, readable master-data labels, registration, detail,
+  permitted editing, and expected-version cancellation.
+- Added Material-dependent approved Specification Version selection and reusable
+  Business Unit, Division, and Department lookups with safe unavailable states and
+  dependent-selection clearing.
+- Added idempotent SampleTest generation and read-only display of the exact frozen
+  Test and Method Version references, plus explicit stale-record recovery for HTTP 409.
+
 ### Added — Sprint 19B Sample APIs
 
 - Added permission-protected Sample list/create/detail/update/cancel endpoints and

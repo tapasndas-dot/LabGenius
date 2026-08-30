@@ -23,6 +23,7 @@ import { LaboratoryIndex, LaboratoryLayout } from './pages/laboratory/Laboratory
 import { TestsPage } from './pages/laboratory/TestsPage'
 import { MethodsPage } from './pages/laboratory/MethodsPage'
 import { SpecificationsPage } from './pages/laboratory/SpecificationsPage'
+import { SamplesPage } from './pages/samples/SamplesPage'
 import './App.css'
 
 function UnknownRoute() {
@@ -50,6 +51,7 @@ function App() {
           <Route path="materials" element={<PermissionGate anyOf={['material.view']}><MasterPage kind="material" /></PermissionGate>} />
         </Route>
         <Route path="instruments" element={<CapabilityGate capability="INSTRUMENTS" permission="instrument.view"><InstrumentPage /></CapabilityGate>} />
+        <Route path="samples" element={<PermissionGate anyOf={['sample.view']}><SamplesPage /></PermissionGate>} />
         <Route path="laboratory-masters" element={<LaboratoryLayout />}>
           <Route index element={<LaboratoryIndex />} />
           <Route path="tests" element={<PermissionGate anyOf={['test.view']}><TestsPage /></PermissionGate>} />

@@ -24,6 +24,7 @@ export function ApplicationShell() {
         <NavLink to="/app" end>Home</NavLink>
         {hasAnyPermission(MASTER_VIEW_PERMISSIONS) && <NavLink to="/app/masters">Masters</NavLink>}
         {hasAnyPermission(LABORATORY_MASTER_VIEW_PERMISSIONS) && <NavLink to="/app/laboratory-masters">Laboratory Masters</NavLink>}
+        {hasAnyPermission(['sample.view']) && <NavLink to="/app/samples">Samples</NavLink>}
         {canUse('INSTRUMENTS', 'instrument.view') && <NavLink to="/app/instruments">Instruments</NavLink>}
         {hasAnyPermission(ADMINISTRATION_PERMISSIONS) && <NavLink to="/app/administration">Administration</NavLink>}
       </nav></aside>
