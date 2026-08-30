@@ -19,6 +19,10 @@ import { MasterPage } from './pages/masters/MasterPage'
 import { MastersIndex, MastersLayout } from './pages/masters/MastersLayout'
 import { InstrumentPage } from './pages/instruments/InstrumentPage'
 import { CapabilityGate } from './routes/CapabilityGate'
+import { LaboratoryIndex, LaboratoryLayout } from './pages/laboratory/LaboratoryLayout'
+import { TestsPage } from './pages/laboratory/TestsPage'
+import { MethodsPage } from './pages/laboratory/MethodsPage'
+import { SpecificationsPage } from './pages/laboratory/SpecificationsPage'
 import './App.css'
 
 function UnknownRoute() {
@@ -46,6 +50,12 @@ function App() {
           <Route path="materials" element={<PermissionGate anyOf={['material.view']}><MasterPage kind="material" /></PermissionGate>} />
         </Route>
         <Route path="instruments" element={<CapabilityGate capability="INSTRUMENTS" permission="instrument.view"><InstrumentPage /></CapabilityGate>} />
+        <Route path="laboratory-masters" element={<LaboratoryLayout />}>
+          <Route index element={<LaboratoryIndex />} />
+          <Route path="tests" element={<PermissionGate anyOf={['test.view']}><TestsPage /></PermissionGate>} />
+          <Route path="methods" element={<PermissionGate anyOf={['method.view']}><MethodsPage /></PermissionGate>} />
+          <Route path="specifications" element={<PermissionGate anyOf={['specification.view']}><SpecificationsPage /></PermissionGate>} />
+        </Route>
         <Route path="administration" element={<AdministrationPage />}>
           <Route index element={<AdministrationIndex />} />
           <Route path="users" element={<PermissionGate anyOf={['user.view']}><UsersPage /></PermissionGate>} />

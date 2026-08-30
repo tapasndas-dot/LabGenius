@@ -778,13 +778,14 @@ the approved dependency sequence for Sprints 16–24:
 9. Sprint 18A — QC Test and Method domain/database foundation — COMPLETE
 10. Sprint 18B — Specification version-tree domain/database foundation — COMPLETE
 11. Sprint 18C — QC shared-master APIs, lifecycle, authorization, and audit — COMPLETE
-12. Sprint 18 — QC Master Data frontend and closure — IN PROGRESS
-13. Sprint 19 — Sample Registration & Test Generation
-14. Sprint 20 — Analyst Assignment & Workbench
-15. Sprint 21 — Result Entry, Review & Finalization
-16. Sprint 22 — QC Operational Dashboard
-17. Sprint 23 — Stability Protocol & Study Management
-18. Sprint 24 — Stability Pull Scheduling & QC Integration
+12. Sprint 18D — QC shared-master frontend — COMPLETE
+13. Sprint 18 — QC Master Data manual acceptance and closure — IN PROGRESS
+14. Sprint 19 — Sample Registration & Test Generation
+15. Sprint 20 — Analyst Assignment & Workbench
+16. Sprint 21 — Result Entry, Review & Finalization
+17. Sprint 22 — QC Operational Dashboard
+18. Sprint 23 — Stability Protocol & Study Management
+19. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -826,8 +827,13 @@ Version reference, and approved trees never follow newer methods dynamically. At
 18B checkpoint, APIs, authorization/audit integration, frontend, and closure remained.
 Sprint 18C exposes the QC shared-master and version-tree APIs with permission-specific
 organization scope, nested UUID concealment, expected-version lifecycle operations, and
-transactional audit. SELF has no shared QC-master access. Sprint 18 remains open for the
-frontend and final integration closure.
+transactional audit. SELF has no shared QC-master access. At the 18C checkpoint, the
+frontend and final integration closure remained.
+Sprint 18D adds permission-aware Laboratory Masters pages for Tests, Methods and their
+versioned parameters, and Material-based Specifications with versioned tests and limits.
+The UI uses readable lookups, exact MethodVersion selection, DRAFT-only structural
+controls, lifecycle confirmations, and stale-conflict refresh. Sprint 18 remains open for
+18E manual acceptance, full regression, and closure.
 
 ---
 

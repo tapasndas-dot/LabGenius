@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { ADMINISTRATION_PERMISSIONS, MASTER_VIEW_PERMISSIONS } from '../auth/permissions'
+import { ADMINISTRATION_PERMISSIONS, LABORATORY_MASTER_VIEW_PERMISSIONS, MASTER_VIEW_PERMISSIONS } from '../auth/permissions'
 import { useAuthorization } from '../auth/useAuthorization'
 import { useCapabilities } from '../auth/CapabilityContext'
 
@@ -23,6 +23,7 @@ export function ApplicationShell() {
       <aside className="app-sidebar"><nav aria-label="Primary navigation">
         <NavLink to="/app" end>Home</NavLink>
         {hasAnyPermission(MASTER_VIEW_PERMISSIONS) && <NavLink to="/app/masters">Masters</NavLink>}
+        {hasAnyPermission(LABORATORY_MASTER_VIEW_PERMISSIONS) && <NavLink to="/app/laboratory-masters">Laboratory Masters</NavLink>}
         {canUse('INSTRUMENTS', 'instrument.view') && <NavLink to="/app/instruments">Instruments</NavLink>}
         {hasAnyPermission(ADMINISTRATION_PERMISSIONS) && <NavLink to="/app/administration">Administration</NavLink>}
       </nav></aside>

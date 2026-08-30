@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — Sprint 18D QC Shared-Master Frontend
+
+- Added permission-gated Laboratory Masters navigation and management pages for Tests,
+  Methods/Versions/Parameters, and Specifications/Versions/Tests/Limits.
+- Added readable Material, Test, Method, and exact MethodVersion selectors with safe
+  lookup-unavailable behavior and no manual UUID input.
+- Added lifecycle confirmations, DRAFT-only structural editing, historical read-only
+  presentation, criterion-adaptive limit fields, expected-version mutations, and stale-
+  conflict refresh behavior.
+- Added focused frontend coverage while leaving Sprint 18 open for 18E manual acceptance,
+  full regression, and closure.
+
 ### Added — Sprint 18C QC Shared-Master APIs
 
 - Added secured Test, Method/Version/Parameter, and Specification/Version/Test/Limit
