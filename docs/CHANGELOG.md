@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Validated — Sprint 18E QC Release Readiness
+
+- Completed the full automated regression: 173 backend tests and 48 frontend tests
+  passed with zero failures or skips; frontend lint, production build, and dependency
+  audit also passed with zero known vulnerabilities.
+- Confirmed the single `e18b0d5f7a04` Alembic head with no model/schema drift, complete
+  startup/OpenAPI health, unique idempotent permissions, and no duplicate routes.
+- Revalidated permission-specific shared-master scope, nested UUID concealment,
+  expected-version concurrency, historical immutability, lifecycle/readiness rules,
+  transactional audit rollback, all seven limit criteria, CORE_LAB isolation, and exact
+  MethodVersion traceability after a later version exists.
+- Sprint 18 automated implementation is complete. Manual browser acceptance and final
+  Sprint closure remain pending and are not claimed by this validation.
+
 ### Added — Sprint 18D QC Shared-Master Frontend
 
 - Added permission-gated Laboratory Masters navigation and management pages for Tests,

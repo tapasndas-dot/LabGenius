@@ -779,13 +779,14 @@ the approved dependency sequence for Sprints 16–24:
 10. Sprint 18B — Specification version-tree domain/database foundation — COMPLETE
 11. Sprint 18C — QC shared-master APIs, lifecycle, authorization, and audit — COMPLETE
 12. Sprint 18D — QC shared-master frontend — COMPLETE
-13. Sprint 18 — QC Master Data manual acceptance and closure — IN PROGRESS
-14. Sprint 19 — Sample Registration & Test Generation
-15. Sprint 20 — Analyst Assignment & Workbench
-16. Sprint 21 — Result Entry, Review & Finalization
-17. Sprint 22 — QC Operational Dashboard
-18. Sprint 23 — Stability Protocol & Study Management
-19. Sprint 24 — Stability Pull Scheduling & QC Integration
+13. Sprint 18E — automated regression and release-readiness validation — COMPLETE
+14. Sprint 18 — QC Master Data manual acceptance and closure — IN PROGRESS
+15. Sprint 19 — Sample Registration & Test Generation
+16. Sprint 20 — Analyst Assignment & Workbench
+17. Sprint 21 — Result Entry, Review & Finalization
+18. Sprint 22 — QC Operational Dashboard
+19. Sprint 23 — Stability Protocol & Study Management
+20. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -832,8 +833,13 @@ frontend and final integration closure remained.
 Sprint 18D adds permission-aware Laboratory Masters pages for Tests, Methods and their
 versioned parameters, and Material-based Specifications with versioned tests and limits.
 The UI uses readable lookups, exact MethodVersion selection, DRAFT-only structural
-controls, lifecycle confirmations, and stale-conflict refresh. Sprint 18 remains open for
-18E manual acceptance, full regression, and closure.
+controls, lifecycle confirmations, and stale-conflict refresh. At the 18D checkpoint,
+automated release validation, manual acceptance, and closure remained.
+Sprint 18E automated validation completed with 173 backend tests and 48 frontend tests
+passing, clean lint/build/audit, one Alembic head with no schema drift, and successful
+startup/OpenAPI, permission-seed, scope, lifecycle, audit, immutability, limit, and exact-
+MethodVersion traceability checks. Sprint 18 automated implementation is complete;
+manual browser acceptance and final closure remain pending.
 
 ---
 
