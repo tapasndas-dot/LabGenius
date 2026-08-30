@@ -1117,6 +1117,11 @@ an incomplete session subsystem during Sprint 12 closure.
 - Specification Limits use BETWEEN, MINIMUM, MAXIMUM, numeric EQUAL, TEXT_MATCH,
   BOOLEAN, or INFORMATIONAL criteria. EQUAL is numeric; textual equality uses
   TEXT_MATCH.
+- Sprint 18C exposes Test, Method, and Specification using permission-specific shared-
+  master scope. SELF has no access to these organization-wide QC masters.
+- Method and Specification lifecycle changes are explicit expected-version operations.
+  Approval, retirement, and supersession are audited as APPROVE, RETIRE, and SUPERSEDE;
+  they are not electronic signatures or reviewer workflows.
 
 ## 33. Industry-Neutral and Optional-Capability Rules
 

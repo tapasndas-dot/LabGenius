@@ -1273,6 +1273,15 @@ introduced incrementally during their implementation sprints. This blueprint doc
 does not create or claim any Sprint 16+ permission codes. Domain-specific SELF behavior
 must be explicit; QC analyst SELF means actively assigned work.
 
+Sprint 18C applies the organization-wide shared-master policy to Test, Method, and
+Specification. Qualifying ORGANIZATION, BUSINESS_UNIT, DIVISION, or DEPARTMENT roles
+grant same-organization access only when they grant the exact requested permission.
+SELF grants no QC-master rows and cannot create headers or structural children. Nested
+resources inherit access through the header and validate their complete parent chain,
+with missing, foreign, or mismatched UUIDs concealed as 404. CORE_LAB is implicit and
+non-disableable, so these APIs have no redundant capability gate and do not depend on
+INSTRUMENTS.
+
 ## 24M. Future Optional-Module Authorization
 
 Organization module enablement does not replace RBAC, and RBAC does not represent module

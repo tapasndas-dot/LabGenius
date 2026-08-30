@@ -21,6 +21,9 @@ class AuditAction(StrEnum):
     DEACTIVATE = "DEACTIVATE"
     ASSIGN = "ASSIGN"
     UNASSIGN = "UNASSIGN"
+    APPROVE = "APPROVE"
+    RETIRE = "RETIRE"
+    SUPERSEDE = "SUPERSEDE"
 
 
 class AuditService:

@@ -777,13 +777,14 @@ the approved dependency sequence for Sprints 16–24:
 8. Sprint 17 — Instrument / Asset Registry — COMPLETE
 9. Sprint 18A — QC Test and Method domain/database foundation — COMPLETE
 10. Sprint 18B — Specification version-tree domain/database foundation — COMPLETE
-11. Sprint 18 — QC Master Data APIs, UI, and closure — IN PROGRESS
-12. Sprint 19 — Sample Registration & Test Generation
-13. Sprint 20 — Analyst Assignment & Workbench
-14. Sprint 21 — Result Entry, Review & Finalization
-15. Sprint 22 — QC Operational Dashboard
-16. Sprint 23 — Stability Protocol & Study Management
-17. Sprint 24 — Stability Pull Scheduling & QC Integration
+11. Sprint 18C — QC shared-master APIs, lifecycle, authorization, and audit — COMPLETE
+12. Sprint 18 — QC Master Data frontend and closure — IN PROGRESS
+13. Sprint 19 — Sample Registration & Test Generation
+14. Sprint 20 — Analyst Assignment & Workbench
+15. Sprint 21 — Result Entry, Review & Finalization
+16. Sprint 22 — QC Operational Dashboard
+17. Sprint 23 — Stability Protocol & Study Management
+18. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -821,8 +822,12 @@ historical Method Versions, and structured Method Parameters. Only DRAFT Method
 Versions and their parameters may be structurally modified through normal domain services.
 Sprint 18B adds Material-owned Specification headers and historically controlled
 Specification Version/Test/Limit trees. A Specification Test preserves an exact Method
-Version reference, and approved trees never follow newer methods dynamically. Sprint 18
-remains open for APIs, authorization/audit integration, frontend, and closure validation.
+Version reference, and approved trees never follow newer methods dynamically. At the
+18B checkpoint, APIs, authorization/audit integration, frontend, and closure remained.
+Sprint 18C exposes the QC shared-master and version-tree APIs with permission-specific
+organization scope, nested UUID concealment, expected-version lifecycle operations, and
+transactional audit. SELF has no shared QC-master access. Sprint 18 remains open for the
+frontend and final integration closure.
 
 ---
 

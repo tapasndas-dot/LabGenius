@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — Sprint 18C QC Shared-Master APIs
+
+- Added secured Test, Method/Version/Parameter, and Specification/Version/Test/Limit
+  REST APIs with strict schemas, practical filtering, and nested-parent concealment.
+- Applied permission-specific organization-wide shared-master scope: hierarchy scopes
+  reach same-organization records while SELF has no QC-master access or create authority.
+- Added explicit expected-version approve, retire, and supersede operations with
+  transactional APPROVE, RETIRE, and SUPERSEDE audit actions.
+- Preserved DRAFT-only structural mutation, Specification approval readiness, exact
+  MethodVersion bindings, CORE_LAB's implicit capability boundary, and no e-signature
+  claim. Sprint 18 remains open.
+
 ### Added — Sprint 18B Specification Foundation
 
 - Added organization-owned, Material-linked Specification headers and historical
