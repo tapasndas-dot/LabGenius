@@ -71,7 +71,52 @@ it('supports material types and permission-aware destructive actions', async () 
   expect(await screen.findByText('RAW MATERIAL')).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: 'Create material' }))
-  expect(screen.getByRole('option', { name: 'FINISHED PRODUCT' })).toBeTruthy()
+  expect(screen.getByRole('option', { name: 'Finished Product' })).toBeTruthy()
+})
+
+it('submits canonical Material type values while displaying readable create labels', async () => {
+  const requests: Array<Record<string, unknown>> = []
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user(['material.view', 'material.create']))
+    if (init?.method === 'POST') { requests.push(JSON.parse(init.body as string)); return json({ ...base, ...requests.at(-1), default_unit_of_measure: null }) }
+    return json([])
+  })
+  renderPath('/app/masters/materials')
+  fireEvent.click(await screen.findByRole('button', { name: 'Create material' }))
+  const type = screen.getByLabelText('Material type')
+  fireEvent.change(type, { target: { value: 'REFERENCE_STANDARD' } })
+  expect(screen.getByRole('option', { name: 'Reference Standard' })).toBeTruthy()
+  fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'RS-1' } })
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Reference' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await waitFor(() => expect(requests).toHaveLength(1))
+  expect(requests[0].material_type).toBe('REFERENCE_STANDARD')
+  fireEvent.click(await screen.findByRole('button', { name: 'Create material' }))
+  fireEvent.change(screen.getByLabelText('Material type'), { target: { value: 'BULK_PRODUCT' } })
+  fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'BP-1' } })
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Bulk' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await waitFor(() => expect(requests).toHaveLength(2))
+  expect(requests[1].material_type).toBe('BULK_PRODUCT')
+})
+
+it('renders and preserves a canonical Material type during edit', async () => {
+  let update: Record<string, unknown> | undefined
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user(['material.view', 'material.update']))
+    if (init?.method === 'PUT') { update = JSON.parse(init.body as string); return json({ ...base, material_type: 'REFERENCE_STANDARD', default_unit_of_measure: null, version: 5 }) }
+    return json([{ ...base, material_type: 'REFERENCE_STANDARD', default_unit_of_measure: null }])
+  })
+  renderPath('/app/masters/materials')
+  fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+  const type = screen.getByLabelText('Material type') as HTMLSelectElement
+  expect(type.value).toBe('REFERENCE_STANDARD')
+  expect(screen.getByRole('option', { name: 'Reference Standard', selected: true })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await waitFor(() => expect(update).toBeTruthy())
+  expect(update?.material_type).toBe('REFERENCE_STANDARD')
 })
 
 it('confirms status/delete mutations and sends their expected versions', async () => {

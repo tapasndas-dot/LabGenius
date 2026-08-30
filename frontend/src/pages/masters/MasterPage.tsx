@@ -13,6 +13,7 @@ const configs = {
   material: { title: 'Materials', singular: 'material', api: materialsApi, view: 'material.view', create: 'material.create', update: 'material.update', delete: 'material.delete' },
 } as const
 type AnyApi = typeof locationsApi
+const controlledLabel = (value: string) => value.toLowerCase().replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 
 function initial(record?: MasterRecord): Record<string, string> {
   const item = record as MasterRecord & Record<string, unknown> | undefined
@@ -41,7 +42,7 @@ function rowDetails(kind: Kind, item: MasterRecord & Record<string, unknown>, re
 function ExtraFields({ kind, values, set, editingId }: { kind: Kind; values: Record<string, string>; set: (key: string, value: string) => void; editingId?: string }) {
   if (kind === 'location') return <><label>Location type<select value={values.location_type} onChange={(e) => set('location_type', e.target.value)}>{LOCATION_TYPES.map((type) => <option key={type}>{type}</option>)}</select></label><LocationLookup value={values.parent_location_id} onChange={(value) => set('parent_location_id', value)} excludeId={editingId} /></>
   if (kind === 'manufacturer') return <label>Website<input type="url" value={values.website} onChange={(e) => set('website', e.target.value)} /></label>
-  if (kind === 'material') return <><label>Material type<select value={values.material_type} onChange={(e) => set('material_type', e.target.value)}>{MATERIAL_TYPES.map((type) => <option key={type}>{type.replaceAll('_', ' ')}</option>)}</select></label><label>Default unit of measure<input value={values.default_unit_of_measure} onChange={(e) => set('default_unit_of_measure', e.target.value)} /></label></>
+  if (kind === 'material') return <><label>Material type<select value={values.material_type} onChange={(e) => set('material_type', e.target.value)}>{MATERIAL_TYPES.map((type) => <option key={type} value={type}>{controlledLabel(type)}</option>)}</select></label><label>Default unit of measure<input value={values.default_unit_of_measure} onChange={(e) => set('default_unit_of_measure', e.target.value)} /></label></>
   return null
 }
 
