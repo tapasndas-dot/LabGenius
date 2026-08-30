@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added — Sprint 19B Sample APIs
+
+- Added permission-protected Sample list/create/detail/update/cancel endpoints and
+  SampleTest read/idempotent-generation endpoints under `/samples`.
+- Added SQL-level operational hierarchy scope, permission-specific target hierarchy
+  enforcement, SELF deferral, UUID concealment, pagination, filters, and optimistic
+  concurrency.
+- Added transactional Sample CREATE/UPDATE/CANCEL auditing and CREATE audit events for
+  newly generated SampleTests. Cancellation preserves Samples and generated history;
+  no Sample DELETE API exists.
+
 ### Added — Sprint 19A Sample foundation
 
 - Added organization/hierarchy-owned `qc_samples` with organization-unique normalized

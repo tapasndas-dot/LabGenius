@@ -1,5 +1,18 @@
 # LabGenius Security Model
 
+## Sprint 19B operational Sample authorization
+
+Sample authorization combines the specific `sample.*` permission with SQL-level
+operational hierarchy scope. Organization, Business Unit, Division, and Department
+scopes reach their defined hierarchy descendants; `SELF` returns no Sample rows until
+active analyst assignments exist. Create and update additionally validate the target
+hierarchy, and direct inaccessible Sample/SampleTest UUIDs are concealed as 404.
+
+SampleTest access inherits through its parent Sample. Samples have no DELETE API;
+expected-version cancellation preserves the Sample, generated tests, and frozen
+definition references. CREATE, UPDATE, CANCEL, and newly generated SampleTest CREATE
+events are recorded transactionally through AuditService.
+
 ## 1. Purpose
 
 This document defines the authentication, authorization, role, permission, and access-control model used by the LabGenius platform.

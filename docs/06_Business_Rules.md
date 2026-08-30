@@ -17,6 +17,11 @@
   it must not mean the user who created the Sample.
 - Samples and Sample Tests favor cancellation/finalization over destructive deletion.
 
+Sprint 19B exposes secured Sample registration, read/update, cancellation, and explicit
+idempotent test generation. Cancellation is the only exposed lifecycle transition and
+preserves all history. Generated SampleTests remain tied to the Sample's exact approved
+SpecificationVersion tree and never follow later Specification or Method versions.
+
 ## 1. Purpose
 
 This document defines the business rules governing the LabGenius platform foundation, identity management, organizational hierarchy, and access control.

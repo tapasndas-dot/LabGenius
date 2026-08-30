@@ -1,16 +1,19 @@
 from uuid import UUID
 
+from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import DuplicateResourceException, ResourceNotFoundException, ValidationException, VersionConflictException
 from app.models.business.material import Material
-from app.models.business.sample import Sample, SamplePriority, SampleTest, SampleTestStatus
+from app.models.business.sample import Sample, SamplePriority, SampleStatus, SampleTest, SampleTestStatus
 from app.models.business.specification import Specification, SpecificationTest, SpecificationVersion, SpecificationVersionStatus
 from app.models.organization.business_unit import BusinessUnit
 from app.models.organization.department import Department
 from app.models.organization.division import Division
 from app.repositories.business.sample_repository import SampleRepository, SampleTestRepository
 from app.services.organization_scope_service import OrganizationScopeService
+from app.services.audit_service import AuditAction, AuditService
 from .normalization import normalize_code, normalize_optional
 from .organization_master_service import VERSION_CONFLICT_MESSAGE
 
@@ -132,3 +135,98 @@ class SampleTestService:
                 ))
         db.flush()
         return self.repository.for_sample(db, sample.id)
+
+
+class SampleAPIService:
+    def __init__(self):
+        self.samples = SampleService()
+        self.sample_tests = SampleTestService(self.samples.repository)
+        self.audit = AuditService()
+
+    def _get(self, db: Session, actor, sample_id: UUID, permission: str) -> Sample:
+        record = self.samples.scoped_query(db, actor, permission).filter(Sample.id == sample_id).first()
+        if record is None:
+            raise ResourceNotFoundException("Sample not found.")
+        return record
+
+    def _ensure_target(self, db: Session, actor, permission: str, values: dict) -> None:
+        if not self.samples.scope_service.can_place_sample(db, actor, permission, values):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Target Sample hierarchy is outside the authorized scope.")
+
+    def list(self, db: Session, actor, permission: str, *, limit=100, offset=0, **filters):
+        query = self.samples.repository.apply_filters(self.samples.scoped_query(db, actor, permission), **filters)
+        return query.order_by(Sample.sample_number, Sample.id).offset(offset).limit(limit).all()
+
+    def get(self, db: Session, actor, sample_id: UUID, permission: str):
+        return self._get(db, actor, sample_id, permission)
+
+    def create(self, db: Session, actor, permission: str, values: dict):
+        normalized = self.samples.normalize(values)
+        self.samples.validate_hierarchy(db, actor.organization_id, normalized)
+        self._ensure_target(db, actor, permission, normalized)
+        try:
+            record = self.samples.create(db, actor.organization_id, normalized)
+            self.audit.record_create(db, entity=record, actor=actor)
+            db.commit(); db.refresh(record)
+            return record
+        except IntegrityError as exc:
+            db.rollback(); raise DuplicateResourceException("A Sample with this number already exists.") from exc
+        except Exception:
+            db.rollback(); raise
+
+    def update(self, db: Session, actor, sample_id: UUID, expected_version: int, permission: str, values: dict):
+        current = self._get(db, actor, sample_id, permission)
+        before = self.audit.snapshot(current)
+        hierarchy = {field: values.get(field, getattr(current, field)) for field in ("business_unit_id", "division_id", "department_id")}
+        self.samples.validate_hierarchy(db, actor.organization_id, hierarchy)
+        self._ensure_target(db, actor, permission, hierarchy)
+        try:
+            record = self.samples.update_expected(db, actor.organization_id, sample_id, expected_version, values)
+            self.audit.record_update(db, entity=record, actor=actor, before=before)
+            db.commit(); db.refresh(record)
+            return record
+        except Exception:
+            db.rollback(); raise
+
+    def cancel(self, db: Session, actor, sample_id: UUID, expected_version: int, permission: str):
+        current = self._get(db, actor, sample_id, permission)
+        if current.status in (SampleStatus.CANCELLED, SampleStatus.FINALIZED):
+            raise VersionConflictException("Sample cannot be cancelled from its current status.")
+        before = self.audit.snapshot(current)
+        try:
+            record = self.samples.repository.update_expected(db, actor.organization_id, sample_id, expected_version, {"status": SampleStatus.CANCELLED.value})
+            if record is None: raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+            self.audit.record_update(db, entity=record, actor=actor, before=before, action=AuditAction.CANCEL)
+            db.commit(); db.refresh(record)
+            return record
+        except Exception:
+            db.rollback(); raise
+
+    def list_tests(self, db: Session, actor, sample_id: UUID, permission: str):
+        sample = self._get(db, actor, sample_id, permission)
+        return self.sample_tests.repository.for_sample(db, sample.id)
+
+    def test(self, db: Session, actor, sample_id: UUID, sample_test_id: UUID, permission: str):
+        sample = self._get(db, actor, sample_id, permission)
+        record = self.sample_tests.repository.get_for_sample(db, sample.id, sample_test_id)
+        if record is None: raise ResourceNotFoundException("Sample Test not found.")
+        return record
+
+    def generate_tests(self, db: Session, actor, sample_id: UUID, permission: str):
+        sample = self._get(db, actor, sample_id, permission)
+        if sample.status in (SampleStatus.CANCELLED, SampleStatus.FINALIZED):
+            raise VersionConflictException("Sample Tests cannot be generated for the current Sample status.")
+        existing = self.sample_tests.repository.existing_source_ids(db, sample.id)
+        try:
+            records = self.sample_tests.generate(db, actor.organization_id, sample.id)
+            for record in records:
+                if record.specification_test_id not in existing:
+                    self.audit.record_create(db, entity=record, actor=actor, owner=sample)
+            db.commit()
+            for record in records: db.refresh(record)
+            return records
+        except Exception:
+            db.rollback(); raise
+
+
+sample_api_service = SampleAPIService()

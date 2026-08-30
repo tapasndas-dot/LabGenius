@@ -177,6 +177,26 @@ class OrganizationScopeService:
             return query.filter(Sample.department_id == actor.department_id)
         return query.filter(false())
 
+    def can_place_sample(self, db: Session, actor: User, permission_code: str, values: dict) -> bool:
+        scope = self.resolve_scope(actor, permission_code)
+        if scope == AccessScope.ORGANIZATION:
+            return True
+        if scope == AccessScope.SELF:
+            return False
+        business_unit_id = values.get("business_unit_id")
+        division_id = values.get("division_id")
+        department_id = values.get("department_id")
+        division = db.get(Division, division_id) if division_id else None
+        department = db.get(Department, department_id) if department_id else None
+        effective_division_id = division_id or (department.division_id if department else None)
+        effective_division = division or (db.get(Division, effective_division_id) if effective_division_id else None)
+        effective_business_unit_id = business_unit_id or (effective_division.business_unit_id if effective_division else None)
+        if scope == AccessScope.BUSINESS_UNIT:
+            return effective_business_unit_id == actor.business_unit_id
+        if scope == AccessScope.DIVISION:
+            return effective_division_id == actor.division_id
+        return department_id == actor.department_id
+
     def can_place_instrument(
         self, db: Session, actor: User, permission_code: str, values: dict
     ) -> bool:
