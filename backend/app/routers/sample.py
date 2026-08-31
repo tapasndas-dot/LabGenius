@@ -5,9 +5,15 @@ from sqlalchemy.orm import Session
 
 from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
-from app.schemas.business.sample import SampleCreate, SampleResponse, SampleTestResponse, SampleUpdate
+from app.schemas.business.sample import (
+    SampleCreate, SampleResponse, SampleTestAssignRequest,
+    SampleTestAssignmentMutationResponse, SampleTestAssignmentResponse,
+    SampleTestReassignRequest, SampleTestResponse, SampleTestUnassignRequest,
+    SampleUpdate,
+)
 from app.schemas.business.shared import VersionRequest
 from app.services.business.sample_service import sample_api_service
+from app.services.business.sample_test_assignment_api_service import sample_test_assignment_api_service
 
 router = APIRouter()
 
@@ -50,3 +56,28 @@ def list_sample_tests(sample_id: UUID, db: Session = Depends(get_db), actor=Depe
 @router.get("/{sample_id}/tests/{sample_test_id}", response_model=SampleTestResponse)
 def get_sample_test(sample_id: UUID, sample_test_id: UUID, db: Session = Depends(get_db), actor=Depends(require_permission("sample.view"))):
     return sample_api_service.test(db, actor, sample_id, sample_test_id, "sample.view")
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/assign", response_model=SampleTestAssignmentMutationResponse)
+def assign_sample_test(sample_id: UUID, sample_test_id: UUID, payload: SampleTestAssignRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample.assign"))):
+    return sample_test_assignment_api_service.assign(db, actor, sample_id, sample_test_id, payload.model_dump())
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/reassign", response_model=SampleTestAssignmentMutationResponse)
+def reassign_sample_test(sample_id: UUID, sample_test_id: UUID, payload: SampleTestReassignRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample.assign"))):
+    return sample_test_assignment_api_service.reassign(db, actor, sample_id, sample_test_id, payload.model_dump())
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/unassign", response_model=SampleTestAssignmentMutationResponse)
+def unassign_sample_test(sample_id: UUID, sample_test_id: UUID, payload: SampleTestUnassignRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample.assign"))):
+    return sample_test_assignment_api_service.unassign(db, actor, sample_id, sample_test_id, payload.model_dump())
+
+
+@router.get("/{sample_id}/tests/{sample_test_id}/assignment", response_model=SampleTestAssignmentResponse)
+def get_sample_test_assignment(sample_id: UUID, sample_test_id: UUID, db: Session = Depends(get_db), actor=Depends(require_permission("sample.view"))):
+    return sample_test_assignment_api_service.current(db, actor, sample_id, sample_test_id)
+
+
+@router.get("/{sample_id}/tests/{sample_test_id}/assignment-history", response_model=list[SampleTestAssignmentResponse])
+def get_sample_test_assignment_history(sample_id: UUID, sample_test_id: UUID, db: Session = Depends(get_db), actor=Depends(require_permission("sample.view"))):
+    return sample_test_assignment_api_service.history(db, actor, sample_id, sample_test_id)

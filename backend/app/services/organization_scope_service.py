@@ -34,7 +34,7 @@ class OrganizationScopeService:
         AccessScope.ORGANIZATION: 4,
     }
 
-    def resolve_scope(self, user: User, permission_code: str) -> AccessScope:
+    def resolve_scopes(self, user: User, permission_code: str) -> set[AccessScope]:
         scopes: list[AccessScope] = []
         for assignment in user.user_roles:
             if not assignment.is_active or assignment.role is None or not assignment.role.is_active:
@@ -53,7 +53,10 @@ class OrganizationScopeService:
                     continue
         if not scopes:
             raise HTTPException(status_code=403, detail="Permission scope is not available.")
-        return max(scopes, key=self._RANK.get)
+        return set(scopes)
+
+    def resolve_scope(self, user: User, permission_code: str) -> AccessScope:
+        return max(self.resolve_scopes(user, permission_code), key=self._RANK.get)
 
     def ensure_scope_not_escalated(
         self, actor: User, permission_code: str, requested_scope: str
@@ -156,54 +159,92 @@ class OrganizationScopeService:
 
     def filter_samples(self, query, actor: User, permission_code: str):
         """Apply hierarchy scope or active-assignment SELF scope to Samples."""
-        scope = self.resolve_scope(actor, permission_code)
+        scopes = self.resolve_scopes(actor, permission_code)
+        scope = max(scopes, key=self._RANK.get)
         query = query.filter(Sample.organization_id == actor.organization_id)
         if scope == AccessScope.ORGANIZATION:
             return query
+        predicates = []
         if scope == AccessScope.BUSINESS_UNIT:
             divisions = select(Division.id).where(Division.business_unit_id == actor.business_unit_id)
             departments = select(Department.id).where(Department.division_id.in_(divisions))
-            return query.filter(or_(
+            predicates.append(or_(
                 Sample.business_unit_id == actor.business_unit_id,
                 Sample.division_id.in_(divisions),
                 Sample.department_id.in_(departments),
             ))
-        if scope == AccessScope.DIVISION:
+        elif scope == AccessScope.DIVISION:
             departments = select(Department.id).where(Department.division_id == actor.division_id)
-            return query.filter(or_(
+            predicates.append(or_(
                 Sample.division_id == actor.division_id,
                 Sample.department_id.in_(departments),
             ))
-        if scope == AccessScope.DEPARTMENT:
-            return query.filter(Sample.department_id == actor.department_id)
-        return query.filter(
-            Sample.sample_tests.any(
-                SampleTest.assignments.any(
-                    and_(
+        elif scope == AccessScope.DEPARTMENT:
+            predicates.append(Sample.department_id == actor.department_id)
+        if AccessScope.SELF in scopes:
+            predicates.append(and_(
+                Sample.status.notin_(("CANCELLED", "FINALIZED")),
+                Sample.sample_tests.any(and_(
+                    SampleTest.status.notin_(("CANCELLED", "FINALIZED")),
+                    SampleTest.assignments.any(and_(
                         SampleTestAssignment.is_active.is_(True),
                         SampleTestAssignment.assigned_user_id == actor.id,
-                    )
-                )
-            )
-        )
+                    )),
+                )),
+            ))
+        return query.filter(or_(*predicates))
 
     def filter_sample_tests(self, query, actor: User, permission_code: str):
-        """Scope SampleTests through their parent Sample and active assignment."""
-        scope = self.resolve_scope(actor, permission_code)
-        if scope == AccessScope.SELF:
-            return query.filter(
-                SampleTest.sample.has(Sample.organization_id == actor.organization_id),
+        """Union hierarchy access with exact active-assignment SELF access."""
+        scopes = self.resolve_scopes(actor, permission_code)
+        scope = max(scopes, key=self._RANK.get)
+        if scope == AccessScope.ORGANIZATION:
+            return query.filter(SampleTest.sample.has(
+                Sample.organization_id == actor.organization_id
+            ))
+        predicates = []
+        if scope != AccessScope.SELF:
+            if scope == AccessScope.BUSINESS_UNIT:
+                divisions = select(Division.id).where(
+                    Division.business_unit_id == actor.business_unit_id
+                )
+                departments = select(Department.id).where(
+                    Department.division_id.in_(divisions)
+                )
+                ownership = or_(
+                    Sample.business_unit_id == actor.business_unit_id,
+                    Sample.division_id.in_(divisions),
+                    Sample.department_id.in_(departments),
+                )
+            elif scope == AccessScope.DIVISION:
+                departments = select(Department.id).where(
+                    Department.division_id == actor.division_id
+                )
+                ownership = or_(
+                    Sample.division_id == actor.division_id,
+                    Sample.department_id.in_(departments),
+                )
+            else:
+                ownership = Sample.department_id == actor.department_id
+            predicates.append(SampleTest.sample.has(and_(
+                Sample.organization_id == actor.organization_id,
+                ownership,
+            )))
+        if AccessScope.SELF in scopes:
+            predicates.append(and_(
+                SampleTest.sample.has(and_(
+                    Sample.organization_id == actor.organization_id,
+                    Sample.status.notin_(("CANCELLED", "FINALIZED")),
+                )),
+                SampleTest.status.notin_(("CANCELLED", "FINALIZED")),
                 SampleTest.assignments.any(
                     and_(
                         SampleTestAssignment.is_active.is_(True),
                         SampleTestAssignment.assigned_user_id == actor.id,
                     )
                 ),
-            )
-        scoped_sample_ids = self.filter_samples(
-            select(Sample.id), actor, permission_code
-        )
-        return query.filter(SampleTest.sample_id.in_(scoped_sample_ids))
+            ))
+        return query.filter(or_(*predicates))
 
     def can_place_sample(self, db: Session, actor: User, permission_code: str, values: dict) -> bool:
         scope = self.resolve_scope(actor, permission_code)

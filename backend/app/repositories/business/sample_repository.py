@@ -37,6 +37,9 @@ class SampleRepository:
 
 
 class SampleTestRepository:
+    def query(self, db: Session):
+        return db.query(SampleTest)
+
     def for_sample(self, db: Session, sample_id: UUID):
         return db.query(SampleTest).filter(SampleTest.sample_id == sample_id).order_by(SampleTest.sequence_number, SampleTest.id).all()
 

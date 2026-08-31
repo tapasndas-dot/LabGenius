@@ -83,3 +83,39 @@ class SampleTestResponse(BaseModel):
     version: int
     created_at: datetime
     updated_at: datetime
+
+
+class SampleTestAssignmentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    sample_test_id: UUID
+    assigned_user_id: UUID
+    assigned_by_user_id: UUID | None
+    assigned_at: datetime
+    unassigned_at: datetime | None
+    unassigned_by_user_id: UUID | None
+    is_active: bool
+    notes: str | None
+    version: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class SampleTestAssignRequest(StrictSchema):
+    assigned_user_id: UUID
+    expected_sample_test_version: int = Field(ge=1)
+    notes: str | None = Field(default=None, max_length=500)
+
+
+class SampleTestReassignRequest(SampleTestAssignRequest):
+    expected_assignment_version: int = Field(ge=1)
+
+
+class SampleTestUnassignRequest(StrictSchema):
+    expected_assignment_version: int = Field(ge=1)
+    expected_sample_test_version: int = Field(ge=1)
+
+
+class SampleTestAssignmentMutationResponse(BaseModel):
+    sample_test: SampleTestResponse
+    assignment: SampleTestAssignmentResponse | None

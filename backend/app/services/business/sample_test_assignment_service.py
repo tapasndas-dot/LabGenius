@@ -60,7 +60,8 @@ class SampleTestAssignmentService:
 
     def assign(self, db: Session, organization_id: UUID, sample_test_id: UUID, 
                target_user_id: UUID, assigned_by_user_id: UUID | None = None,
-               notes: str | None = None):
+               notes: str | None = None,
+               expected_sample_test_version: int | None = None):
         """
         Assign a SampleTest to a user.
         
@@ -68,6 +69,11 @@ class SampleTestAssignmentService:
         Subsequent assignments through reassign().
         """
         sample_test, _ = self._get_owned_test_for_update(db, organization_id, sample_test_id)
+        if (
+            expected_sample_test_version is not None
+            and sample_test.version != expected_sample_test_version
+        ):
+            raise VersionConflictException("SampleTest has changed. Refresh and try again.")
         self._validate_assignable_state(db, sample_test)
         if sample_test.status != SampleTestStatus.PENDING:
             raise ValidationException("Only a PENDING SampleTest may be initially assigned.")
@@ -76,7 +82,7 @@ class SampleTestAssignmentService:
         # Check for existing active assignment
         existing = self.repository.get_active(db, sample_test_id)
         if existing is not None:
-            raise ValidationException("SampleTest already has an active assignment. Use reassign() to change it.")
+            raise VersionConflictException("SampleTest already has an active assignment.")
 
         # Create active assignment
         now = datetime.now(timezone.utc)
@@ -95,7 +101,8 @@ class SampleTestAssignmentService:
     def reassign(self, db: Session, organization_id: UUID, sample_test_id: UUID,
                  target_user_id: UUID, expected_assignment_version: int,
                  assigned_by_user_id: UUID | None = None,
-                 notes: str | None = None):
+                 notes: str | None = None,
+                 expected_sample_test_version: int | None = None):
         """
         Reassign a SampleTest to a different user.
         
@@ -104,6 +111,11 @@ class SampleTestAssignmentService:
         SampleTest remains ASSIGNED.
         """
         sample_test, _ = self._get_owned_test_for_update(db, organization_id, sample_test_id)
+        if (
+            expected_sample_test_version is not None
+            and sample_test.version != expected_sample_test_version
+        ):
+            raise VersionConflictException("SampleTest has changed. Refresh and try again.")
         self._validate_assignable_state(db, sample_test)
         if sample_test.status != SampleTestStatus.ASSIGNED:
             raise ValidationException("Only an ASSIGNED SampleTest may be reassigned.")
@@ -112,7 +124,7 @@ class SampleTestAssignmentService:
         # Get current active assignment
         current = self.repository.get_active(db, sample_test_id, for_update=True)
         if current is None:
-            raise ValidationException("SampleTest has no active assignment to replace.")
+            raise VersionConflictException("SampleTest has no active assignment to replace.")
         if current.version != expected_assignment_version:
             raise VersionConflictException("SampleTest assignment has changed. Refresh and try again.")
 
@@ -131,7 +143,8 @@ class SampleTestAssignmentService:
 
     def unassign(self, db: Session, organization_id: UUID, sample_test_id: UUID,
                  expected_assignment_version: int,
-                 unassigned_by_user_id: UUID | None = None):
+                 unassigned_by_user_id: UUID | None = None,
+                 expected_sample_test_version: int | None = None):
         """
         Unassign a SampleTest.
         
@@ -139,6 +152,11 @@ class SampleTestAssignmentService:
         SampleTest returns to PENDING.
         """
         sample_test, _ = self._get_owned_test_for_update(db, organization_id, sample_test_id)
+        if (
+            expected_sample_test_version is not None
+            and sample_test.version != expected_sample_test_version
+        ):
+            raise VersionConflictException("SampleTest has changed. Refresh and try again.")
         self._validate_assignable_state(db, sample_test)
         if sample_test.status != SampleTestStatus.ASSIGNED:
             raise ValidationException("Only an ASSIGNED SampleTest may be unassigned.")
@@ -146,7 +164,7 @@ class SampleTestAssignmentService:
         # Get current active assignment
         current = self.repository.get_active(db, sample_test_id, for_update=True)
         if current is None:
-            raise ValidationException("SampleTest has no active assignment.")
+            raise VersionConflictException("SampleTest has no active assignment.")
         if current.version != expected_assignment_version:
             raise VersionConflictException("SampleTest assignment has changed. Refresh and try again.")
 

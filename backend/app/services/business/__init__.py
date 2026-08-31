@@ -7,6 +7,7 @@ from .qc_method_service import MethodParameterService, MethodService, MethodVers
 from .specification_service import SpecificationLimitService, SpecificationService, SpecificationTestService, SpecificationVersionService
 from .sample_service import SampleService, SampleAPIService, SampleTestService
 from .sample_test_assignment_service import SampleTestAssignmentService
+from .sample_test_assignment_api_service import SampleTestAssignmentAPIService
 
 __all__ = [
     "InstrumentTypeService",
@@ -26,4 +27,5 @@ __all__ = [
     "SampleAPIService",
     "SampleTestService",
     "SampleTestAssignmentService",
+    "SampleTestAssignmentAPIService",
 ]

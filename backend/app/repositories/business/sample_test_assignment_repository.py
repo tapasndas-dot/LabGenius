@@ -29,7 +29,10 @@ class SampleTestAssignmentRepository:
         """Get all assignments for a SampleTest in reverse chronological order."""
         return db.query(SampleTestAssignment).filter(
             SampleTestAssignment.sample_test_id == sample_test_id
-        ).order_by(SampleTestAssignment.created_at.desc()).all()
+        ).order_by(
+            SampleTestAssignment.assigned_at,
+            SampleTestAssignment.id,
+        ).all()
 
     def create(self, db: Session, sample_test_id: UUID, assigned_user_id: UUID,
                assigned_by_user_id: UUID | None, assigned_at: datetime,

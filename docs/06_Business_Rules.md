@@ -1,5 +1,21 @@
 # LabGenius Business Rules
 
+## Sprint 20B assignment operations
+
+- Assignment operations are nested under Sample and SampleTest. `sample.assign` controls
+  mutations; `sample.view` is sufficient to read the current assignment and full history.
+- Initial assignment, reassignment, and unassignment require explicit current versions.
+  Accessible stale state and database assignment races return conflict without retry or
+  overwrite. Wrong or inaccessible parent chains remain concealed.
+- Initial assignment records `ASSIGN`; unassignment records `UNASSIGN`; reassignment
+  records `UNASSIGN` for the historical row followed by `ASSIGN` for the new row. Audit
+  records and assignment mutations commit or roll back together.
+- Hierarchy scopes control assignment administration. SELF grants operational viewing
+  only and cannot manage assignments. For viewing, qualifying hierarchy and SELF scopes
+  form a union, without allowing unrelated permissions to broaden `sample.view`.
+- Cancellation retains all assignment history but removes assignment-derived SELF
+  visibility. CANCELLED Samples cannot accept assignment or reassignment.
+
 ## Sprint 20A SampleTest assignment foundation
 
 - Assignment is per SampleTest and is represented by retained assignment history; no
@@ -12,8 +28,8 @@
 - SampleTest SELF access requires an active assignment to the authenticated user.
   Sample SELF access requires at least one child SampleTest actively assigned to that
   user. Historical assignments grant no access, and reassignment transfers SELF access.
-- Assignment mutations are flush-only and expected-version protected for composition
-  with Sprint 20B transactional `ASSIGN` and `UNASSIGN` audit events.
+- Domain mutations remain flush-only and expected-version protected; Sprint 20B composes
+  them with transactional `ASSIGN` and `UNASSIGN` audit events.
 
 ## Sprint 19A Sample foundation
 

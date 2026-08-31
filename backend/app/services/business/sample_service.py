@@ -204,11 +204,20 @@ class SampleAPIService:
 
     def list_tests(self, db: Session, actor, sample_id: UUID, permission: str):
         sample = self._get(db, actor, sample_id, permission)
-        return self.sample_tests.repository.for_sample(db, sample.id)
+        return self.samples.scope_service.filter_sample_tests(
+            self.sample_tests.repository.query(db), actor, permission
+        ).filter(SampleTest.sample_id == sample.id).order_by(
+            SampleTest.sequence_number, SampleTest.id
+        ).all()
 
     def test(self, db: Session, actor, sample_id: UUID, sample_test_id: UUID, permission: str):
         sample = self._get(db, actor, sample_id, permission)
-        record = self.sample_tests.repository.get_for_sample(db, sample.id, sample_test_id)
+        record = self.samples.scope_service.filter_sample_tests(
+            self.sample_tests.repository.query(db), actor, permission
+        ).filter(
+            SampleTest.sample_id == sample.id,
+            SampleTest.id == sample_test_id,
+        ).first()
         if record is None: raise ResourceNotFoundException("Sample Test not found.")
         return record
 

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — Sprint 20B SampleTest Assignment API
+
+- Added nested assign, reassign, unassign, current-assignment, and chronological-history
+  endpoints under each Sample/SampleTest, with explicit SampleTest and assignment versions.
+- Enforced `sample.assign` hierarchy scope for mutations and `sample.view` for reads,
+  including 404 concealment, SELF mutation denial, and SQL union of hierarchy and active-
+  assignment access for viewing.
+- Added clean concurrency conflicts and transactionally coupled `ASSIGN`/`UNASSIGN`
+  audit events. Audit failure rolls back the assignment mutation.
+- Excluded CANCELLED/FINALIZED Samples and SampleTests from assignment-derived SELF access
+  while preserving complete assignment history.
+
 ### Added — Sprint 20A SampleTest assignment foundation
 
 - Added retained per-SampleTest assignment history with restrictive foreign keys,
@@ -12,8 +24,8 @@
   conflict protection.
 - Activated SQL-level SampleTest and Sample SELF semantics based exclusively on active
   assignments, including reassignment transfer and duplicate-free Sample queries.
-- Added the single `sample.assign` permission for idempotent ADMIN mapping. HTTP APIs and
-  transactional `ASSIGN`/`UNASSIGN` audit events remain deferred to Sprint 20B.
+- Added the single `sample.assign` permission for idempotent ADMIN mapping. Sprint 20B
+  now supplies the HTTP and transactional audit integration.
 
 ### Validated — Sprint 19D automation and release validation
 

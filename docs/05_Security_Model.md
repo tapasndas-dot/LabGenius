@@ -1,5 +1,21 @@
 # LabGenius Security Model
 
+## Sprint 20B assignment API authorization
+
+Nested SampleTest assignment mutations require `sample.assign`; assignment and history
+reads require `sample.view` over the containing SampleTest. Mutation authority uses the
+broadest qualifying non-SELF hierarchy scope for `sample.assign`. SELF never authorizes
+assign, reassign, or unassign, even when the actor is the current assignee, and unrelated
+broader roles cannot widen assignment-management scope. Inaccessible Samples,
+SampleTests, assignments, and incorrect parent chains remain concealed as 404.
+
+For `sample.view`, hierarchy-derived access and active-assignment SELF access are united
+in SQL. SELF grants only the exact actively assigned SampleTests, while the containing
+Sample is visible when at least one active assignment exists. CANCELLED or FINALIZED
+Samples/SampleTests do not grant assignment-derived SELF access; retained assignment
+history is not deleted. Mutations use explicit SampleTest and assignment versions and
+record transactionally coupled `ASSIGN`/`UNASSIGN` audit events.
+
 ## Sprint 20A operational assignment scope
 
 `sample.assign` is the sole assignment permission and is seeded idempotently to ADMIN;
@@ -11,8 +27,8 @@ For Samples and SampleTests, `SELF` now means an active SampleTest assignment to
 authenticated user. Inactive or historical assignments, `assigned_by`, and creator
 identity grant no SELF access. Reassignment transfers SampleTest SELF access to the new
 assignee; Sample SELF access exists while at least one child remains actively assigned
-to that user. These predicates are applied in SQL. HTTP assignment authorization and
-transactional ASSIGN/UNASSIGN audit wiring remain Sprint 20B scope.
+to that user. These predicates are applied in SQL. Sprint 20B exposes the secured HTTP
+operations and transactional audit behavior described above.
 
 ## Sprint 19B operational Sample authorization
 
