@@ -6,6 +6,7 @@ from .instrument_repository import InstrumentRepository
 from .qc_method_repository import MethodParameterRepository, MethodRepository, MethodVersionRepository, TestRepository
 from .specification_repository import SpecificationLimitRepository, SpecificationRepository, SpecificationTestRepository, SpecificationVersionRepository
 from .sample_repository import SampleRepository, SampleTestRepository
+from .sample_test_assignment_repository import SampleTestAssignmentRepository
 
 __all__ = [
     "InstrumentTypeRepository",
@@ -20,4 +21,5 @@ __all__ = [
     "SpecificationRepository", "SpecificationVersionRepository",
     "SpecificationTestRepository", "SpecificationLimitRepository",
     "SampleRepository", "SampleTestRepository",
+    "SampleTestAssignmentRepository",
 ]

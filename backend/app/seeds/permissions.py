@@ -205,6 +205,12 @@ PERMISSION_CATALOG += [
     for action in ("view", "create", "update", "cancel")
 ]
 
+PERMISSION_CATALOG += [{
+    "permission_code": "sample.assign",
+    "permission_name": "Assign Sample Tests",
+    "description": "Assign, reassign, or unassign Sample Tests within assigned organization scope.",
+}]
+
 PERMISSION_CATALOG += [
     {
         "permission_code": f"{resource}.{action}",

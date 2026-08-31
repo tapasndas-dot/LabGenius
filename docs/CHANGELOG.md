@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — Sprint 20A SampleTest assignment foundation
+
+- Added retained per-SampleTest assignment history with restrictive foreign keys,
+  optimistic versions, and a PostgreSQL partial unique index enforcing one active
+  assignment per SampleTest.
+- Added flush-only assign, reassign, and unassign operations with active same-organization
+  user validation, safe SampleTest status transitions, row locking, and expected-version
+  conflict protection.
+- Activated SQL-level SampleTest and Sample SELF semantics based exclusively on active
+  assignments, including reassignment transfer and duplicate-free Sample queries.
+- Added the single `sample.assign` permission for idempotent ADMIN mapping. HTTP APIs and
+  transactional `ASSIGN`/`UNASSIGN` audit events remain deferred to Sprint 20B.
+
 ### Validated — Sprint 19D automation and release validation
 
 - Completed the full backend regression: 190 tests passed, 0 failed, 0 skipped, with 8

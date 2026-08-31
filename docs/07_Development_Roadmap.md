@@ -4,6 +4,14 @@
 
 LabGenius has completed the foundational architecture, organizational hierarchy, identity management, authentication, and permission-based RBAC foundation.
 
+### Sprint 20A implementation status
+
+- SampleTest assignment domain/database foundation: IMPLEMENTED
+- Retained history and database-enforced one-active-assignment rule: IMPLEMENTED
+- Active-assignment SQL SELF semantics for SampleTest and Sample: IMPLEMENTED
+- Assignment HTTP APIs, authorization, and transactional audit: DEFERRED TO SPRINT 20B
+- Sprint 20 overall: IN PROGRESS
+
 ### Sprint 19D validation status
 
 - Automated backend regression: COMPLETE (190 passed, 0 failed, 0 skipped)
@@ -791,12 +799,13 @@ the approved dependency sequence for Sprints 16–24:
 15. Sprint 19A — Sample and SampleTest domain/database foundation — IMPLEMENTED
 16. Sprint 19B — secured Sample APIs, operational scope, audit, and concurrency — IMPLEMENTED
 17. Sprint 19C — Sample Registration and SampleTest frontend — IMPLEMENTED
-18. Sprint 19D+ — remaining Sample acceptance and closure
-19. Sprint 20 — Analyst Assignment & Workbench
-20. Sprint 21 — Result Entry, Review & Finalization
-21. Sprint 22 — QC Operational Dashboard
-22. Sprint 23 — Stability Protocol & Study Management
-23. Sprint 24 — Stability Pull Scheduling & QC Integration
+18. Sprint 19D — Sample acceptance and closure — COMPLETE (`v0.23.0`)
+19. Sprint 20A — SampleTest assignment domain/database foundation — IMPLEMENTED
+20. Sprint 20B+ — assignment APIs, workbench, and remaining Sprint 20 delivery
+21. Sprint 21 — Result Entry, Review & Finalization
+22. Sprint 22 — QC Operational Dashboard
+23. Sprint 23 — Stability Protocol & Study Management
+24. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 

@@ -1,5 +1,20 @@
 # LabGenius Business Rules
 
+## Sprint 20A SampleTest assignment foundation
+
+- Assignment is per SampleTest and is represented by retained assignment history; no
+  assigned-user field on Sample or SampleTest is authoritative.
+- A SampleTest has at most one active assignment. Initial assignment transitions
+  `PENDING` to `ASSIGNED`; reassignment closes the old row and creates a new active row;
+  unassignment closes the active row and returns an assignable test to `PENDING`.
+- Assignment targets must be active users in the Sample organization. No role named
+  ANALYST is required, and assignment does not replace Sample hierarchy ownership.
+- SampleTest SELF access requires an active assignment to the authenticated user.
+  Sample SELF access requires at least one child SampleTest actively assigned to that
+  user. Historical assignments grant no access, and reassignment transfers SELF access.
+- Assignment mutations are flush-only and expected-version protected for composition
+  with Sprint 20B transactional `ASSIGN` and `UNASSIGN` audit events.
+
 ## Sprint 19A Sample foundation
 
 - A Sample is an organization-owned operational record with optional Business Unit,
@@ -13,8 +28,8 @@
   registration; `(sample_id, specification_test_id)` is unique.
 - Approved Specification trees are structurally immutable, so historical limits remain
   traceable through the frozen Specification Test. Sprint 19A does not duplicate limits.
-- Operational `SELF` scope is deferred until active analyst assignment is introduced;
-  it must not mean the user who created the Sample.
+- Operational `SELF` scope uses active SampleTest assignments as defined by Sprint 20A;
+  it never means the user who created or historically held the Sample.
 - Samples and Sample Tests favor cancellation/finalization over destructive deletion.
 
 Sprint 19B exposes secured Sample registration, read/update, cancellation, and explicit

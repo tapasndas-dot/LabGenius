@@ -1,11 +1,25 @@
 # LabGenius Security Model
 
+## Sprint 20A operational assignment scope
+
+`sample.assign` is the sole assignment permission and is seeded idempotently to ADMIN;
+viewing remains controlled by `sample.view`. A SampleTest assignment is historical and
+belongs to the SampleTest, with at most one active assignment enforced by PostgreSQL.
+No literal ANALYST role is required.
+
+For Samples and SampleTests, `SELF` now means an active SampleTest assignment to the
+authenticated user. Inactive or historical assignments, `assigned_by`, and creator
+identity grant no SELF access. Reassignment transfers SampleTest SELF access to the new
+assignee; Sample SELF access exists while at least one child remains actively assigned
+to that user. These predicates are applied in SQL. HTTP assignment authorization and
+transactional ASSIGN/UNASSIGN audit wiring remain Sprint 20B scope.
+
 ## Sprint 19B operational Sample authorization
 
 Sample authorization combines the specific `sample.*` permission with SQL-level
 operational hierarchy scope. Organization, Business Unit, Division, and Department
-scopes reach their defined hierarchy descendants; `SELF` returns no Sample rows until
-active analyst assignments exist. Create and update additionally validate the target
+scopes reach their defined hierarchy descendants; `SELF` follows the active assignment
+rules above. Create and update additionally validate the target
 hierarchy, and direct inaccessible Sample/SampleTest UUIDs are concealed as 404.
 
 SampleTest access inherits through its parent Sample. Samples have no DELETE API;

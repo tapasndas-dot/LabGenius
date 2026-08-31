@@ -2,7 +2,7 @@ from enum import StrEnum
 from types import SimpleNamespace
 
 from fastapi import HTTPException, status
-from sqlalchemy import false, or_, select
+from sqlalchemy import and_, false, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ValidationException
@@ -13,7 +13,8 @@ from app.models.organization.division import Division
 from app.models.organization.organization import Organization
 from app.models.user.user import User
 from app.models.business.instrument import Instrument
-from app.models.business.sample import Sample
+from app.models.business.sample import Sample, SampleTest
+from app.models.business.sample_test_assignment import SampleTestAssignment
 
 
 class AccessScope(StrEnum):
@@ -154,7 +155,7 @@ class OrganizationScopeService:
         return query.filter(Instrument.responsible_user_id == actor.id)
 
     def filter_samples(self, query, actor: User, permission_code: str):
-        """Apply operational Sample hierarchy scope; SELF awaits assignments."""
+        """Apply hierarchy scope or active-assignment SELF scope to Samples."""
         scope = self.resolve_scope(actor, permission_code)
         query = query.filter(Sample.organization_id == actor.organization_id)
         if scope == AccessScope.ORGANIZATION:
@@ -175,7 +176,34 @@ class OrganizationScopeService:
             ))
         if scope == AccessScope.DEPARTMENT:
             return query.filter(Sample.department_id == actor.department_id)
-        return query.filter(false())
+        return query.filter(
+            Sample.sample_tests.any(
+                SampleTest.assignments.any(
+                    and_(
+                        SampleTestAssignment.is_active.is_(True),
+                        SampleTestAssignment.assigned_user_id == actor.id,
+                    )
+                )
+            )
+        )
+
+    def filter_sample_tests(self, query, actor: User, permission_code: str):
+        """Scope SampleTests through their parent Sample and active assignment."""
+        scope = self.resolve_scope(actor, permission_code)
+        if scope == AccessScope.SELF:
+            return query.filter(
+                SampleTest.sample.has(Sample.organization_id == actor.organization_id),
+                SampleTest.assignments.any(
+                    and_(
+                        SampleTestAssignment.is_active.is_(True),
+                        SampleTestAssignment.assigned_user_id == actor.id,
+                    )
+                ),
+            )
+        scoped_sample_ids = self.filter_samples(
+            select(Sample.id), actor, permission_code
+        )
+        return query.filter(SampleTest.sample_id.in_(scoped_sample_ids))
 
     def can_place_sample(self, db: Session, actor: User, permission_code: str, values: dict) -> bool:
         scope = self.resolve_scope(actor, permission_code)

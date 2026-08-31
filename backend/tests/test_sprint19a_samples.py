@@ -25,7 +25,10 @@ class Sprint19AContractTests(unittest.TestCase):
         self.assertEqual(set(SamplePriority), {"LOW", "NORMAL", "HIGH", "URGENT"})
         self.assertEqual(set(SampleTestStatus), {"PENDING", "ASSIGNED", "IN_PROGRESS", "RESULT_ENTERED", "REVIEWED", "FINALIZED", "CANCELLED"})
         codes = [item["permission_code"] for item in PERMISSION_CATALOG]
-        self.assertEqual({code for code in codes if code.startswith("sample.")}, {"sample.view", "sample.create", "sample.update", "sample.cancel"})
+        self.assertEqual(
+            {code for code in codes if code.startswith("sample.")},
+            {"sample.view", "sample.create", "sample.update", "sample.cancel", "sample.assign"},
+        )
         self.assertEqual(len(codes), len(set(codes)))
 
 

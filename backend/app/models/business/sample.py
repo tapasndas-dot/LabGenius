@@ -85,3 +85,4 @@ class SampleTest(UUIDMixin, TimestampMixin, VersionMixin, BaseModel):
     display_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     sample = relationship("Sample", back_populates="sample_tests")
     specification_test = relationship("SpecificationTest")
+    assignments = relationship("SampleTestAssignment", back_populates="sample_test", passive_deletes=True)
