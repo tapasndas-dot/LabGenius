@@ -7,6 +7,7 @@ from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
 from app.schemas.business.sample import (
     SampleCreate, SampleResponse, SampleTestAssignRequest,
+    SampleTestAssigneeResponse,
     SampleTestAssignmentMutationResponse, SampleTestAssignmentResponse,
     SampleTestReassignRequest, SampleTestResponse, SampleTestUnassignRequest,
     SampleUpdate,
@@ -16,6 +17,11 @@ from app.services.business.sample_service import sample_api_service
 from app.services.business.sample_test_assignment_api_service import sample_test_assignment_api_service
 
 router = APIRouter()
+
+
+@router.get("/assignment-users", response_model=list[SampleTestAssigneeResponse])
+def list_assignment_users(db: Session = Depends(get_db), actor=Depends(require_permission("sample.view"))):
+    return sample_test_assignment_api_service.assignment_users(db, actor)
 
 
 @router.get("", response_model=list[SampleResponse])

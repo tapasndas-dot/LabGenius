@@ -15,6 +15,7 @@ from app.main import app
 from app.models.audit_event import AuditEvent
 from app.models.business.sample import Sample, SampleTest
 from app.models.business.sample_test_assignment import SampleTestAssignment
+from app.models.user.user import User
 from app.services.business.sample_test_assignment_api_service import SampleTestAssignmentAPIService
 from tests.test_sprint19b_sample_api import assignment
 from tests.test_sprint20a_sample_test_assignments import Sprint20AAssignmentTests
@@ -131,6 +132,23 @@ class Sprint20BAssignmentAPITests(Sprint20AAssignmentTests):
             "expected_assignment_version": assignment_version + 1,
             "expected_sample_test_version": test_version,
         }).status_code, 409)
+
+    def test_assignment_user_lookup_is_minimal_same_organization_and_view_guarded(self):
+        viewer = self.actor("sample.view")
+        app.dependency_overrides[get_db] = lambda: self.db
+        app.dependency_overrides[get_current_user] = lambda: viewer
+        client = TestClient(app)
+        response = client.get("/samples/assignment-users")
+        self.assertEqual(response.status_code, 200, response.text)
+        records = response.json()
+        self.assertTrue(records)
+        self.assertEqual(set(records[0]), {"id", "display_name", "account_status"})
+        expected_ids = {str(row.id) for row in self.db.query(User).filter(
+            User.organization_id == viewer.organization_id
+        )}
+        self.assertEqual({row["id"] for row in records}, expected_ids)
+        viewer.user_roles = [assignment("sample.assign", "ORGANIZATION")]
+        self.assertEqual(client.get("/samples/assignment-users").status_code, 403)
 
     def test_hierarchy_scope_is_permission_specific_and_self_cannot_mutate(self):
         for scope in ("ORGANIZATION", "BUSINESS_UNIT", "DIVISION", "DEPARTMENT"):

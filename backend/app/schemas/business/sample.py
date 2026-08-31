@@ -119,3 +119,10 @@ class SampleTestUnassignRequest(StrictSchema):
 class SampleTestAssignmentMutationResponse(BaseModel):
     sample_test: SampleTestResponse
     assignment: SampleTestAssignmentResponse | None
+
+
+class SampleTestAssigneeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    display_name: str
+    account_status: str

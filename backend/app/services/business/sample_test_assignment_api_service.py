@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import ResourceNotFoundException, VersionConflictException
 from app.models.business.sample import Sample, SampleTest
+from app.models.user.user import User
 from app.services.audit_service import AuditAction, AuditService
 from app.services.organization_scope_service import AccessScope, OrganizationScopeService
 from .sample_service import SampleService, SampleTestService
@@ -62,6 +63,13 @@ class SampleTestAssignmentAPIService:
         if test is None:
             raise ResourceNotFoundException("Sample Test not found.")
         return sample, test
+
+    @staticmethod
+    def assignment_users(db: Session, actor):
+        """Return minimal same-organization user records for assignment display/selection."""
+        return db.query(User).filter(
+            User.organization_id == actor.organization_id
+        ).order_by(User.display_name, User.id).all()
 
     @staticmethod
     def _response(test: SampleTest, assignment):

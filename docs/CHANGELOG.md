@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added — Sprint 20C SampleTest Assignment frontend
+
+- Extended Sample detail with human-readable current assignment and immutable history,
+  plus permission-driven Assign, Reassign, and confirmed Unassign controls.
+- Added active same-organization user selection through a minimal `sample.view`-guarded
+  assignment-user lookup; mutation eligibility remains authoritative on the backend.
+- Reconciled Sample, SampleTest, assignment, history, and server-issued versions after
+  every mutation, with explicit readable HTTP 409 refresh recovery and no automatic retry.
+- Added focused frontend coverage for permissions, mutation lifecycles, retained history,
+  cancelled/finalized behavior, and authoritative version chaining.
+
 ### Added — Sprint 20B SampleTest Assignment API
 
 - Added nested assign, reassign, unassign, current-assignment, and chronological-history

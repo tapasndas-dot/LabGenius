@@ -18,7 +18,17 @@ LabGenius has completed the foundational architecture, organizational hierarchy,
 - Permission-specific hierarchy mutation authorization and 404 concealment: IMPLEMENTED
 - Active-assignment SELF access with hierarchy/SELF view union: IMPLEMENTED
 - Expected-version conflicts and transactional ASSIGN/UNASSIGN audit: IMPLEMENTED
-- Frontend workbench and remaining Sprint 20 delivery: PENDING
+- SampleTest Assignment frontend: IMPLEMENTED IN SPRINT 20C
+- Sprint 20 manual acceptance and closure: PENDING
+
+### Sprint 20C implementation status
+
+- Assignment display and read-only retained history in existing Sample detail: IMPLEMENTED
+- Permission-driven Assign, Reassign, and Unassign flows: IMPLEMENTED
+- Human-readable active-user selection: IMPLEMENTED
+- Authoritative post-mutation version/state reconciliation and HTTP 409 refresh: IMPLEMENTED
+- Analyst Workbench, result entry, and later operational workflows: NOT IN SPRINT 20C SCOPE
+- Sprint 20 overall: IN PROGRESS
 
 ### Sprint 19D validation status
 
@@ -810,11 +820,12 @@ the approved dependency sequence for Sprints 16–24:
 18. Sprint 19D — Sample acceptance and closure — COMPLETE (`v0.23.0`)
 19. Sprint 20A — SampleTest assignment domain/database foundation — IMPLEMENTED
 20. Sprint 20B — assignment API, authorization, SELF scope, concurrency, and audit — IMPLEMENTED
-21. Sprint 20C+ — workbench and remaining Sprint 20 delivery
-22. Sprint 21 — Result Entry, Review & Finalization
-23. Sprint 22 — QC Operational Dashboard
-24. Sprint 23 — Stability Protocol & Study Management
-25. Sprint 24 — Stability Pull Scheduling & QC Integration
+21. Sprint 20C — SampleTest Assignment frontend — IMPLEMENTED
+22. Sprint 20D — SampleTest Assignment manual acceptance and Sprint 20 closure
+23. Sprint 21 — Result Entry, Review & Finalization
+24. Sprint 22 — QC Operational Dashboard
+25. Sprint 23 — Stability Protocol & Study Management
+26. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
