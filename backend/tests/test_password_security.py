@@ -14,6 +14,7 @@ from app.auth.password_policy import PasswordPolicy
 from app.core.exceptions import ValidationException
 from app.dependencies.database import get_db
 from app.main import app
+from app.models.user.user import User
 from app.routers.auth import auth as auth_router
 from app.routers.user import security as user_security_router
 from app.services.user.password_service import PasswordService
@@ -96,6 +97,19 @@ class PasswordServiceTests(unittest.TestCase):
             target_user_id=self.user.id,
         )
         self.db.commit.assert_called_once_with()
+
+    def test_first_password_change_preserves_pending_until_admin_activation(self):
+        self.user.account_status = "PENDING"
+        result = self.service.change_password(
+            self.db,
+            self.user,
+            current_password=COMPLIANT_PASSWORD,
+            new_password=NEW_COMPLIANT_PASSWORD,
+            confirm_new_password=NEW_COMPLIANT_PASSWORD,
+        )
+        self.assertFalse(result.force_password_change)
+        self.assertTrue(result.is_active)
+        self.assertEqual(result.account_status, "PENDING")
 
     def test_wrong_current_password_is_rejected(self):
         with self.assertRaises(ValidationException) as error:
@@ -263,6 +277,9 @@ class UserCreationPasswordTests(unittest.TestCase):
         self.assertTrue(verify_password(COMPLIANT_PASSWORD, created.password_hash))
         self.assertIsNotNone(created.password_changed_at)
         self.assertTrue(created.force_password_change)
+
+    def test_user_model_account_lifecycle_starts_pending(self):
+        self.assertEqual(User.__table__.c.account_status.default.arg, "PENDING")
 
 
 class PasswordApiTests(unittest.TestCase):
