@@ -4,8 +4,11 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 from fastapi import HTTPException
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 from app.core.exceptions import ValidationException
+from app.database.base import BaseModel
 from app.models.organization.business_unit import BusinessUnit
 from app.models.organization.department import Department
 from app.models.organization.designation import Designation
@@ -13,6 +16,7 @@ from app.models.organization.division import Division
 from app.models.organization.organization import Organization
 from app.services.organization_scope_service import AccessScope, OrganizationScopeService
 from app.services.user.user_service import UserService
+from app.schemas.user.user import UserUpdate
 
 
 def assignment(scope, permission="user.view", *, active=True, role_active=True):
@@ -152,6 +156,75 @@ class HierarchyValidationTests(unittest.TestCase):
                 db, organization_id=org.id, business_unit_id=bu.id,
                 division_id=div.id, department_id=dept.id, designation_id=desig.id,
             )
+
+
+class UserHierarchyLookupTests(unittest.TestCase):
+    def setUp(self):
+        self.engine = create_engine("sqlite:///:memory:")
+        BaseModel.metadata.create_all(self.engine, tables=[
+            Organization.__table__, BusinessUnit.__table__, Division.__table__,
+            Department.__table__, Designation.__table__,
+        ])
+        self.db = Session(self.engine)
+        self.org = Organization(organization_code="ORG1", organization_name="Primary")
+        other_org = Organization(organization_code="ORG2", organization_name="Other")
+        self.db.add_all([self.org, other_org]); self.db.flush()
+        self.bu = BusinessUnit(organization_id=self.org.id, business_unit_code="BU1", business_unit_name="Quality")
+        other_bu = BusinessUnit(organization_id=self.org.id, business_unit_code="BU2", business_unit_name="Other BU")
+        foreign_bu = BusinessUnit(organization_id=other_org.id, business_unit_code="BU3", business_unit_name="Foreign")
+        self.db.add_all([self.bu, other_bu, foreign_bu]); self.db.flush()
+        self.div = Division(business_unit_id=self.bu.id, division_code="DIV1", division_name="Lab")
+        other_div = Division(business_unit_id=other_bu.id, division_code="DIV2", division_name="Other")
+        self.db.add_all([self.div, other_div]); self.db.flush()
+        self.dept = Department(division_id=self.div.id, department_code="DEP1", department_name="QC")
+        other_dept = Department(division_id=other_div.id, department_code="DEP2", department_name="Other")
+        self.db.add_all([self.dept, other_dept]); self.db.flush()
+        self.desig = Designation(department_id=self.dept.id, designation_code="DES1", designation_name="Chemist")
+        other_desig = Designation(department_id=other_dept.id, designation_code="DES2", designation_name="Other")
+        self.db.add_all([self.desig, other_desig]); self.db.flush()
+
+    def tearDown(self):
+        self.db.close(); self.engine.dispose()
+
+    def test_lookup_choices_use_exact_permission_scope_and_hide_other_hierarchy(self):
+        actor = user(
+            organization_id=self.org.id, business_unit_id=self.bu.id,
+            division_id=self.div.id, department_id=self.dept.id,
+            designation_id=self.desig.id,
+        )
+        actor.user_roles = [
+            assignment("ORGANIZATION", "user.view"),
+            assignment("DEPARTMENT", "user.create"),
+        ]
+        choices = OrganizationScopeService().user_hierarchy_lookups(
+            self.db, actor, "user.create"
+        )
+        self.assertEqual([row.id for row in choices["organizations"]], [self.org.id])
+        self.assertEqual([row.id for row in choices["business_units"]], [self.bu.id])
+        self.assertEqual([row.id for row in choices["divisions"]], [self.div.id])
+        self.assertEqual([row.id for row in choices["departments"]], [self.dept.id])
+        self.assertEqual([row.id for row in choices["designations"]], [self.desig.id])
+
+    def test_user_update_rejects_inaccessible_hierarchy_before_mutating_target(self):
+        service = UserService()
+        service.scope_service = Mock()
+        service.audit_service = Mock()
+        target = SimpleNamespace(
+            id=uuid4(), organization_id=self.org.id, business_unit_id=self.bu.id,
+            division_id=self.div.id, department_id=self.dept.id,
+            designation_id=self.desig.id,
+        )
+        original_organization_id = target.organization_id
+        service.scope_service.ensure_can_access_user.side_effect = [
+            None, HTTPException(status_code=404, detail="User not found."),
+        ]
+        db = Mock()
+        with self.assertRaises(HTTPException):
+            service.update(
+                db, target, UserUpdate(organization_id=uuid4()), SimpleNamespace()
+            )
+        self.assertEqual(target.organization_id, original_organization_id)
+        db.commit.assert_not_called()
 
 
 if __name__ == "__main__":

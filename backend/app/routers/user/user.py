@@ -7,6 +7,7 @@ from app.auth.dependencies import require_permission
 from app.dependencies.database import get_db
 from app.schemas.user.user import (
     UserCreate,
+    UserHierarchyLookups,
     UserResponse,
     UserUpdate,
 )
@@ -16,6 +17,21 @@ from app.services.user.user_service import UserService
 router = APIRouter()
 
 service = UserService()
+
+
+@router.get("/hierarchy-lookups/view", response_model=UserHierarchyLookups)
+def get_view_hierarchy_lookups(db: Session = Depends(get_db), current_user=Depends(require_permission("user.view"))):
+    return service.hierarchy_lookups(db, current_user, "user.view")
+
+
+@router.get("/hierarchy-lookups/create", response_model=UserHierarchyLookups)
+def get_create_hierarchy_lookups(db: Session = Depends(get_db), current_user=Depends(require_permission("user.create"))):
+    return service.hierarchy_lookups(db, current_user, "user.create")
+
+
+@router.get("/hierarchy-lookups/update", response_model=UserHierarchyLookups)
+def get_update_hierarchy_lookups(db: Session = Depends(get_db), current_user=Depends(require_permission("user.update"))):
+    return service.hierarchy_lookups(db, current_user, "user.update")
 
 
 @router.get(

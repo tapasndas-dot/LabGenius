@@ -99,6 +99,50 @@ class OrganizationScopeService:
         if not self.can_access_user(actor, target, permission_code):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
 
+    def user_hierarchy_lookups(self, db: Session, actor: User, permission_code: str) -> dict:
+        """Return only hierarchy choices reachable by a permission's effective user scope."""
+        scope = self.resolve_scope(actor, permission_code)
+        organizations = db.query(Organization).filter(
+            Organization.id == actor.organization_id
+        ).all()
+        business_units = db.query(BusinessUnit).filter(
+            BusinessUnit.organization_id == actor.organization_id
+        )
+        divisions = db.query(Division).join(
+            BusinessUnit, Division.business_unit_id == BusinessUnit.id
+        ).filter(BusinessUnit.organization_id == actor.organization_id)
+        departments = db.query(Department).join(
+            Division, Department.division_id == Division.id
+        ).join(BusinessUnit, Division.business_unit_id == BusinessUnit.id).filter(
+            BusinessUnit.organization_id == actor.organization_id
+        )
+        designations = db.query(Designation).join(
+            Department, Designation.department_id == Department.id
+        ).join(Division, Department.division_id == Division.id).join(
+            BusinessUnit, Division.business_unit_id == BusinessUnit.id
+        ).filter(BusinessUnit.organization_id == actor.organization_id)
+        if scope != AccessScope.ORGANIZATION:
+            business_units = business_units.filter(BusinessUnit.id == actor.business_unit_id)
+            divisions = divisions.filter(Division.business_unit_id == actor.business_unit_id)
+        if scope in (AccessScope.DIVISION, AccessScope.DEPARTMENT, AccessScope.SELF):
+            divisions = divisions.filter(Division.id == actor.division_id)
+            departments = departments.filter(Department.division_id == actor.division_id)
+        if scope in (AccessScope.DEPARTMENT, AccessScope.SELF):
+            departments = departments.filter(Department.id == actor.department_id)
+            designations = designations.filter(Designation.department_id == actor.department_id)
+        elif scope == AccessScope.DIVISION:
+            designations = designations.filter(Department.division_id == actor.division_id)
+        elif scope == AccessScope.BUSINESS_UNIT:
+            departments = departments.filter(Division.business_unit_id == actor.business_unit_id)
+            designations = designations.filter(BusinessUnit.id == actor.business_unit_id)
+        return {
+            "organizations": organizations,
+            "business_units": business_units.order_by(BusinessUnit.business_unit_code).all(),
+            "divisions": divisions.order_by(Division.division_code).all(),
+            "departments": departments.order_by(Department.department_code).all(),
+            "designations": designations.order_by(Designation.designation_code).all(),
+        }
+
     def filter_shared_masters(self, query, actor: User, permission_code: str, model):
         """Scope organization-owned masters that have no lower-level ownership.
 

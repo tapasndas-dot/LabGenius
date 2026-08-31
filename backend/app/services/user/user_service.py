@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 from sqlalchemy.orm import Session
 
@@ -43,6 +44,9 @@ class UserService(BaseService[User]):
             raise ResourceNotFoundException("User not found.")
         self.scope_service.ensure_can_access_user(actor, user, permission_code)
         return user
+
+    def hierarchy_lookups(self, db: Session, actor: User, permission_code: str):
+        return self.scope_service.user_hierarchy_lookups(db, actor, permission_code)
 
     def create(
         self,
@@ -135,21 +139,22 @@ class UserService(BaseService[User]):
             exclude_unset=True,
         )
 
-        for key, value in data.items():
-            setattr(
-                db_object,
-                key,
-                value,
+        hierarchy = {
+            key: data.get(key, getattr(db_object, key))
+            for key in (
+                "organization_id", "business_unit_id", "division_id",
+                "department_id", "designation_id",
             )
-
+        }
         self.scope_service.validate_hierarchy(
             db,
-            organization_id=db_object.organization_id,
-            business_unit_id=db_object.business_unit_id,
-            division_id=db_object.division_id,
-            department_id=data.get("department_id", db_object.department_id),
-            designation_id=data.get("designation_id", db_object.designation_id),
+            **hierarchy,
         )
+        self.scope_service.ensure_can_access_user(
+            actor, SimpleNamespace(id=db_object.id, **hierarchy), "user.update"
+        )
+        for key, value in data.items():
+            setattr(db_object, key, value)
         self.audit_service.record_update(
             db, entity=db_object, actor=actor, before=before
         )

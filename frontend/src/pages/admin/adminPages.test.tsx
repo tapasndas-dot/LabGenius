@@ -13,12 +13,11 @@ beforeEach(() => { localStorage.clear(); tokenStorage.set('token'); vi.restoreAl
 afterEach(cleanup)
 
 it('renders scoped user API results and scoped empty state', async () => {
-  const fetchMock = vi.spyOn(globalThis, 'fetch')
-    .mockResolvedValueOnce(response(me(['user.view'])))
-    .mockResolvedValueOnce(response([{ id: 'u1', organization_id: 'o', business_unit_id: 'b', division_id: 'v', department_id: 'd', designation_id: 'g', employee_code: 'E1', first_name: 'A', last_name: 'B', display_name: 'Scoped User', email: 'u@test', mobile: null, username: 'user', account_status: 'ACTIVE', timezone: 'UTC', language: 'en', failed_login_attempts: 0, last_login: null, created_at: '', updated_at: '' }]))
+  const hierarchy={organizations:[],business_units:[],divisions:[],departments:[],designations:[]}
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async input=>String(input).endsWith('/auth/me')?response(me(['user.view'])):String(input).includes('/hierarchy-lookups/')?response(hierarchy):response([{ id: 'u1', organization_id: 'o', business_unit_id: 'b', division_id: 'v', department_id: 'd', designation_id: 'g', employee_code: 'E1', first_name: 'A', last_name: 'B', display_name: 'Scoped User', email: 'u@test', mobile: null, username: 'user', account_status: 'ACTIVE', timezone: 'UTC', language: 'en', failed_login_attempts: 0, last_login: null, created_at: '', updated_at: '' }]))
   const first = renderPath('/app/administration/users')
   expect(await screen.findByText('Scoped User')).toBeTruthy(); first.unmount()
-  fetchMock.mockReset().mockResolvedValueOnce(response(me(['user.view']))).mockResolvedValueOnce(response([]))
+  fetchMock.mockReset().mockImplementation(async input=>String(input).endsWith('/auth/me')?response(me(['user.view'])):String(input).includes('/hierarchy-lookups/')?response(hierarchy):response([]))
   renderPath('/app/administration/users')
   expect(await screen.findByText('No users are available in your assigned scope.')).toBeTruthy()
 })

@@ -35,6 +35,9 @@ class UserUpdate(BaseModel):
     email: str | None = None
     mobile: str | None = None
 
+    organization_id: UUID | None = None
+    business_unit_id: UUID | None = None
+    division_id: UUID | None = None
     department_id: UUID | None = None
     designation_id: UUID | None = None
 
@@ -75,3 +78,50 @@ class UserResponse(BaseModel):
 
     created_at: datetime
     updated_at: datetime
+
+
+class UserHierarchyOrganization(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    organization_code: str
+    organization_name: str
+
+
+class UserHierarchyBusinessUnit(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    organization_id: UUID
+    business_unit_code: str
+    business_unit_name: str
+
+
+class UserHierarchyDivision(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    business_unit_id: UUID
+    division_code: str
+    division_name: str
+
+
+class UserHierarchyDepartment(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    division_id: UUID
+    department_code: str
+    department_name: str
+
+
+class UserHierarchyDesignation(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    department_id: UUID
+    designation_code: str
+    designation_name: str
+
+
+class UserHierarchyLookups(BaseModel):
+    organizations: list[UserHierarchyOrganization]
+    business_units: list[UserHierarchyBusinessUnit]
+    divisions: list[UserHierarchyDivision]
+    departments: list[UserHierarchyDepartment]
+    designations: list[UserHierarchyDesignation]

@@ -1,100 +1,37 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { usersApi, type User, type UserCreate } from '../../api/users'
+import { usersApi, type User, type UserCreate, type UserHierarchyLookups, type UserUpdateInput } from '../../api/users'
 import { useAuthorization } from '../../auth/useAuthorization'
 import { AdminHeader, ConfirmButton, EmptyState, ErrorState, LoadingState, errorMessage } from '../../components/admin/AdminPrimitives'
 
-const emptyCreate: UserCreate = {
-  organization_id: '', business_unit_id: '', division_id: '', department_id: '', designation_id: '',
-  employee_code: '', first_name: '', last_name: '', display_name: '', email: '', username: '',
-  password: '', timezone: 'Asia/Kolkata', language: 'en', mobile: null,
+type HierarchyValue = Pick<User,'organization_id'|'business_unit_id'|'division_id'|'department_id'|'designation_id'>
+const emptyHierarchy:UserHierarchyLookups={organizations:[],business_units:[],divisions:[],departments:[],designations:[]}
+const emptyCreate:UserCreate={organization_id:'',business_unit_id:'',division_id:'',department_id:'',designation_id:'',employee_code:'',first_name:'',last_name:'',display_name:'',email:'',username:'',password:'',timezone:'Asia/Kolkata',language:'en',mobile:null}
+const editableUser=(user:User):UserUpdateInput=>({organization_id:user.organization_id,business_unit_id:user.business_unit_id,division_id:user.division_id,department_id:user.department_id,designation_id:user.designation_id,first_name:user.first_name,last_name:user.last_name,display_name:user.display_name,email:user.email,mobile:user.mobile,timezone:user.timezone,language:user.language})
+
+function HierarchySelectors({value,lookups,onChange,disabled=false}:{value:HierarchyValue;lookups:UserHierarchyLookups;onChange:(value:HierarchyValue)=>void;disabled?:boolean}){
+ const businessUnits=lookups.business_units.filter(x=>x.organization_id===value.organization_id),divisions=lookups.divisions.filter(x=>x.business_unit_id===value.business_unit_id),departments=lookups.departments.filter(x=>x.division_id===value.division_id),designations=lookups.designations.filter(x=>x.department_id===value.department_id)
+ return <>
+  <label>Organization<select aria-label="Organization" required disabled={disabled} value={value.organization_id} onChange={e=>onChange({...value,organization_id:e.target.value,business_unit_id:'',division_id:'',department_id:'',designation_id:''})}><option value="">Select organization</option>{lookups.organizations.map(x=><option key={x.id} value={x.id}>{x.organization_code} — {x.organization_name}</option>)}</select></label>
+  <label>Business Unit<select aria-label="Business Unit" required disabled={disabled||!value.organization_id} value={value.business_unit_id} onChange={e=>onChange({...value,business_unit_id:e.target.value,division_id:'',department_id:'',designation_id:''})}><option value="">Select business unit</option>{businessUnits.map(x=><option key={x.id} value={x.id}>{x.business_unit_code} — {x.business_unit_name}</option>)}</select></label>
+  <label>Division<select aria-label="Division" required disabled={disabled||!value.business_unit_id} value={value.division_id} onChange={e=>onChange({...value,division_id:e.target.value,department_id:'',designation_id:''})}><option value="">Select division</option>{divisions.map(x=><option key={x.id} value={x.id}>{x.division_code} — {x.division_name}</option>)}</select></label>
+  <label>Department<select aria-label="Department" required disabled={disabled||!value.division_id} value={value.department_id} onChange={e=>onChange({...value,department_id:e.target.value,designation_id:''})}><option value="">Select department</option>{departments.map(x=><option key={x.id} value={x.id}>{x.department_code} — {x.department_name}</option>)}</select></label>
+  <label>Designation<select aria-label="Designation" required disabled={disabled||!value.department_id} value={value.designation_id} onChange={e=>onChange({...value,designation_id:e.target.value})}><option value="">Select designation</option>{designations.map(x=><option key={x.id} value={x.id}>{x.designation_code} — {x.designation_name}</option>)}</select></label>
+ </>
 }
 
-export function UsersPage() {
-  const { hasPermission } = useAuthorization()
-  const [users, setUsers] = useState<User[]>([])
-  const [selected, setSelected] = useState<User | null>(null)
-  const [createData, setCreateData] = useState<UserCreate>(emptyCreate)
-  const [showCreate, setShowCreate] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  async function load() {
-    setLoading(true); setError(null)
-    try { setUsers(await usersApi.list()) } catch (e) { setError(errorMessage(e)) } finally { setLoading(false) }
-  }
-  useEffect(() => { queueMicrotask(() => void load()) }, [])
-
-  async function action(operation: () => Promise<unknown>, success?: () => void) {
-    setError(null)
-    try { await operation(); success?.(); await load() } catch (e) { setError(errorMessage(e)) }
-  }
-
-  async function create(event: FormEvent) {
-    event.preventDefault()
-    await action(() => usersApi.create(createData), () => { setCreateData(emptyCreate); setShowCreate(false) })
-  }
-
-  async function update(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!selected) return
-    const form = new FormData(event.currentTarget)
-    await action(() => usersApi.update(selected.id, {
-      first_name: String(form.get('first_name')), last_name: String(form.get('last_name')),
-      display_name: String(form.get('display_name')), email: String(form.get('email')),
-      mobile: String(form.get('mobile')) || null, timezone: String(form.get('timezone')),
-      language: String(form.get('language')),
-    }), () => setSelected(null))
-  }
-
-  function createField(field: keyof UserCreate, label: string, type = 'text') {
-    return <label>{label}<input type={type} required value={String(createData[field] ?? '')}
-      onChange={(e) => setCreateData({ ...createData, [field]: e.target.value })} /></label>
-  }
-
-  return <section className="admin-page">
-    <AdminHeader title="Users" description="Users returned here are already filtered by backend organization scope."
-      actions={hasPermission('user.create') && <button type="button" className="small-button" onClick={() => setShowCreate(!showCreate)}>Create user</button>} />
-    {error && <ErrorState message={error} />}
-    {showCreate && <form className="admin-form form-grid" onSubmit={create}>
-      <h2>Create user</h2>
-      {createField('organization_id', 'Organization ID')}{createField('business_unit_id', 'Business unit ID')}
-      {createField('division_id', 'Division ID')}{createField('department_id', 'Department ID')}
-      {createField('designation_id', 'Designation ID')}{createField('employee_code', 'Employee code')}
-      {createField('first_name', 'First name')}{createField('last_name', 'Last name')}
-      {createField('display_name', 'Display name')}{createField('email', 'Email', 'email')}
-      {createField('username', 'Username')}{createField('password', 'Temporary password', 'password')}
-      <p className="form-help full-width">Hierarchy identifiers must come from authorized organization lookup data. The backend validates their relationship.</p>
-      <div className="form-actions full-width"><button type="submit">Create</button><button type="button" className="text-button" onClick={() => setShowCreate(false)}>Cancel</button></div>
-    </form>}
-    {loading ? <LoadingState /> : users.length === 0 ? <EmptyState>No users are available in your assigned scope.</EmptyState> :
-      <div className="table-wrap"><table><thead><tr><th>User</th><th>Status</th><th>Employee</th><th>Actions</th></tr></thead><tbody>
-        {users.map((item) => <tr key={item.id}><td><strong>{item.display_name}</strong><small>{item.username} · {item.email}</small></td>
-          <td>{item.account_status}</td><td>{item.employee_code}</td><td className="table-actions">
-            <button type="button" className="small-button secondary" onClick={() => setSelected(item)}>View/Edit</button>
-            {hasPermission('user.update') && <>
-              <ConfirmButton prompt={`${item.account_status === 'INACTIVE' ? 'Activate' : 'Deactivate'} ${item.display_name}?`}
-                className="small-button secondary" onConfirm={() => void action(() => item.account_status === 'INACTIVE' ? usersApi.activate(item.id) : usersApi.deactivate(item.id))}>
-                {item.account_status === 'INACTIVE' ? 'Activate' : 'Deactivate'}
-              </ConfirmButton>
-              {item.failed_login_attempts > 0 && <button className="small-button secondary" type="button" onClick={() => void action(() => usersApi.unlock(item.id))}>Unlock</button>}
-              <button className="small-button secondary" type="button" onClick={() => {
-                const password = window.prompt(`Enter a temporary password for ${item.display_name}.`)
-                if (password) void action(() => usersApi.resetPassword(item.id, password))
-              }}>Reset password</button>
-            </>}
-            {hasPermission('user.delete') && <ConfirmButton prompt={`Permanently delete ${item.display_name}? This cannot be undone.`}
-              onConfirm={() => void action(() => usersApi.remove(item.id))}>Delete</ConfirmButton>}
-          </td></tr>)}
-      </tbody></table></div>}
-    {selected && <form className="admin-form" onSubmit={update}><h2>User details</h2>
-      <div className="form-grid"><label>First name<input name="first_name" defaultValue={selected.first_name} required /></label>
-      <label>Last name<input name="last_name" defaultValue={selected.last_name} required /></label>
-      <label>Display name<input name="display_name" defaultValue={selected.display_name} required /></label>
-      <label>Email<input name="email" type="email" defaultValue={selected.email} required /></label>
-      <label>Mobile<input name="mobile" defaultValue={selected.mobile ?? ''} /></label>
-      <label>Timezone<input name="timezone" defaultValue={selected.timezone} required /></label>
-      <label>Language<input name="language" defaultValue={selected.language} required /></label></div>
-      <dl className="record-meta"><dt>ID</dt><dd>{selected.id}</dd><dt>Department</dt><dd>{selected.department_id}</dd></dl>
-      <div className="form-actions">{hasPermission('user.update') && <button type="submit">Save changes</button>}<button type="button" className="text-button" onClick={() => setSelected(null)}>Close</button></div>
-    </form>}
-  </section>
+export function UsersPage(){
+ const {hasPermission}=useAuthorization();const [users,setUsers]=useState<User[]>([]),[selected,setSelected]=useState<User|null>(null),[createData,setCreateData]=useState<UserCreate>(emptyCreate),[editData,setEditData]=useState<UserUpdateInput>({}),[viewLookups,setViewLookups]=useState<UserHierarchyLookups>(emptyHierarchy),[formLookups,setFormLookups]=useState<UserHierarchyLookups>(emptyHierarchy),[showCreate,setShowCreate]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null)
+ async function load(){setLoading(true);setError(null);try{const [rows,lookups]=await Promise.all([usersApi.list(),usersApi.hierarchyLookups('view')]);setUsers(rows);setViewLookups(lookups)}catch(e){setError(errorMessage(e))}finally{setLoading(false)}}
+ useEffect(()=>{queueMicrotask(()=>void load())},[])
+ async function action(operation:()=>Promise<unknown>,success?:()=>void){setError(null);try{await operation();success?.();await load()}catch(e){setError(errorMessage(e))}}
+ async function openCreate(){try{setFormLookups(await usersApi.hierarchyLookups('create'));setCreateData(emptyCreate);setShowCreate(true)}catch(e){setError(errorMessage(e))}}
+ async function openUser(user:User){setSelected(user);setEditData(editableUser(user));if(hasPermission('user.update')){try{setFormLookups(await usersApi.hierarchyLookups('update'))}catch(e){setError(errorMessage(e))}}else setFormLookups(viewLookups)}
+ async function create(event:FormEvent){event.preventDefault();await action(()=>usersApi.create(createData),()=>{setCreateData(emptyCreate);setShowCreate(false)})}
+ async function update(event:FormEvent){event.preventDefault();if(!selected)return;await action(()=>usersApi.update(selected.id,editData),()=>setSelected(null))}
+ const setCreate=<K extends keyof UserCreate>(key:K,value:UserCreate[K])=>setCreateData(current=>({...current,[key]:value})),setEdit=<K extends keyof UserUpdateInput>(key:K,value:UserUpdateInput[K])=>setEditData(current=>({...current,[key]:value}))
+ const editHierarchy:HierarchyValue={organization_id:String(editData.organization_id??selected?.organization_id??''),business_unit_id:String(editData.business_unit_id??selected?.business_unit_id??''),division_id:String(editData.division_id??selected?.division_id??''),department_id:String(editData.department_id??selected?.department_id??''),designation_id:String(editData.designation_id??selected?.designation_id??'')}
+ return <section className="admin-page"><AdminHeader title="Users" description="Users returned here are already filtered by backend organization scope." actions={hasPermission('user.create')&&<button type="button" className="small-button" onClick={()=>void openCreate()}>Create user</button>}/>{error&&<ErrorState message={error}/>}{showCreate&&<form className="admin-form form-grid" onSubmit={create}><h2>Create user</h2><HierarchySelectors value={createData} lookups={formLookups} onChange={value=>setCreateData(current=>({...current,...value}))}/><label>Employee code<input required value={createData.employee_code} onChange={e=>setCreate('employee_code',e.target.value)}/></label><label>First name<input required value={createData.first_name} onChange={e=>setCreate('first_name',e.target.value)}/></label><label>Last name<input required value={createData.last_name} onChange={e=>setCreate('last_name',e.target.value)}/></label><label>Display name<input required value={createData.display_name} onChange={e=>setCreate('display_name',e.target.value)}/></label><label>Email<input type="email" required value={createData.email} onChange={e=>setCreate('email',e.target.value)}/></label><label>Username<input required value={createData.username} onChange={e=>setCreate('username',e.target.value)}/></label><label>Temporary password<input type="password" required value={createData.password} onChange={e=>setCreate('password',e.target.value)}/></label><div className="form-actions full-width"><button>Create</button><button type="button" className="text-button" onClick={()=>setShowCreate(false)}>Cancel</button></div></form>}
+ {loading?<LoadingState/>:users.length===0?<EmptyState>No users are available in your assigned scope.</EmptyState>:<div className="table-wrap"><table><thead><tr><th>User</th><th>Status</th><th>Employee</th><th>Actions</th></tr></thead><tbody>{users.map(item=><tr key={item.id}><td><strong>{item.display_name}</strong><small>{item.username} · {item.email}</small></td><td>{item.account_status}</td><td>{item.employee_code}</td><td className="table-actions"><button type="button" className="small-button secondary" onClick={()=>void openUser(item)}>View/Edit</button>{hasPermission('user.update')&&<><ConfirmButton prompt={`${item.account_status==='INACTIVE'?'Activate':'Deactivate'} ${item.display_name}?`} className="small-button secondary" onConfirm={()=>void action(()=>item.account_status==='INACTIVE'?usersApi.activate(item.id):usersApi.deactivate(item.id))}>{item.account_status==='INACTIVE'?'Activate':'Deactivate'}</ConfirmButton>{item.failed_login_attempts>0&&<button className="small-button secondary" type="button" onClick={()=>void action(()=>usersApi.unlock(item.id))}>Unlock</button>}<button className="small-button secondary" type="button" onClick={()=>{const password=window.prompt(`Enter a temporary password for ${item.display_name}.`);if(password)void action(()=>usersApi.resetPassword(item.id,password))}}>Reset password</button></>}{hasPermission('user.delete')&&<ConfirmButton prompt={`Permanently delete ${item.display_name}? This cannot be undone.`} onConfirm={()=>void action(()=>usersApi.remove(item.id))}>Delete</ConfirmButton>}</td></tr>)}</tbody></table></div>}
+ {selected&&<form className="admin-form" onSubmit={update}><h2>User details</h2><div className="form-grid"><HierarchySelectors value={editHierarchy} lookups={formLookups} disabled={!hasPermission('user.update')} onChange={value=>setEditData(current=>({...current,...value}))}/><label>First name<input required disabled={!hasPermission('user.update')} value={String(editData.first_name??'')} onChange={e=>setEdit('first_name',e.target.value)}/></label><label>Last name<input required disabled={!hasPermission('user.update')} value={String(editData.last_name??'')} onChange={e=>setEdit('last_name',e.target.value)}/></label><label>Display name<input required disabled={!hasPermission('user.update')} value={String(editData.display_name??'')} onChange={e=>setEdit('display_name',e.target.value)}/></label><label>Email<input type="email" required disabled={!hasPermission('user.update')} value={String(editData.email??'')} onChange={e=>setEdit('email',e.target.value)}/></label><label>Mobile<input disabled={!hasPermission('user.update')} value={String(editData.mobile??'')} onChange={e=>setEdit('mobile',e.target.value||null)}/></label><label>Timezone<input required disabled={!hasPermission('user.update')} value={String(editData.timezone??'')} onChange={e=>setEdit('timezone',e.target.value)}/></label><label>Language<input required disabled={!hasPermission('user.update')} value={String(editData.language??'')} onChange={e=>setEdit('language',e.target.value)}/></label></div><div className="form-actions">{hasPermission('user.update')&&<button>Save changes</button>}<button type="button" className="text-button" onClick={()=>setSelected(null)}>Close</button></div></form>}
+ </section>
 }
