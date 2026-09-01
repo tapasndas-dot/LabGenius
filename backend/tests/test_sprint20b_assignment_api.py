@@ -222,6 +222,38 @@ class Sprint20BAssignmentAPITests(Sprint20AAssignmentTests):
         ).count(), 0)
         self.assertEqual(self.db.query(SampleTestAssignment).filter_by(id=first.id).count(), 1)
 
+    def test_self_sample_reads_include_contextual_references_without_master_browse(self):
+        self.assignments.assign(
+            self.db, self.org.id, self.sample_test.id, self.user_a.id,
+            expected_sample_test_version=self.sample_test.version,
+        )
+        viewer = self.actor("sample.view", "SELF")
+        app.dependency_overrides[get_db] = lambda: self.db
+        app.dependency_overrides[get_current_user] = lambda: viewer
+        client = TestClient(app)
+
+        samples = client.get("/samples")
+        self.assertEqual(samples.status_code, 200, samples.text)
+        self.assertEqual(len(samples.json()), 1)
+        record = samples.json()[0]
+        self.assertEqual(record["material"]["code"], self.material.code)
+        self.assertTrue(record["specification_version"]["code"].startswith("SPEC"))
+        self.assertEqual(record["business_unit"]["name"], "Laboratory")
+        self.assertEqual(record["division"]["name"], "Quality")
+        self.assertEqual(record["department"]["name"], "QC")
+
+        tests = client.get(f"/samples/{self.sample.id}/tests")
+        self.assertEqual(tests.status_code, 200, tests.text)
+        test_record = tests.json()[0]
+        self.assertTrue(test_record["test"]["code"])
+        self.assertEqual(test_record["method_version"]["version_number"], 1)
+        self.assertEqual(test_record["current_assignee"], {
+            "id": str(self.user_a.id), "display_name": self.user_a.display_name,
+        })
+
+        for path in ("/materials", "/specifications", "/tests", "/methods", "/business-units"):
+            self.assertEqual(client.get(path).status_code, 403, path)
+
     def test_stale_sample_test_version_is_conflict(self):
         manager = self.actor("sample.assign")
         with self.assertRaises(VersionConflictException):

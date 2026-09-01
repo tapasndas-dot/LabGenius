@@ -10,7 +10,7 @@ LabGenius has completed the foundational architecture, organizational hierarchy,
 - Retained history and database-enforced one-active-assignment rule: IMPLEMENTED
 - Active-assignment SQL SELF semantics for SampleTest and Sample: IMPLEMENTED
 - Assignment HTTP APIs, authorization, and transactional audit: IMPLEMENTED IN SPRINT 20B
-- Sprint 20 overall: IN PROGRESS
+- Sprint 20 overall: COMPLETE
 
 ### Sprint 20B implementation status
 
@@ -19,7 +19,7 @@ LabGenius has completed the foundational architecture, organizational hierarchy,
 - Active-assignment SELF access with hierarchy/SELF view union: IMPLEMENTED
 - Expected-version conflicts and transactional ASSIGN/UNASSIGN audit: IMPLEMENTED
 - SampleTest Assignment frontend: IMPLEMENTED IN SPRINT 20C
-- Sprint 20 manual acceptance and closure: PENDING
+- Sprint 20 manual acceptance and closure: COMPLETE
 
 ### Sprint 20C implementation status
 
@@ -28,7 +28,19 @@ LabGenius has completed the foundational architecture, organizational hierarchy,
 - Human-readable active-user selection: IMPLEMENTED
 - Authoritative post-mutation version/state reconciliation and HTTP 409 refresh: IMPLEMENTED
 - Analyst Workbench, result entry, and later operational workflows: NOT IN SPRINT 20C SCOPE
-- Sprint 20 overall: IN PROGRESS
+- Sprint 20 overall: COMPLETE
+
+### Sprint 20D validation status
+
+- Final automated backend regression: COMPLETE (238 passed, 0 failed)
+- Final automated frontend regression: COMPLETE (65 passed, 0 failed)
+- Migration, permission seed, OpenAPI, lint/build/audit, and security-contract validation: COMPLETE
+- Manual browser acceptance and Sprint 20 closure: COMPLETE
+- Manual-acceptance setup correction: User Administration hierarchy selectors implemented;
+  `PENDING` account activation action corrected and accepted.
+- Manual-acceptance SELF display correction: authorized Sample/SampleTest reads now provide
+  contextual reference labels without granting broad master-data visibility; retest passed.
+- Sprint 20 overall: COMPLETE
 
 ### Sprint 19D validation status
 
@@ -821,7 +833,7 @@ the approved dependency sequence for Sprints 16–24:
 19. Sprint 20A — SampleTest assignment domain/database foundation — IMPLEMENTED
 20. Sprint 20B — assignment API, authorization, SELF scope, concurrency, and audit — IMPLEMENTED
 21. Sprint 20C — SampleTest Assignment frontend — IMPLEMENTED
-22. Sprint 20D — SampleTest Assignment manual acceptance and Sprint 20 closure
+22. Sprint 20D — SampleTest Assignment manual acceptance and Sprint 20 closure — COMPLETE
 23. Sprint 21 — Result Entry, Review & Finalization
 24. Sprint 22 — QC Operational Dashboard
 25. Sprint 23 — Stability Protocol & Study Management

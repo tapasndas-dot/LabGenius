@@ -7,15 +7,24 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import DuplicateResourceException, ResourceNotFoundException, ValidationException, VersionConflictException
 from app.models.business.material import Material
 from app.models.business.sample import Sample, SamplePriority, SampleStatus, SampleTest, SampleTestStatus
+from app.models.business.qc_method import Method, MethodVersion, Test
+from app.models.business.sample_test_assignment import SampleTestAssignment
 from app.models.business.specification import Specification, SpecificationTest, SpecificationVersion, SpecificationVersionStatus
 from app.models.organization.business_unit import BusinessUnit
 from app.models.organization.department import Department
 from app.models.organization.division import Division
+from app.models.user.user import User
 from app.repositories.business.sample_repository import SampleRepository, SampleTestRepository
 from app.services.organization_scope_service import OrganizationScopeService
 from app.services.audit_service import AuditAction, AuditService
 from .normalization import normalize_code, normalize_optional
 from .organization_master_service import VERSION_CONFLICT_MESSAGE
+
+
+class _ContextResponse(dict):
+    """Mapping response that preserves existing service-level attribute access."""
+
+    __getattr__ = dict.__getitem__
 
 
 class SampleService:
@@ -153,12 +162,65 @@ class SampleAPIService:
         if not self.samples.scope_service.can_place_sample(db, actor, permission, values):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Target Sample hierarchy is outside the authorized scope.")
 
+    @staticmethod
+    def _sample_response(db: Session, record: Sample) -> dict:
+        material = db.get(Material, record.material_id)
+        specification_version = db.query(SpecificationVersion).join(Specification).filter(
+            SpecificationVersion.id == record.specification_version_id,
+            Specification.organization_id == record.organization_id,
+        ).first()
+        def hierarchy(model, record_id, code_field, name_field):
+            item = db.get(model, record_id) if record_id else None
+            return ({"id": item.id, "code": getattr(item, code_field), "name": getattr(item, name_field)}
+                    if item else None)
+        return _ContextResponse({
+            **record.__dict__,
+            "material": ({"id": material.id, "code": material.code, "name": material.name}
+                         if material and material.organization_id == record.organization_id else None),
+            "specification_version": ({
+                "id": specification_version.id,
+                "code": specification_version.specification.specification_code,
+                "name": specification_version.specification.specification_name,
+                "version_number": specification_version.version_number,
+                "status": specification_version.status,
+            } if specification_version else None),
+            "business_unit": hierarchy(BusinessUnit, record.business_unit_id, "business_unit_code", "business_unit_name"),
+            "division": hierarchy(Division, record.division_id, "division_code", "division_name"),
+            "department": hierarchy(Department, record.department_id, "department_code", "department_name"),
+        })
+
+    @staticmethod
+    def _test_response(db: Session, record: SampleTest) -> dict:
+        test = db.get(Test, record.test_id)
+        method_version = db.query(MethodVersion).join(Method).filter(
+            MethodVersion.id == record.method_version_id
+        ).first() if record.method_version_id else None
+        assignee = db.query(User).join(
+            SampleTestAssignment, SampleTestAssignment.assigned_user_id == User.id
+        ).filter(
+            SampleTestAssignment.sample_test_id == record.id,
+            SampleTestAssignment.is_active.is_(True),
+        ).first()
+        return _ContextResponse({
+            **record.__dict__,
+            "test": ({"id": test.id, "code": test.test_code, "name": test.test_name} if test else None),
+            "method_version": ({
+                "id": method_version.id,
+                "code": method_version.method.method_code,
+                "name": method_version.method.method_name,
+                "version_number": method_version.version_number,
+                "status": method_version.status,
+            } if method_version else None),
+            "current_assignee": ({"id": assignee.id, "display_name": assignee.display_name} if assignee else None),
+        })
+
     def list(self, db: Session, actor, permission: str, *, limit=100, offset=0, **filters):
         query = self.samples.repository.apply_filters(self.samples.scoped_query(db, actor, permission), **filters)
-        return query.order_by(Sample.sample_number, Sample.id).offset(offset).limit(limit).all()
+        records = query.order_by(Sample.sample_number, Sample.id).offset(offset).limit(limit).all()
+        return [self._sample_response(db, record) for record in records]
 
     def get(self, db: Session, actor, sample_id: UUID, permission: str):
-        return self._get(db, actor, sample_id, permission)
+        return self._sample_response(db, self._get(db, actor, sample_id, permission))
 
     def create(self, db: Session, actor, permission: str, values: dict):
         normalized = self.samples.normalize(values)
@@ -204,11 +266,12 @@ class SampleAPIService:
 
     def list_tests(self, db: Session, actor, sample_id: UUID, permission: str):
         sample = self._get(db, actor, sample_id, permission)
-        return self.samples.scope_service.filter_sample_tests(
+        records = self.samples.scope_service.filter_sample_tests(
             self.sample_tests.repository.query(db), actor, permission
         ).filter(SampleTest.sample_id == sample.id).order_by(
             SampleTest.sequence_number, SampleTest.id
         ).all()
+        return [self._test_response(db, record) for record in records]
 
     def test(self, db: Session, actor, sample_id: UUID, sample_test_id: UUID, permission: str):
         sample = self._get(db, actor, sample_id, permission)
@@ -219,7 +282,7 @@ class SampleAPIService:
             SampleTest.id == sample_test_id,
         ).first()
         if record is None: raise ResourceNotFoundException("Sample Test not found.")
-        return record
+        return self._test_response(db, record)
 
     def generate_tests(self, db: Session, actor, sample_id: UUID, permission: str):
         sample = self._get(db, actor, sample_id, permission)
@@ -233,7 +296,7 @@ class SampleAPIService:
                     self.audit.record_create(db, entity=record, actor=actor, owner=sample)
             db.commit()
             for record in records: db.refresh(record)
-            return records
+            return [self._test_response(db, record) for record in records]
         except Exception:
             db.rollback(); raise
 

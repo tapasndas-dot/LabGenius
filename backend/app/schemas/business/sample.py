@@ -10,6 +10,25 @@ from .shared import StrictSchema
 SamplePriorityValue = Literal["LOW", "NORMAL", "HIGH", "URGENT"]
 
 
+class ReferenceDisplay(BaseModel):
+    id: UUID
+    code: str
+    name: str
+
+
+class VersionReferenceDisplay(BaseModel):
+    id: UUID
+    code: str
+    name: str
+    version_number: int
+    status: str
+
+
+class AssigneeDisplay(BaseModel):
+    id: UUID
+    display_name: str
+
+
 class SampleCreate(StrictSchema):
     business_unit_id: UUID | None = None
     division_id: UUID | None = None
@@ -64,6 +83,11 @@ class SampleResponse(BaseModel):
     status: str
     priority: str
     notes: str | None
+    material: ReferenceDisplay | None = None
+    specification_version: VersionReferenceDisplay | None = None
+    business_unit: ReferenceDisplay | None = None
+    division: ReferenceDisplay | None = None
+    department: ReferenceDisplay | None = None
     version: int
     created_at: datetime
     updated_at: datetime
@@ -80,6 +104,9 @@ class SampleTestResponse(BaseModel):
     status: str
     is_required: bool
     display_name: str | None
+    test: ReferenceDisplay | None = None
+    method_version: VersionReferenceDisplay | None = None
+    current_assignee: AssigneeDisplay | None = None
     version: int
     created_at: datetime
     updated_at: datetime

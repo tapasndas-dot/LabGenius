@@ -96,7 +96,7 @@ export function SampleTestAssignmentPanel({ sample, sampleTest, users, canAssign
   }
 
   return <div className="assignment-panel">
-    <div><strong>Assigned To:</strong> {assignment ? (names.get(assignment.assigned_user_id) ?? 'User details unavailable') : 'Unassigned'}</div>
+    <div><strong>Assigned To:</strong> {assignment ? (names.get(assignment.assigned_user_id) ?? sampleTest.current_assignee?.display_name ?? 'User details unavailable') : 'Unassigned'}</div>
     {error && <div role="alert">{error}</div>}
     {conflict && <button className="small-button secondary" onClick={() => void refreshAll()}>Refresh current Sample data</button>}
     {mutable && !mode && !assignment && sampleTest.status === 'PENDING' && <button className="small-button" onClick={() => setMode('assign')}>Assign</button>}

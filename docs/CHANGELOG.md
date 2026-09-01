@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### Completed — Sprint 20 SampleTest assignment and operational SELF access
+
+- Completed the final full backend regression with 238 tests passing and the full frontend
+  regression with 65 tests passing.
+- Confirmed the single Alembic head with no schema drift, idempotent permission seeding,
+  exactly one `sample.assign` permission and ADMIN mapping, and no extra assignment
+  permission family.
+- Validated Python compilation, FastAPI/OpenAPI generation, all assignment routes,
+  `/samples/assignment-users`, `/auth/login`, unique operation IDs, frontend lint/build,
+  and a dependency audit with zero vulnerabilities.
+- Confirmed automated coverage for the Sprint 20 assignment security, scope, history,
+  concurrency, audit, finalized/cancelled, and authoritative frontend-state contracts.
+  Automated closure validation passed.
+- During manual-acceptance setup, corrected the pre-existing User Administration UX so
+  authorized Organization-to-Designation hierarchy choices are human-readable and
+  cascading for Create and Edit; backend hierarchy and scope validation remain authoritative.
+- Corrected the pre-existing User Administration lifecycle action for `PENDING` accounts:
+  they now offer the existing audited administrator activation transition instead of the
+  misleading deactivation action. Password change continues to preserve `PENDING`.
+- Manual acceptance identified and corrected contextual reference rendering for Samples
+  visible through assignment-derived `SELF` access; authorized Sample/SampleTest reads now
+  carry compact display references without widening master-data browse permissions.
+- Manual acceptance passed for assignment, reassignment, unassignment, retained history,
+  active-user eligibility, assignment-derived `SELF` access, read-only UI behavior,
+  contextual reference display, and preserved master-data authorization. Sprint 20 is complete.
+
 ### Added — Sprint 20C SampleTest Assignment frontend
 
 - Extended Sample detail with human-readable current assignment and immutable history,
