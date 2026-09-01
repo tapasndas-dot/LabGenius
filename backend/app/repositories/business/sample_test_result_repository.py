@@ -5,7 +5,7 @@ Repositories provide database access with no business logic commits.
 Services enforce domain rules and transactional behavior.
 """
 from uuid import UUID
-from sqlalchemy import func, update
+from sqlalchemy import delete, func, update
 from sqlalchemy.orm import Session
 
 from app.models.business.sample_test_result import (
@@ -197,6 +197,17 @@ class ParameterResultRepository:
         db.flush()
         return db.get(ParameterResult, updated_id)
 
+    def delete_expected(self, db: Session, parameter_result_id: UUID,
+                        expected_version: int) -> bool:
+        deleted_id = db.execute(
+            delete(ParameterResult).where(
+                ParameterResult.id == parameter_result_id,
+                ParameterResult.version == expected_version,
+            ).returning(ParameterResult.id)
+        ).scalar_one_or_none()
+        db.flush()
+        return deleted_id is not None
+
 
 class ResultInstrumentUsageRepository:
     """
@@ -274,3 +285,14 @@ class ResultInstrumentUsageRepository:
             return None
         db.flush()
         return db.get(ResultInstrumentUsage, updated_id)
+
+    def delete_expected(self, db: Session, usage_id: UUID,
+                        expected_version: int) -> bool:
+        deleted_id = db.execute(
+            delete(ResultInstrumentUsage).where(
+                ResultInstrumentUsage.id == usage_id,
+                ResultInstrumentUsage.version == expected_version,
+            ).returning(ResultInstrumentUsage.id)
+        ).scalar_one_or_none()
+        db.flush()
+        return deleted_id is not None

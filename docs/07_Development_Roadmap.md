@@ -835,10 +835,11 @@ the approved dependency sequence for Sprints 16–24:
 21. Sprint 20C — SampleTest Assignment frontend — IMPLEMENTED
 22. Sprint 20D — SampleTest Assignment manual acceptance and Sprint 20 closure — COMPLETE
 23. Sprint 21A — Result Entry Foundation (Domain models, repositories, services, permissions, tests) — IMPLEMENTED
-24. Sprint 21B–21D — Result Entry, Review, Finalization, and Submission (APIs, frontend, workflow) — DEFERRED
-25. Sprint 22 — QC Operational Dashboard
-26. Sprint 23 — Stability Protocol & Study Management
-27. Sprint 24 — Stability Pull Scheduling & QC Integration
+24. Sprint 21B — Secured Result Entry API and Submission Foundation — IMPLEMENTED; REVIEW PENDING
+25. Sprint 21C–21D — Result Entry frontend, Review, and Finalization — DEFERRED
+26. Sprint 22 — QC Operational Dashboard
+27. Sprint 23 — Stability Protocol & Study Management
+28. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -915,7 +916,12 @@ is effective. Content is editable only while DRAFT; lifecycle transitions, corre
 and audit integration remain future work. Version columns establish optimistic-concurrency
 foundations, and service organization validation inherits through SampleTest → Sample. Result
 identity fields never redefine Sprint 20 SELF. No HTTP APIs or frontend are included. Sprint 21A
-is IMPLEMENTED; Sprint 21 overall remains IN PROGRESS and Sprint 21B–21D remain deferred.
+is IMPLEMENTED. Sprint 21B adds nested secured Result reads, DRAFT creation and editing,
+typed ParameterResult and instrument-usage mutation, contextual references, optimistic
+concurrency, transactional audit, submission readiness, and DRAFT -> ENTERED submission.
+The API deliberately permits one retained result until correction/reopen authority is defined;
+it does not infer an effective result or transition Sample/SampleTest state. Sprint 21B is
+implemented with review pending; Sprint 21 overall remains IN PROGRESS and 21C–21D remain deferred.
 
 ---
 

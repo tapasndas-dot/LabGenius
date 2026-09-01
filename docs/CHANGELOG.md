@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Implemented — Sprint 21B Secured Result Entry API and Submission Foundation
+
+- Added secured nested Sample/SampleTest Result routes for history reads, DRAFT creation and
+  header updates, typed ParameterResult add/update/remove, instrument-usage add/remove, and
+  submission.
+- Enforced permission-specific hierarchy scope and active-assignment SELF semantics with 404
+  concealment. Result authorship and unrelated broader roles do not grant result access.
+- Added contextual Result responses for the authorized Sample, SampleTest, Test, frozen Method
+  version/parameters, entered-by actor, and linked Instruments without broad enumeration.
+- Enforced server-controlled sequences and a conservative one-result API rule until
+  correction/reopen is designed; retained history is not overwritten or treated as approved.
+- Added completeness/type validation and only DRAFT -> ENTERED submission. ENTERED content is
+  immutable, and Sample/SampleTest state is intentionally unchanged.
+- Added expected-version conflicts and transactional CREATE/UPDATE/DELETE/SUBMIT audit events.
+  Review, finalization, specification evaluation, OOS/OOT, frontend, and correction remain
+  deferred. Sprint 21 overall remains in progress.
+
 ### Implemented — Sprint 21A Result Entry Foundation
 
 - Added result domain models: `SampleTestResult` (execution/result header with lifecycle),

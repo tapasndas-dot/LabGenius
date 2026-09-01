@@ -1,5 +1,20 @@
 # LabGenius Security Model
 
+## Sprint 21B result-entry authorization
+
+- Result routes are nested below the authoritative Sample and SampleTest parent chain. Each
+  operation uses its exact permission: `sample_test_result.view`, `.create`, `.update`, or
+  `.submit`; `.review` grants none of the Sprint 21B operations.
+- Permission-specific organization hierarchy scope is inherited through
+  Result -> SampleTest -> Sample. Existing inaccessible UUIDs and incorrect parent chains are
+  concealed as 404 responses, and list authorization is applied in SQL.
+- `SELF` means only a current active `SampleTestAssignment` to the actor. Result creator,
+  entered-by identity, and historical assignment do not grant SELF access. Unrelated broader
+  roles do not widen a result permission's scope.
+- An authorized Result read includes only the contextual Sample, SampleTest, Test, frozen
+  MethodVersion/MethodParameters, linked Instruments, and safe actor display needed to
+  understand that Result. It does not provide enumeration of unrelated master records.
+
 ## Sprint 20B assignment API authorization
 
 Nested SampleTest assignment mutations require `sample.assign`; assignment and history

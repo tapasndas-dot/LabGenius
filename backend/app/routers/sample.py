@@ -13,8 +13,13 @@ from app.schemas.business.sample import (
     SampleUpdate,
 )
 from app.schemas.business.shared import VersionRequest
+from app.schemas.business.sample_test_result import (
+    InstrumentUsageCreate, ParameterResultCreate, ParameterResultUpdate,
+    ResultCreate, ResultResponse, ResultUpdate,
+)
 from app.services.business.sample_service import sample_api_service
 from app.services.business.sample_test_assignment_api_service import sample_test_assignment_api_service
+from app.services.business.sample_test_result_api_service import sample_test_result_api_service
 
 router = APIRouter()
 
@@ -87,3 +92,58 @@ def get_sample_test_assignment(sample_id: UUID, sample_test_id: UUID, db: Sessio
 @router.get("/{sample_id}/tests/{sample_test_id}/assignment-history", response_model=list[SampleTestAssignmentResponse])
 def get_sample_test_assignment_history(sample_id: UUID, sample_test_id: UUID, db: Session = Depends(get_db), actor=Depends(require_permission("sample.view"))):
     return sample_test_assignment_api_service.history(db, actor, sample_id, sample_test_id)
+
+
+@router.get("/{sample_id}/tests/{sample_test_id}/results", response_model=list[ResultResponse])
+def list_sample_test_results(sample_id: UUID, sample_test_id: UUID, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.view"))):
+    return sample_test_result_api_service.list(db, actor, sample_id, sample_test_id)
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/results", response_model=ResultResponse, status_code=201)
+def create_sample_test_result(sample_id: UUID, sample_test_id: UUID, payload: ResultCreate, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.create"))):
+    return sample_test_result_api_service.create(db, actor, sample_id, sample_test_id, payload.model_dump())
+
+
+@router.get("/{sample_id}/tests/{sample_test_id}/results/{result_id}", response_model=ResultResponse)
+def get_sample_test_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.view"))):
+    return sample_test_result_api_service.get(db, actor, sample_id, sample_test_id, result_id)
+
+
+@router.put("/{sample_id}/tests/{sample_test_id}/results/{result_id}", response_model=ResultResponse)
+def update_sample_test_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, payload: ResultUpdate, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.update"))):
+    values = payload.model_dump(exclude_unset=True, exclude={"version"})
+    return sample_test_result_api_service.update(db, actor, sample_id, sample_test_id, result_id, payload.version, values)
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/results/{result_id}/parameters", response_model=ResultResponse, status_code=201)
+def add_sample_test_parameter_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, payload: ParameterResultCreate, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.update"))):
+    values = {"method_parameter_id": payload.method_parameter_id,
+              "value_type": payload.value_type, "typed_values": payload.typed_values()}
+    return sample_test_result_api_service.add_parameter(db, actor, sample_id, sample_test_id, result_id, values)
+
+
+@router.put("/{sample_id}/tests/{sample_test_id}/results/{result_id}/parameters/{parameter_result_id}", response_model=ResultResponse)
+def update_sample_test_parameter_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, parameter_result_id: UUID, payload: ParameterResultUpdate, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.update"))):
+    values = {"version": payload.version, "value_type": payload.value_type,
+              "typed_values": payload.typed_values()}
+    return sample_test_result_api_service.update_parameter(db, actor, sample_id, sample_test_id, result_id, parameter_result_id, values)
+
+
+@router.delete("/{sample_id}/tests/{sample_test_id}/results/{result_id}/parameters/{parameter_result_id}", response_model=ResultResponse)
+def remove_sample_test_parameter_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, parameter_result_id: UUID, payload: VersionRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.update"))):
+    return sample_test_result_api_service.remove_parameter(db, actor, sample_id, sample_test_id, result_id, parameter_result_id, payload.version)
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/results/{result_id}/instruments", response_model=ResultResponse, status_code=201)
+def add_sample_test_result_instrument(sample_id: UUID, sample_test_id: UUID, result_id: UUID, payload: InstrumentUsageCreate, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.update"))):
+    return sample_test_result_api_service.add_instrument(db, actor, sample_id, sample_test_id, result_id, payload.model_dump())
+
+
+@router.delete("/{sample_id}/tests/{sample_test_id}/results/{result_id}/instruments/{usage_id}", response_model=ResultResponse)
+def remove_sample_test_result_instrument(sample_id: UUID, sample_test_id: UUID, result_id: UUID, usage_id: UUID, payload: VersionRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.update"))):
+    return sample_test_result_api_service.remove_instrument(db, actor, sample_id, sample_test_id, result_id, usage_id, payload.version)
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/results/{result_id}/submit", response_model=ResultResponse)
+def submit_sample_test_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, payload: VersionRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.submit"))):
+    return sample_test_result_api_service.submit(db, actor, sample_id, sample_test_id, result_id, payload.version)

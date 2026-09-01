@@ -24,9 +24,34 @@
 - Result permissions are defined as `sample_test_result.view`, `sample_test_result.create`,
   `sample_test_result.update`, `sample_test_result.submit`, and `sample_test_result.review`.
 - All result-domain entities carry version columns for future expected-version mutations.
-  Sprint 21A exposes no result HTTP routes and makes no stale-response or audit claim yet.
+  Sprint 21B now exposes the secured result-entry routes described below.
 - Result foundation mutations are flush-only; future secured API transaction boundaries will
   compose authorization and audit events.
+
+## Sprint 21B Result Entry API and Submission Foundation
+
+- Result revisions are addressed only beneath their Sample/SampleTest. The server assigns the
+  one-based sequence. Until correction/reopen authority is designed, the API permits one
+  retained Result for a SampleTest and rejects attempts to create another; repository history
+  remains intact and no highest-sequence/effective-result inference is made.
+- DRAFT headers, ParameterResults, and instrument usages require
+  `sample_test_result.update` and explicit expected versions where records are mutated or
+  removed. Stale accessible mutations return 409. ENTERED content is immutable through these
+  ordinary entry routes.
+- Parameter values use typed columns for TEXT, NUMBER, INTEGER, BOOLEAN, DATE, and DATETIME.
+  Each ParameterResult must reference a MethodParameter from the SampleTest's exact frozen
+  MethodVersion, match its declared type, and be unique for that Result and parameter.
+- Submission requires `sample_test_result.submit`, an operational non-cancelled/non-finalized
+  parent, all frozen required parameters, valid non-empty typed values, no foreign-version or
+  duplicate parameter, and a current Result version. It performs only DRAFT -> ENTERED and
+  records entered time/user. It does not evaluate specifications or change Sample/SampleTest
+  status, review, approve, reject, or finalize.
+- Zero or more same-organization Instruments may be linked while DRAFT. Linked instrument
+  context is readable with the Result; selecting instruments continues to use existing
+  authorized Instrument lookup APIs.
+- CREATE/UPDATE/DELETE/SUBMIT audit events and their business mutations share one transaction.
+  Audit failure rolls back the mutation. `SUBMIT` means entry submission, not approval or
+  finalization.
 
 ## Sprint 20B assignment operations
 
