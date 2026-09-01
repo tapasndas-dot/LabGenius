@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Implemented — Sprint 21A Result Entry Foundation
+
+- Added result domain models: `SampleTestResult` (execution/result header with lifecycle),
+  `ParameterResult` (type-safe values for TEXT, NUMBER, INTEGER, BOOLEAN, DATE, DATETIME),
+  and `ResultInstrumentUsage` (historical instrument usage).
+- Created `SampleTestResultRepository`, `ParameterResultRepository`, and
+  `ResultInstrumentUsageRepository` with flush-only operations and expected-version mutation.
+- Implemented `SampleTestResultService` for draft creation, frozen MethodVersion and
+  MethodParameter validation, exact typed-value validation, and same-organization historical
+  instrument usage. Later result lifecycle transitions are not implemented in Sprint 21A.
+- Added result permissions: `sample_test_result.view`, `sample_test_result.create`,
+  `sample_test_result.update`, `sample_test_result.submit`, and `sample_test_result.review`,
+  with idempotent ADMIN mapping.
+- Result scope inherits through SampleTest → Sample; creator/performer/reviewer identity does
+  not redefine SELF. Draft content is mutable only in DRAFT, and retained sequences establish
+  revision/history capability without selecting an effective result.
+- Created one Alembic migration (`21a_result_foundation`) descending from Sprint 20's final head.
+- Added focused foundation tests for frozen references, all supported typed values, invalid
+  combinations, instrument usage, organization inheritance, and retained sequences.
+- Sprint 21A focused validation passed and the foundation is implemented. Sprint 21 overall remains in progress;
+  result APIs, submission/review/finalization, correction, audit integration, and frontend remain deferred.
+
 ### Completed — Sprint 20 SampleTest assignment and operational SELF access
 
 - Completed the final full backend regression with 238 tests passing and the full frontend

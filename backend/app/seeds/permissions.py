@@ -211,6 +211,22 @@ PERMISSION_CATALOG += [{
     "description": "Assign, reassign, or unassign Sample Tests within assigned organization scope.",
 }]
 
+# Sprint 21A: Result foundation permissions
+PERMISSION_CATALOG += [
+    {
+        "permission_code": f"sample_test_result.{action}",
+        "permission_name": f"{action.title()} Sample Test Results",
+        "description": f"{action.title()} Sample Test result records within assigned organization scope.",
+    }
+    for action in ("view", "create", "update", "submit")
+]
+
+PERMISSION_CATALOG += [{
+    "permission_code": "sample_test_result.review",
+    "permission_name": "Review Sample Test Results",
+    "description": "Review and approve Sample Test result records within assigned organization scope.",
+}]
+
 PERMISSION_CATALOG += [
     {
         "permission_code": f"{resource}.{action}",

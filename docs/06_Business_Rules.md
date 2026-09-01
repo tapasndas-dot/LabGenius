@@ -1,5 +1,33 @@
 # LabGenius Business Rules
 
+## Sprint 21A Result Entry & Capture Foundation
+
+- Result/execution header (`SampleTestResult`) is linked one-to-many to SampleTest and retains
+  a sequence number. Multiple results per SampleTest support history, correction workflows,
+  and append-safe record retention without destructive overwrites.
+- `SampleTest.status` remains the operational test-level state. `SampleTestResult.status`
+  is reserved for the lifecycle of one result revision. Sprint 21A persists the future
+  result vocabulary but implements draft capture only; submission, review, finalization,
+  rejection, cancellation, and correction transitions remain future controlled workflows.
+- Result content, parameter values, and instrument usage are mutable only while the result
+  record is `DRAFT`. Later controlled status/audit metadata may change only through future
+  lifecycle services. Finalized historical content must not be destructively modified;
+  correction/revision will create another retained sequence record.
+- Parameter results capture typed values (`TEXT`, `NUMBER`, `INTEGER`, `BOOLEAN`, `DATE`,
+  `DATETIME`) for each MethodParameter. Each parameter result is unique per result and
+  references the exact frozen MethodParameter from the SampleTest's historical MethodVersion
+  basis. Later MethodVersion or MethodParameter changes do not alter existing results.
+- Instrument usage records the exact Instrument used during a result execution. Later
+  instrument status/location/ownership changes do not affect the historical record.
+- Result scope inherits through SampleTest → Sample. Organization ownership determines
+  access; result visibility follows parent Sample and SampleTest scope.
+- Result permissions are defined as `sample_test_result.view`, `sample_test_result.create`,
+  `sample_test_result.update`, `sample_test_result.submit`, and `sample_test_result.review`.
+- All result-domain entities carry version columns for future expected-version mutations.
+  Sprint 21A exposes no result HTTP routes and makes no stale-response or audit claim yet.
+- Result foundation mutations are flush-only; future secured API transaction boundaries will
+  compose authorization and audit events.
+
 ## Sprint 20B assignment operations
 
 - Assignment operations are nested under Sample and SampleTest. `sample.assign` controls

@@ -7,6 +7,7 @@ from .qc_method import Method, MethodParameter, MethodParameterValueType, Method
 from .specification import Specification, SpecificationCriterionType, SpecificationLimit, SpecificationTest, SpecificationVersion, SpecificationVersionStatus
 from .sample import Sample, SamplePriority, SampleStatus, SampleTest, SampleTestStatus
 from .sample_test_assignment import SampleTestAssignment
+from .sample_test_result import SampleTestResult, SampleTestResultStatus, ParameterResult, ParameterValueType, ResultInstrumentUsage
 
 __all__ = [
     "InstrumentType",
@@ -29,4 +30,7 @@ __all__ = [
     "SpecificationTest", "SpecificationLimit", "SpecificationCriterionType",
     "Sample", "SampleStatus", "SamplePriority", "SampleTest", "SampleTestStatus",
     "SampleTestAssignment",
+    "SampleTestResult", "SampleTestResultStatus",
+    "ParameterResult", "ParameterValueType",
+    "ResultInstrumentUsage",
 ]

@@ -8,6 +8,7 @@ from .specification_service import SpecificationLimitService, SpecificationServi
 from .sample_service import SampleService, SampleAPIService, SampleTestService
 from .sample_test_assignment_service import SampleTestAssignmentService
 from .sample_test_assignment_api_service import SampleTestAssignmentAPIService
+from .sample_test_result_service import SampleTestResultService
 
 __all__ = [
     "InstrumentTypeService",
@@ -28,4 +29,5 @@ __all__ = [
     "SampleTestService",
     "SampleTestAssignmentService",
     "SampleTestAssignmentAPIService",
+    "SampleTestResultService",
 ]

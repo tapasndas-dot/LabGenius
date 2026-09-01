@@ -834,10 +834,11 @@ the approved dependency sequence for Sprints 16–24:
 20. Sprint 20B — assignment API, authorization, SELF scope, concurrency, and audit — IMPLEMENTED
 21. Sprint 20C — SampleTest Assignment frontend — IMPLEMENTED
 22. Sprint 20D — SampleTest Assignment manual acceptance and Sprint 20 closure — COMPLETE
-23. Sprint 21 — Result Entry, Review & Finalization
-24. Sprint 22 — QC Operational Dashboard
-25. Sprint 23 — Stability Protocol & Study Management
-26. Sprint 24 — Stability Pull Scheduling & QC Integration
+23. Sprint 21A — Result Entry Foundation (Domain models, repositories, services, permissions, tests) — IMPLEMENTED
+24. Sprint 21B–21D — Result Entry, Review, Finalization, and Submission (APIs, frontend, workflow) — DEFERRED
+25. Sprint 22 — QC Operational Dashboard
+26. Sprint 23 — Stability Protocol & Study Management
+27. Sprint 24 — Stability Pull Scheduling & QC Integration
 
 Dependency direction:
 
@@ -891,6 +892,30 @@ passing, clean lint/build/audit, one Alembic head with no schema drift, and succ
 startup/OpenAPI, permission-seed, scope, lifecycle, audit, immutability, limit, and exact-
 MethodVersion traceability checks. Sprint 18 automated implementation is complete;
 manual browser acceptance and final closure remain pending.
+
+Sprint 19A–19D established the Sample and SampleTest working entities with frozen
+SpecificationVersion references, idempotent generation with exact Test/Method/SpecificationTest
+preservation, operational status lifecycles, organization ownership with optional hierarchy scope,
+audit integration, optimistic concurrency, and frontend registration/SampleTest management.
+Sprint 19 — Sample Foundation and Management is COMPLETE (`v0.23.0`).
+
+Sprint 20A–20D established SampleTest assignment domain, retained history with one-active rule,
+assignment-based SELF semantics, permission-driven reassignment and unassignment workflows,
+optimistic concurrency, transactional audit, and assignment history UI. Sprint 20 — Sample Test
+Assignment and Analyst Workbench is COMPLETE (`v0.24.0`).
+
+Sprint 21A establishes the result entry domain foundation: SampleTestResult as an execution/result
+header with reserved `DRAFT`/`ENTERED`/`REVIEWED`/`FINALIZED`/`REJECTED`/`CANCELLED` states;
+ParameterResult as type-safe parameter values (TEXT, NUMBER, INTEGER, BOOLEAN, DATE, DATETIME)
+linked to exact frozen MethodParameters; ResultInstrumentUsage as historical instrument usage
+records; and permissions `sample_test_result.view`, `sample_test_result.create`,
+`sample_test_result.update`, `sample_test_result.submit`, and `sample_test_result.review`.
+Results establish retained revision/history capability without assuming that the highest sequence
+is effective. Content is editable only while DRAFT; lifecycle transitions, correction semantics,
+and audit integration remain future work. Version columns establish optimistic-concurrency
+foundations, and service organization validation inherits through SampleTest → Sample. Result
+identity fields never redefine Sprint 20 SELF. No HTTP APIs or frontend are included. Sprint 21A
+is IMPLEMENTED; Sprint 21 overall remains IN PROGRESS and Sprint 21B–21D remain deferred.
 
 ---
 
