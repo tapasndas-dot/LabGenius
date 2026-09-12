@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Completed — Sprint 21 Result Entry, Review & Finalization
+
+- Completed the Result lifecycle from DRAFT → ENTERED → REVIEWED → FINALIZED and synchronized SampleTest through RESULT_ENTERED → REVIEWED → FINALIZED after submission.
+- Added secured nested Result review and finalization with distinct `sample_test_result.review` and `sample_test_result.finalize` permissions.
+- Added reviewed/finalized actor and timestamp metadata, optimistic Result concurrency, conditional atomic SampleTest transitions, and transactional REVIEW/FINALIZE audit events with rollback on audit failure.
+- Preserved assignment-derived SELF semantics; Result actor identity does not broaden access. Finalized Results remain read-only for ordinary Result entry.
+- Manual acceptance identified and corrected Instrument-selection UX so selection immediately persists the existing Result-Instrument relationship using the authoritative backend response. Failed links do not falsely appear persisted, duplicate/concurrent link requests are prevented, and unlink behavior is retained.
+- Existing-environment acceptance required idempotent permission-seed synchronization for the new finalize permission; one permission and one ADMIN mapping were added without a schema migration.
+- Final validation passed: 274 backend tests; 82 frontend tests across 12 files; production build and lint; one current Alembic head `21a_result_foundation`; and OpenAPI validation with 124 paths, 185 operation IDs, and no duplicate operation IDs.
+- Manual browser acceptance PASSED across Result entry, Instrument persistence, submission, review, finalization, synchronized SampleTest status, workflow metadata, and finalized read-only behavior.
+- Sprint 21 is COMPLETE and ready for release as `v0.25.0`.
+- Specification PASS/FAIL evaluation, OOS/OOT workflow, correction/reopen workflow, automatic Sample finalization, and electronic-signature/compliance claims remain outside Sprint 21.
+
 
 ### Implemented ? Sprint 21C Result Entry Frontend
 

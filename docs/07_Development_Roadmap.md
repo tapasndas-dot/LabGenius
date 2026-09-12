@@ -835,10 +835,10 @@ the approved dependency sequence for Sprints 16–24:
 21. Sprint 20C — SampleTest Assignment frontend — IMPLEMENTED
 22. Sprint 20D — SampleTest Assignment manual acceptance and Sprint 20 closure — COMPLETE
 23. Sprint 21A — Result Entry Foundation (Domain models, repositories, services, permissions, tests) — IMPLEMENTED
-24. Sprint 21B ? Secured Result Entry API and Submission Foundation ? IMPLEMENTED
-25. Sprint 21C ? Result Entry frontend ? IMPLEMENTED; Sprint 21D ? Review and Finalization ? PENDING
+24. Sprint 21B — Secured Result Entry API and Submission Foundation — IMPLEMENTED
+25. Sprint 21C — Result Entry frontend — IMPLEMENTED; Sprint 21D — Review and Finalization — COMPLETE
 
-Sprint 21C is IMPLEMENTED and manually accepted. It adds the secured Result Entry frontend, frozen Method Parameter entry, controlled execution timestamps, Instrument usage, DRAFT-to-ENTERED submission, authoritative-version reconciliation, explicit 409 recovery, and read-only ENTERED presentation. Sprint 21 remains IN PROGRESS; Sprint 21D review, approval, and finalization remain pending.
+Sprint 21 is COMPLETE and ready for release as `v0.25.0`. Sprint 21C added the secured Result Entry frontend, frozen Method Parameter entry, controlled execution timestamps, Instrument usage, DRAFT-to-ENTERED submission, authoritative-version reconciliation, explicit 409 recovery, and read-only ENTERED presentation. Sprint 21D completed the Result lifecycle through ENTERED → REVIEWED → FINALIZED, synchronized SampleTest through RESULT_ENTERED → REVIEWED → FINALIZED, added distinct review/finalize authorization, transactional workflow audit, workflow actor/time metadata, finalized read-only behavior, and completed manual browser acceptance.
 26. Sprint 22 — QC Operational Dashboard
 27. Sprint 23 — Stability Protocol & Study Management
 28. Sprint 24 — Stability Pull Scheduling & QC Integration
@@ -912,7 +912,7 @@ header with reserved `DRAFT`/`ENTERED`/`REVIEWED`/`FINALIZED`/`REJECTED`/`CANCEL
 ParameterResult as type-safe parameter values (TEXT, NUMBER, INTEGER, BOOLEAN, DATE, DATETIME)
 linked to exact frozen MethodParameters; ResultInstrumentUsage as historical instrument usage
 records; and permissions `sample_test_result.view`, `sample_test_result.create`,
-`sample_test_result.update`, `sample_test_result.submit`, and `sample_test_result.review`.
+`sample_test_result.update`, `sample_test_result.submit`, `sample_test_result.review`, and `sample_test_result.finalize`.
 Results establish retained revision/history capability without assuming that the highest sequence
 is effective. Content is editable only while DRAFT; lifecycle transitions, correction semantics,
 and audit integration remain future work. Version columns establish optimistic-concurrency
@@ -922,8 +922,9 @@ is IMPLEMENTED. Sprint 21B adds nested secured Result reads, DRAFT creation and 
 typed ParameterResult and instrument-usage mutation, contextual references, optimistic
 concurrency, transactional audit, submission readiness, and DRAFT -> ENTERED submission.
 The API deliberately permits one retained result until correction/reopen authority is defined;
-it does not infer an effective result or transition Sample/SampleTest state. Sprint 21B is
-implemented with review pending; Sprint 21 overall remains IN PROGRESS and 21C–21D remain deferred.
+it does not infer an effective result. At the Sprint 21B milestone, SampleTest status synchronization and review/finalization were intentionally deferred.
+Sprint 21D subsequently superseded that interim limitation by synchronizing SampleTest through RESULT_ENTERED → REVIEWED → FINALIZED and adding secured Result review/finalization with concurrency and transactional audit.
+Sprint 21 is COMPLETE and ready for release as `v0.25.0`. Correction/reopen, specification PASS/FAIL evaluation, OOS/OOT, automatic Sample finalization, and electronic-signature/compliance semantics remain outside Sprint 21.
 
 ---
 
