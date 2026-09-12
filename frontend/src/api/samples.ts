@@ -90,6 +90,10 @@ export type SampleTestResult = Dates & {
   completed_at: string | null
   entered_at: string | null
   entered_by: ResultActorContext | null
+  reviewed_at: string | null
+  reviewed_by: ResultActorContext | null
+  finalized_at: string | null
+  finalized_by: ResultActorContext | null
   notes: string | null
   sample: ReferenceDisplay
   sample_test: ReferenceDisplay
@@ -180,6 +184,16 @@ export const samplesApi={
 
   submitResult:(id:string,testId:string,resultId:string,version:number)=>apiRequest<SampleTestResult>(
     `/samples/${id}/tests/${testId}/results/${resultId}/submit`,
+    {method:'POST',body:{version}}
+  ),
+
+  reviewResult:(id:string,testId:string,resultId:string,version:number)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/review`,
+    {method:'POST',body:{version}}
+  ),
+
+  finalizeResult:(id:string,testId:string,resultId:string,version:number)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/finalize`,
     {method:'POST',body:{version}}
   ),
 }

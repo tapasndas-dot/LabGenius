@@ -58,6 +58,10 @@ function isoDateTimeValue(value: string) {
   return value ? new Date(value).toISOString() : null
 }
 
+function dateTime(value: string) {
+  return new Date(value).toLocaleString()
+}
+
 function ParameterInput({
   parameter,
   value,
@@ -122,6 +126,8 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
   const canCreate = hasPermission('sample_test_result.create')
   const canUpdate = hasPermission('sample_test_result.update')
   const canSubmit = hasPermission('sample_test_result.submit')
+  const canReview = hasPermission('sample_test_result.review')
+  const canFinalize = hasPermission('sample_test_result.finalize')
   const canBrowseInstruments = hasPermission('instrument.view')
 
   const draft = result?.status === 'DRAFT'
@@ -200,6 +206,29 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
       setConflict(false)
     } catch (cause) {
       fail(cause)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const runWorkflow = async (operation: () => Promise<SampleTestResult>) => {
+    setSaving(true)
+    try {
+      applyResult(await operation())
+      setError(null)
+      setConflict(false)
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.status === 409 && result) {
+        try {
+          applyResult(await samplesApi.result(sample.id, sampleTest.id, result.id))
+          setConflict(true)
+          setError('Result data changed and was refreshed. Review the current Result and try again.')
+        } catch (refreshCause) {
+          fail(refreshCause)
+        }
+      } else {
+        fail(cause)
+      }
     } finally {
       setSaving(false)
     }
@@ -328,6 +357,20 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
     ))
   }
 
+  const review = async () => {
+    if (!result) return
+    await runWorkflow(() => samplesApi.reviewResult(
+      sample.id, sampleTest.id, result.id, result.version,
+    ))
+  }
+
+  const finalize = async () => {
+    if (!result) return
+    await runWorkflow(() => samplesApi.finalizeResult(
+      sample.id, sampleTest.id, result.id, result.version,
+    ))
+  }
+
   if (!canView) return null
   if (loading) return <div className="form-help">Loading Result…</div>
 
@@ -358,8 +401,20 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
             <div><dt>Status</dt><dd>{result.status}</dd></div>
             <div><dt>Test</dt><dd>{result.test.code} — {result.test.name}</dd></div>
             <div><dt>Method</dt><dd>{result.method_version.code} — Version {result.method_version.version_number}</dd></div>
-            <div><dt>Entered By</dt><dd>{result.entered_by?.display_name ?? '—'}</dd></div>
           </dl>
+          {(result.entered_at || result.reviewed_at || result.finalized_at) && (
+            <section aria-label="Result workflow" className="record-meta">
+              {result.entered_at && (
+                <div><strong>Entered</strong> by {result.entered_by?.display_name ?? 'Unknown'} at {dateTime(result.entered_at)}</div>
+              )}
+              {result.reviewed_at && (
+                <div><strong>Reviewed</strong> by {result.reviewed_by?.display_name ?? 'Unknown'} at {dateTime(result.reviewed_at)}</div>
+              )}
+              {result.finalized_at && (
+                <div><strong>Finalized</strong> by {result.finalized_by?.display_name ?? 'Unknown'} at {dateTime(result.finalized_at)}</div>
+              )}
+            </section>
+          )}
             <div className="inline-form">
                 <label>
                     Started At
@@ -547,6 +602,22 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
             <div className="form-actions">
               <button disabled={saving} onClick={() => void submit()}>
                 Submit Result
+              </button>
+            </div>
+          )}
+
+          {result.status === 'ENTERED' && canReview && (
+            <div className="form-actions">
+              <button disabled={saving} onClick={() => void review()}>
+                {saving ? 'Reviewing…' : 'Review Result'}
+              </button>
+            </div>
+          )}
+
+          {result.status === 'REVIEWED' && canFinalize && (
+            <div className="form-actions">
+              <button disabled={saving} onClick={() => void finalize()}>
+                {saving ? 'Finalizing…' : 'Finalize Result'}
               </button>
             </div>
           )}

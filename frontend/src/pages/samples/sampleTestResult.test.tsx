@@ -81,6 +81,10 @@ function result(overrides: Partial<SampleTestResult> = {}): SampleTestResult {
     completed_at: null,
     entered_at: null,
     entered_by: null,
+    reviewed_at: null,
+    reviewed_by: null,
+    finalized_at: null,
+    finalized_by: null,
     notes: null,
     sample: { id: sample.id, code: sample.sample_number, name: sample.sample_number },
     sample_test: { id: sampleTest.id, code: 'ASSAY', name: 'Assay' },
@@ -578,4 +582,130 @@ it('shows explicit 409 recovery without inventing a new version client-side', as
 
   await waitFor(() => expect(listCalls).toBe(2))
   expect(screen.queryByRole('alert')).toBeNull()
+})
+
+it.each([
+  {
+    name: 'DRAFT',
+    current: result(),
+    permissions: ['sample_test_result.view', 'sample_test_result.update', 'sample_test_result.submit'],
+    action: 'Submit Result',
+  },
+  {
+    name: 'ENTERED',
+    current: result({
+      status: 'ENTERED', entered_at: '2026-09-10T08:00:00Z',
+      entered_by: { id: 'analyst-1', display_name: 'Analyst One' },
+    }),
+    permissions: ['sample_test_result.view', 'sample_test_result.update', 'sample_test_result.review'],
+    action: 'Review Result',
+  },
+  {
+    name: 'REVIEWED',
+    current: result({
+      status: 'REVIEWED', entered_at: '2026-09-10T08:00:00Z',
+      entered_by: { id: 'analyst-1', display_name: 'Analyst One' },
+      reviewed_at: '2026-09-10T09:00:00Z',
+      reviewed_by: { id: 'reviewer-1', display_name: 'Reviewer One' },
+    }),
+    permissions: ['sample_test_result.view', 'sample_test_result.update', 'sample_test_result.finalize'],
+    action: 'Finalize Result',
+  },
+])('$name exposes only its permitted workflow action and enforces content immutability', async ({ current, permissions, action }) => {
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user(permissions))
+    if (url.endsWith('/results')) return json([current])
+    return json([])
+  })
+
+  renderPanel()
+  await screen.findByText(`Revision 1 — ${current.status}`)
+  fireEvent.click(screen.getByText('Result Entry'))
+
+  expect(screen.getByRole('button', { name: action })).toBeTruthy()
+  expect(screen.queryAllByRole('button', { name: /^(Submit|Review|Finalize) Result$/ })).toHaveLength(1)
+  expect((screen.getByLabelText('Result Notes') as HTMLTextAreaElement).disabled).toBe(current.status !== 'DRAFT')
+  expect(screen.queryByRole('button', { name: 'Save Result Details' }) !== null).toBe(current.status === 'DRAFT')
+})
+
+it('does not infer finalize permission and FINALIZED shows all metadata without actions', async () => {
+  const finalized = result({
+    status: 'FINALIZED',
+    entered_at: '2026-09-10T08:00:00Z', entered_by: { id: 'a', display_name: 'Analyst One' },
+    reviewed_at: '2026-09-10T09:00:00Z', reviewed_by: { id: 'r', display_name: 'Reviewer One' },
+    finalized_at: '2026-09-10T10:00:00Z', finalized_by: { id: 'f', display_name: 'Finalizer One' },
+  })
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user(['sample_test_result.view', 'sample_test_result.review']))
+    if (url.endsWith('/results')) return json([finalized])
+    return json([])
+  })
+
+  renderPanel()
+  await screen.findByText('Revision 1 — FINALIZED')
+  fireEvent.click(screen.getByText('Result Entry'))
+
+  const workflow = screen.getByRole('region', { name: 'Result workflow' })
+  expect(workflow.textContent).toContain('Entered by Analyst One')
+  expect(workflow.textContent).toContain('Reviewed by Reviewer One')
+  expect(workflow.textContent).toContain('Finalized by Finalizer One')
+  expect(screen.queryByRole('button', { name: /^(Submit|Review|Finalize) Result$/ })).toBeNull()
+  expect((screen.getByLabelText('Result Notes') as HTMLTextAreaElement).disabled).toBe(true)
+})
+
+it.each([
+  { action: 'Review Result', path: '/review', permission: 'sample_test_result.review', from: 'ENTERED', to: 'REVIEWED' },
+  { action: 'Finalize Result', path: '/finalize', permission: 'sample_test_result.finalize', from: 'REVIEWED', to: 'FINALIZED' },
+])('successful $action sends the current version and applies the authoritative response', async ({ action, path, permission, from, to }) => {
+  let current = result({ version: 12, status: from })
+  let body: unknown
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user(['sample_test_result.view', permission]))
+    if (url.endsWith('/results')) return json([current])
+    if (url.endsWith(path) && init?.method === 'POST') {
+      body = JSON.parse(String(init.body))
+      current = result({ version: 13, status: to })
+      return json(current)
+    }
+    return json([])
+  })
+
+  renderPanel()
+  await screen.findByText(`Revision 1 — ${from}`)
+  fireEvent.click(screen.getByText('Result Entry'))
+  fireEvent.click(screen.getByRole('button', { name: action }))
+
+  await waitFor(() => expect(body).toEqual({ version: 12 }))
+  expect(await screen.findByText(`Revision 1 — ${to}`)).toBeTruthy()
+})
+
+it.each([
+  { action: 'Review Result', path: '/review', permission: 'sample_test_result.review', from: 'ENTERED' },
+  { action: 'Finalize Result', path: '/finalize', permission: 'sample_test_result.finalize', from: 'REVIEWED' },
+])('$action 409 reloads the authoritative Result and reports that it was refreshed', async ({ action, path, permission, from }) => {
+  const initial = result({ version: 20, status: from })
+  const refreshed = result({ version: 21, status: from })
+  let detailCalls = 0
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user(['sample_test_result.view', permission]))
+    if (url.endsWith('/results')) return json([initial])
+    if (url.endsWith(path) && init?.method === 'POST') return json({ detail: 'conflict' }, 409)
+    if (url.endsWith('/results/result-1') && (!init?.method || init.method === 'GET')) {
+      detailCalls++
+      return json(refreshed)
+    }
+    return json([])
+  })
+
+  renderPanel()
+  await screen.findByText(`Revision 1 — ${from}`)
+  fireEvent.click(screen.getByText('Result Entry'))
+  fireEvent.click(screen.getByRole('button', { name: action }))
+
+  expect((await screen.findByRole('alert')).textContent).toContain('changed and was refreshed')
+  expect(detailCalls).toBe(1)
 })
