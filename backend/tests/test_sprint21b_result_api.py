@@ -296,7 +296,7 @@ class Sprint21BResultAPITests(unittest.TestCase):
         self.assertEqual(entered["status"], "ENTERED")
         self.assertEqual(entered["entered_by"]["id"], self.user_a.id)
         self.assertIsNotNone(entered["entered_at"])
-        self.assertEqual(self.sample_test.status, "ASSIGNED")
+        self.assertEqual(self.sample_test.status, "RESULT_ENTERED")
         result_actions = {row.action for row in self.db.query(AuditEvent).filter(
             AuditEvent.entity_id == result_id
         )}

@@ -48,3 +48,19 @@ class SampleTestRepository:
 
     def get_for_sample(self, db: Session, sample_id: UUID, sample_test_id: UUID):
         return db.query(SampleTest).filter(SampleTest.sample_id == sample_id, SampleTest.id == sample_test_id).first()
+
+    def transition_status(self, db: Session, sample_test_id: UUID,
+                          required_status: str, target_status: str):
+        """Atomically transition a SampleTest from the required current status."""
+        updated_id = db.execute(update(SampleTest).where(
+            SampleTest.id == sample_test_id,
+            SampleTest.status == required_status,
+        ).values(
+            status=target_status,
+            version=SampleTest.version + 1,
+            updated_at=func.now(),
+        ).returning(SampleTest.id)).scalar_one_or_none()
+        if updated_id is None:
+            return None
+        db.flush()
+        return db.get(SampleTest, updated_id)

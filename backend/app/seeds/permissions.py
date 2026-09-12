@@ -224,7 +224,11 @@ PERMISSION_CATALOG += [
 PERMISSION_CATALOG += [{
     "permission_code": "sample_test_result.review",
     "permission_name": "Review Sample Test Results",
-    "description": "Review and approve Sample Test result records within assigned organization scope.",
+    "description": "Review Sample Test result records within assigned organization scope.",
+}, {
+    "permission_code": "sample_test_result.finalize",
+    "permission_name": "Finalize Sample Test Results",
+    "description": "Finalize Sample Test result records within assigned organization scope.",
 }]
 
 PERMISSION_CATALOG += [

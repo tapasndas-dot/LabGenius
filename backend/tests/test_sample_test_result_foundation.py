@@ -69,7 +69,9 @@ class Sprint21AResultFoundationTests(Sprint19ADatabaseTests):
         codes = [item["permission_code"] for item in PERMISSION_CATALOG]
         self.assertEqual(
             {code for code in codes if code.startswith("sample_test_result.")},
-            {f"sample_test_result.{action}" for action in ("view", "create", "update", "submit", "review")},
+            {f"sample_test_result.{action}" for action in (
+                "view", "create", "update", "submit", "review", "finalize"
+            )},
         )
         self.assertEqual(len(codes), len(set(codes)))
 

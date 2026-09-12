@@ -26,6 +26,8 @@ class AuditAction(StrEnum):
     SUPERSEDE = "SUPERSEDE"
     CANCEL = "CANCEL"
     SUBMIT = "SUBMIT"
+    REVIEW = "REVIEW"
+    FINALIZE = "FINALIZE"
 
 
 class AuditService:

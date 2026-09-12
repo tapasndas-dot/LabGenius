@@ -147,3 +147,13 @@ def remove_sample_test_result_instrument(sample_id: UUID, sample_test_id: UUID, 
 @router.post("/{sample_id}/tests/{sample_test_id}/results/{result_id}/submit", response_model=ResultResponse)
 def submit_sample_test_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, payload: VersionRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.submit"))):
     return sample_test_result_api_service.submit(db, actor, sample_id, sample_test_id, result_id, payload.version)
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/results/{result_id}/review", response_model=ResultResponse)
+def review_sample_test_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, payload: VersionRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.review"))):
+    return sample_test_result_api_service.review(db, actor, sample_id, sample_test_id, result_id, payload.version)
+
+
+@router.post("/{sample_id}/tests/{sample_test_id}/results/{result_id}/finalize", response_model=ResultResponse)
+def finalize_sample_test_result(sample_id: UUID, sample_test_id: UUID, result_id: UUID, payload: VersionRequest, db: Session = Depends(get_db), actor=Depends(require_permission("sample_test_result.finalize"))):
+    return sample_test_result_api_service.finalize(db, actor, sample_id, sample_test_id, result_id, payload.version)

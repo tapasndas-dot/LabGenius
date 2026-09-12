@@ -94,6 +94,14 @@ class SampleTestResultAPIService:
             "entered_by": ({"id": result.entered_by_user.id,
                             "display_name": result.entered_by_user.display_name}
                            if result.entered_by_user else None),
+            "reviewed_at": result.reviewed_at,
+            "reviewed_by": ({"id": result.reviewed_by_user.id,
+                             "display_name": result.reviewed_by_user.display_name}
+                            if result.reviewed_by_user else None),
+            "finalized_at": result.finalized_at,
+            "finalized_by": ({"id": result.finalized_by_user.id,
+                              "display_name": result.finalized_by_user.display_name}
+                             if result.finalized_by_user else None),
             "notes": result.notes,
             "sample": {"id": sample.id, "code": sample.sample_number,
                        "name": sample.sample_description or sample.sample_number},
@@ -299,6 +307,41 @@ class SampleTestResultAPIService:
             )
             self.audit.record_update(db, entity=result, actor=actor, before=before,
                                      owner=sample, action=AuditAction.SUBMIT)
+            db.commit(); db.refresh(result)
+            return self._response(db, sample, test, result)
+        except Exception:
+            db.rollback(); raise
+
+    def review(self, db: Session, actor, sample_id: UUID, sample_test_id: UUID,
+               result_id: UUID, expected_version: int):
+        return self._workflow_transition(
+            db, actor, sample_id, sample_test_id, result_id, expected_version,
+            permission="sample_test_result.review", transition=self.results.review,
+            action=AuditAction.REVIEW,
+        )
+
+    def finalize(self, db: Session, actor, sample_id: UUID, sample_test_id: UUID,
+                 result_id: UUID, expected_version: int):
+        return self._workflow_transition(
+            db, actor, sample_id, sample_test_id, result_id, expected_version,
+            permission="sample_test_result.finalize", transition=self.results.finalize,
+            action=AuditAction.FINALIZE,
+        )
+
+    def _workflow_transition(self, db: Session, actor, sample_id: UUID,
+                             sample_test_id: UUID, result_id: UUID,
+                             expected_version: int, *, permission: str,
+                             transition, action: str):
+        sample, test, result = self._result(
+            db, actor, sample_id, sample_test_id, result_id, permission
+        )
+        before = self.audit.snapshot(result)
+        try:
+            result = transition(db, result, actor.id, expected_version)
+            self.audit.record_update(
+                db, entity=result, actor=actor, before=before,
+                owner=sample, action=action,
+            )
             db.commit(); db.refresh(result)
             return self._response(db, sample, test, result)
         except Exception:

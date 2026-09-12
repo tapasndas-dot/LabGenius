@@ -144,6 +144,10 @@ class ResultResponse(BaseModel):
     completed_at: datetime | None
     entered_at: datetime | None
     entered_by: ActorContext | None
+    reviewed_at: datetime | None
+    reviewed_by: ActorContext | None
+    finalized_at: datetime | None
+    finalized_by: ActorContext | None
     notes: str | None
     sample: ContextReference
     sample_test: ContextReference

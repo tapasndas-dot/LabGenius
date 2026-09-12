@@ -10,12 +10,12 @@ from app.core.exceptions import (ResourceNotFoundException, ValidationException,
                                  VersionConflictException)
 from app.models.business.instrument import Instrument
 from app.models.business.qc_method import MethodParameter, MethodVersion
-from app.models.business.sample import Sample, SampleTest
+from app.models.business.sample import Sample, SampleTest, SampleTestStatus
 from app.models.business.sample_test_result import (
     ParameterResult, ParameterValueType, ResultInstrumentUsage,
     SampleTestResult, SampleTestResultStatus,
 )
-from app.repositories.business.sample_repository import SampleRepository
+from app.repositories.business.sample_repository import SampleRepository, SampleTestRepository
 from app.repositories.business.sample_test_result_repository import (
     ParameterResultRepository, ResultInstrumentUsageRepository,
     SampleTestResultRepository,
@@ -35,11 +35,13 @@ class SampleTestResultService:
     }
 
     def __init__(self, result_repository=None, parameter_repository=None,
-                 instrument_usage_repository=None, sample_repository=None):
+                 instrument_usage_repository=None, sample_repository=None,
+                 sample_test_repository=None):
         self.result_repository = result_repository or SampleTestResultRepository()
         self.parameter_repository = parameter_repository or ParameterResultRepository()
         self.instrument_usage_repository = instrument_usage_repository or ResultInstrumentUsageRepository()
         self.sample_repository = sample_repository or SampleRepository()
+        self.sample_test_repository = sample_test_repository or SampleTestRepository()
 
     def _owned_sample_test(self, db: Session, organization_id: UUID,
                            sample_test_id: UUID) -> tuple[Sample, SampleTest]:
@@ -205,6 +207,8 @@ class SampleTestResultService:
         )
         if sample.status in ("CANCELLED", "FINALIZED") or sample_test.status in ("CANCELLED", "FINALIZED"):
             raise ValidationException("The operational parent cannot accept result submission.")
+        if sample_test.status not in (SampleTestStatus.ASSIGNED, SampleTestStatus.IN_PROGRESS):
+            raise ValidationException("SampleTest must be ASSIGNED or IN_PROGRESS for result submission.")
         method_version = self._method_version(db, sample_test)
         parameters = db.query(MethodParameter).filter(
             MethodParameter.method_version_id == method_version.id
@@ -230,8 +234,64 @@ class SampleTestResultService:
                    if parameter.is_required and parameter.id not in seen]
         if missing:
             raise ValidationException("Required parameter results are incomplete: " + ", ".join(missing))
-        return self.update_draft_result(db, result, expected_version, {
+        updated = self.update_draft_result(db, result, expected_version, {
             "status": SampleTestResultStatus.ENTERED,
             "entered_at": datetime.now(timezone.utc),
             "entered_by_user_id": actor_id,
         })
+        if self.sample_test_repository.transition_status(
+            db, sample_test.id, sample_test.status, SampleTestStatus.RESULT_ENTERED
+        ) is None:
+            raise VersionConflictException("SampleTest changed concurrently. Refresh and try again.")
+        return updated
+
+    def review(self, db: Session, result: SampleTestResult, actor_id: UUID,
+               expected_version: int) -> SampleTestResult:
+        return self._transition(
+            db, result, actor_id, expected_version,
+            required_result_status=SampleTestResultStatus.ENTERED,
+            target_result_status=SampleTestResultStatus.REVIEWED,
+            required_sample_test_status=SampleTestStatus.RESULT_ENTERED,
+            target_sample_test_status=SampleTestStatus.REVIEWED,
+            timestamp_field="reviewed_at", actor_field="reviewed_by_user_id",
+        )
+
+    def finalize(self, db: Session, result: SampleTestResult, actor_id: UUID,
+                 expected_version: int) -> SampleTestResult:
+        return self._transition(
+            db, result, actor_id, expected_version,
+            required_result_status=SampleTestResultStatus.REVIEWED,
+            target_result_status=SampleTestResultStatus.FINALIZED,
+            required_sample_test_status=SampleTestStatus.REVIEWED,
+            target_sample_test_status=SampleTestStatus.FINALIZED,
+            timestamp_field="finalized_at", actor_field="finalized_by_user_id",
+        )
+
+    def _transition(self, db: Session, result: SampleTestResult, actor_id: UUID,
+                    expected_version: int, *, required_result_status: str,
+                    target_result_status: str, required_sample_test_status: str,
+                    target_sample_test_status: str, timestamp_field: str,
+                    actor_field: str) -> SampleTestResult:
+        if result.status != required_result_status:
+            raise ValidationException(
+                f"Result must be {required_result_status} for this transition."
+            )
+        sample_test = db.get(SampleTest, result.sample_test_id)
+        if sample_test is None:
+            raise ResourceNotFoundException("SampleTest not found.")
+        if sample_test.status != required_sample_test_status:
+            raise ValidationException(
+                f"SampleTest must be {required_sample_test_status} for this transition."
+            )
+        updated = self.result_repository.update_expected(db, result.id, expected_version, {
+            "status": target_result_status,
+            timestamp_field: datetime.now(timezone.utc),
+            actor_field: actor_id,
+        })
+        if updated is None:
+            raise VersionConflictException("Result changed concurrently. Refresh and try again.")
+        if self.sample_test_repository.transition_status(
+            db, sample_test.id, required_sample_test_status, target_sample_test_status
+        ) is None:
+            raise VersionConflictException("SampleTest changed concurrently. Refresh and try again.")
+        return updated
