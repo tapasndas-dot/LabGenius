@@ -470,24 +470,135 @@ it('links and removes an Instrument using the contextual Result response', async
   await screen.findByText(/Revision 1/)
   fireEvent.click(screen.getByText('Result Entry'))
 
-  fireEvent.change(screen.getByLabelText('Result Instrument'), {
-    target: { value: 'instrument-1' },
-  })
-
   fireEvent.change(screen.getByLabelText('Instrument Usage Notes'), {
     target: { value: 'Primary chromatograph' },
   })
 
-  fireEvent.click(screen.getByRole('button', { name: 'Add Instrument' }))
+  fireEvent.change(screen.getByLabelText('Result Instrument'), {
+    target: { value: 'instrument-1' },
+  })
 
-  expect(await screen.findByText(/HPLC-01/)).toBeTruthy()
+  expect(await screen.findByRole('cell', { name: /HPLC-01/ })).toBeTruthy()
   expect(calls[0]).toContain('"instrument_id":"instrument-1"')
+  expect(screen.queryByRole('button', { name: /Add|Link|Save instrument/i })).toBeNull()
+
+  fireEvent.change(screen.getByLabelText('Result Notes'), {
+    target: { value: 'Continued work' },
+  })
+  expect(screen.getByRole('cell', { name: /HPLC-01/ })).toBeTruthy()
 
   fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
 
   await waitFor(() =>
     expect(calls.some(body => body.includes('"version":3'))).toBe(true),
   )
+})
+
+it('retains an immediately linked instrument through submission', async () => {
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const lookup = {
+    ...dates, id: 'instrument-1', instrument_code: 'HPLC-01', instrument_name: 'Main HPLC',
+    organization_id: 'org', business_unit_id: null, division_id: null, department_id: null,
+    instrument_type_id: 'type-1', manufacturer_id: null, location_id: null,
+    responsible_user_id: null, model_number: '1260', serial_number: 'SN-001',
+    description: null, status: 'AVAILABLE', criticality: 'HIGH', calibration_required: true,
+    maintenance_required: true, qualification_required: true, is_active: true,
+  }
+  const usage = {
+    ...dates, id: 'usage-1', instrument_id: 'instrument-1', version: 1, usage_notes: null,
+    instrument: { id: 'instrument-1', code: 'HPLC-01', name: 'Main HPLC', model_number: '1260', serial_number: 'SN-001' },
+  }
+  let current = result({ version: 4 })
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user([
+      'sample_test_result.view', 'sample_test_result.update',
+      'sample_test_result.submit', 'instrument.view',
+    ]))
+    if (url.startsWith('/api/instruments')) return json([lookup])
+    if (url.endsWith('/results')) return json([current])
+    if (url.endsWith('/instruments') && init?.method === 'POST') {
+      current = result({ version: 5, instrument_usages: [usage] })
+      return json(current, 201)
+    }
+    if (url.endsWith('/submit') && init?.method === 'POST') {
+      current = result({ version: 6, status: 'ENTERED', instrument_usages: [usage] })
+      return json(current)
+    }
+    return json([])
+  })
+
+  renderPanel()
+  await screen.findByText(/Revision 1/)
+  fireEvent.click(screen.getByText('Result Entry'))
+  fireEvent.change(screen.getByLabelText('Result Instrument'), { target: { value: 'instrument-1' } })
+  expect(await screen.findByRole('cell', { name: /HPLC-01/ })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Submit Result' }))
+
+  expect(await screen.findByText('Revision 1 — ENTERED')).toBeTruthy()
+  expect(screen.getByRole('cell', { name: /HPLC-01/ })).toBeTruthy()
+  expect((screen.getByLabelText('Result Notes') as HTMLTextAreaElement).disabled).toBe(true)
+})
+
+it('clears a failed transient selection without falsely rendering a link', async () => {
+  const lookup = { id: 'instrument-1', instrument_code: 'HPLC-01', instrument_name: 'Main HPLC' }
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user([
+      'sample_test_result.view', 'sample_test_result.update', 'instrument.view',
+    ]))
+    if (url.startsWith('/api/instruments')) return json([lookup])
+    if (url.endsWith('/results')) return json([result()])
+    if (url.endsWith('/instruments') && init?.method === 'POST') {
+      return json({ detail: 'Instrument link failed' }, 400)
+    }
+    return json([])
+  })
+
+  renderPanel()
+  await screen.findByText(/Revision 1/)
+  fireEvent.click(screen.getByText('Result Entry'))
+  fireEvent.change(screen.getByLabelText('Result Instrument'), { target: { value: 'instrument-1' } })
+
+  expect((await screen.findByRole('alert')).textContent).toContain('Instrument link failed')
+  expect((screen.getByLabelText('Result Instrument') as HTMLSelectElement).value).toBe('')
+  expect(screen.queryByRole('cell', { name: /HPLC-01/ })).toBeNull()
+  expect(screen.getByText('No instrument linked.')).toBeTruthy()
+})
+
+it('prevents duplicate and concurrent instrument link requests', async () => {
+  const lookup = { id: 'instrument-1', instrument_code: 'HPLC-01', instrument_name: 'Main HPLC' }
+  let resolveLink!: (response: Response) => void
+  const pendingLink = new Promise<Response>(resolve => { resolveLink = resolve })
+  let linkCalls = 0
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('/auth/me')) return json(user([
+      'sample_test_result.view', 'sample_test_result.update', 'instrument.view',
+    ]))
+    if (url.startsWith('/api/instruments')) return json([lookup])
+    if (url.endsWith('/results')) return json([result()])
+    if (url.endsWith('/instruments') && init?.method === 'POST') {
+      linkCalls++
+      return pendingLink
+    }
+    return json([])
+  })
+
+  renderPanel()
+  await screen.findByText(/Revision 1/)
+  fireEvent.click(screen.getByText('Result Entry'))
+  const select = screen.getByLabelText('Result Instrument')
+  fireEvent.change(select, { target: { value: 'instrument-1' } })
+  fireEvent.change(select, { target: { value: 'instrument-1' } })
+  expect(linkCalls).toBe(1)
+
+  resolveLink(json(result({ instrument_usages: [{
+    ...dates, id: 'usage-1', instrument_id: 'instrument-1', version: 1, usage_notes: null,
+    instrument: { id: 'instrument-1', code: 'HPLC-01', name: 'Main HPLC', model_number: null, serial_number: null },
+  }] }), 201))
+  expect(await screen.findByRole('cell', { name: /HPLC-01/ })).toBeTruthy()
+  expect(screen.queryByRole('option', { name: /HPLC-01/ })).toBeNull()
 })
 
 it('submits with the current Result version and becomes read-only from authoritative ENTERED response', async () => {

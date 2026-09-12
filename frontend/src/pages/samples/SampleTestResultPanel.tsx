@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ApiError } from '../../api/client'
 import { instrumentsApi, type Instrument } from '../../api/instruments'
 import {
@@ -121,6 +121,7 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conflict, setConflict] = useState(false)
+  const linkingInstrument = useRef(false)
 
   const canView = hasPermission('sample_test_result.view')
   const canCreate = hasPermission('sample_test_result.create')
@@ -318,19 +319,34 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
     ))
   }
 
-  const addInstrument = async () => {
-    if (!result || !instrumentId) return
+  const linkInstrument = async (selectedId: string) => {
+    if (!result || !selectedId || saving || linkingInstrument.current) return
+    if (result.instrument_usages.some(usage => usage.instrument_id === selectedId)) {
+      setInstrumentId('')
+      return
+    }
 
-    await run(() => samplesApi.addResultInstrument(
-      sample.id,
-      sampleTest.id,
-      result.id,
-      instrumentId,
-      instrumentNotes || null,
-    ))
-
-    setInstrumentId('')
-    setInstrumentNotes('')
+    setInstrumentId(selectedId)
+    linkingInstrument.current = true
+    setSaving(true)
+    try {
+      applyResult(await samplesApi.addResultInstrument(
+        sample.id,
+        sampleTest.id,
+        result.id,
+        selectedId,
+        instrumentNotes || null,
+      ))
+      setInstrumentNotes('')
+      setError(null)
+      setConflict(false)
+    } catch (cause) {
+      fail(cause)
+    } finally {
+      linkingInstrument.current = false
+      setInstrumentId('')
+      setSaving(false)
+    }
   }
 
   const removeInstrument = async (usageId: string, version: number) => {
@@ -562,33 +578,33 @@ export function SampleTestResultPanel({ sample, sampleTest }: Props) {
           {editable && canBrowseInstruments && (
             <div className="inline-form">
               <label>
+                Usage Notes
+                <input
+                  aria-label="Instrument Usage Notes"
+                  value={instrumentNotes}
+                  disabled={saving}
+                  onChange={event => setInstrumentNotes(event.target.value)}
+                />
+              </label>
+
+              <label>
                 Instrument
                 <select
                   aria-label="Result Instrument"
                   value={instrumentId}
-                  onChange={event => setInstrumentId(event.target.value)}
+                  disabled={saving}
+                  onChange={event => void linkInstrument(event.target.value)}
                 >
                   <option value="">Select instrument</option>
-                  {instruments.map(instrument => (
+                  {instruments.filter(instrument => !result.instrument_usages.some(
+                    usage => usage.instrument_id === instrument.id,
+                  )).map(instrument => (
                     <option key={instrument.id} value={instrument.id}>
                       {instrument.instrument_code} — {instrument.instrument_name}
                     </option>
                   ))}
                 </select>
               </label>
-
-              <label>
-                Usage Notes
-                <input
-                  aria-label="Instrument Usage Notes"
-                  value={instrumentNotes}
-                  onChange={event => setInstrumentNotes(event.target.value)}
-                />
-              </label>
-
-              <button disabled={saving || !instrumentId} onClick={() => void addInstrument()}>
-                Add Instrument
-              </button>
             </div>
           )}
 
