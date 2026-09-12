@@ -19,7 +19,7 @@ from app.routers import root
 from app.routers import user_role
 from app.routers import security_history
 from app.routers import audit
-from app.routers import instrument, instrument_type, location, manufacturer, material, method, sample, specification, test
+from app.routers import instrument, instrument_type, location, manufacturer, material, method, qc_dashboard, sample, specification, test
 from app.routers import module
 from app.core.request_context import RequestContext, reset_request_context, set_request_context
 from app.routers.user import security as user_security_router
@@ -165,4 +165,5 @@ app.include_router(test.router, prefix="/tests", tags=["Tests"])
 app.include_router(method.router, prefix="/methods", tags=["Methods"])
 app.include_router(specification.router, prefix="/specifications", tags=["Specifications"])
 app.include_router(sample.router, prefix="/samples", tags=["Samples"])
+app.include_router(qc_dashboard.router, prefix="/qc-dashboard", tags=["QC Dashboard"])
 app.include_router(module.router, prefix="/modules", tags=["Modules"])
