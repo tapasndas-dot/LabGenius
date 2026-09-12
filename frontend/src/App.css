@@ -156,8 +156,23 @@ td small { display: block; margin-top: 3px; color: #71817e; }
 .selected-row td { background: #f0f8f6; }
 .checkbox-field { display: flex !important; align-items: center; gap: 8px !important; }
 .checkbox-field input { min-height: auto; }
+.qc-dashboard-page { gap: 24px; }
+.dashboard-section { display: grid; gap: 14px; }
+.dashboard-section > header h2 { margin: 0; color: #253936; font-size: 1.2rem; }
+.dashboard-section > header p { margin: 5px 0 0; color: #60716e; font-size: .88rem; }
+.dashboard-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.dashboard-kpi { padding: 18px; border: 1px solid #dce5e3; border-radius: 11px; background: #fff; }
+.dashboard-kpi > strong { color: #0f766e; font-size: 1.8rem; line-height: 1; }
+.dashboard-kpi h3 { margin: 10px 0 4px; color: #253936; font-size: .92rem; }
+.dashboard-kpi p { margin: 0; color: #71817e; font-size: .78rem; line-height: 1.4; }
+.dashboard-badge { display: inline-flex; padding: 3px 8px; border-radius: 999px; background: #edf3f2; color: #405754; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.dashboard-badge.review, .dashboard-badge.reviewed { background: #fff3d6; color: #805b12; }
+.dashboard-badge.finalize, .dashboard-badge.finalized { background: #e1f3e8; color: #17663a; }
+.dashboard-badge.urgent { background: #fce8e8; color: #9f2929; }
+.dashboard-filters label { min-width: 150px; }
 @media (max-width: 700px) {
   .form-grid { grid-template-columns: 1fr; }
   .admin-page-header { flex-direction: column; }
   .table-actions { min-width: 170px; }
+  .dashboard-kpis { grid-template-columns: 1fr; }
 }
