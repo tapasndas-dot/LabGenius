@@ -26,6 +26,98 @@ export type SampleTestAssignmentMutation = { sample_test:SampleTest; assignment:
 export type SampleInput = Omit<Sample, 'id'|'organization_id'|'status'|'version'|'created_at'|'updated_at'|'material'|'specification_version'|'business_unit'|'division'|'department'>
 export type SampleListParams = Partial<{ limit:number; offset:number; search:string; status:string; priority:string; material_id:string; business_unit_id:string; division_id:string; department_id:string }>
 const query=(params:SampleListParams={})=>{const q=new URLSearchParams();Object.entries(params).forEach(([k,v])=>{if(v!==undefined&&v!=='')q.set(k,String(v))});return q.size?`?${q}`:''}
+
+export const RESULT_VALUE_TYPES = ['TEXT', 'NUMBER', 'INTEGER', 'BOOLEAN', 'DATE', 'DATETIME'] as const
+export type ResultValueType = typeof RESULT_VALUE_TYPES[number]
+
+export type MethodParameterContext = {
+  id: string
+  code: string
+  name: string
+  value_type: ResultValueType
+  unit: string | null
+  is_required: boolean
+  sequence_number: number | null
+}
+
+export type ResultMethodVersionContext = {
+  id: string
+  method_id: string
+  code: string
+  name: string
+  version_number: number
+}
+
+export type ParameterResult = Dates & {
+  id: string
+  method_parameter_id: string
+  parameter: MethodParameterContext
+  value_type: ResultValueType
+  text_value: string | null
+  numeric_value: string | number | null
+  integer_value: number | null
+  boolean_value: boolean | null
+  date_value: string | null
+  datetime_value: string | null
+}
+
+export type ResultInstrumentContext = {
+  id: string
+  code: string
+  name: string
+  model_number: string | null
+  serial_number: string | null
+}
+
+export type ResultInstrumentUsage = Dates & {
+  id: string
+  instrument_id: string
+  instrument: ResultInstrumentContext
+  usage_notes: string | null
+}
+
+export type ResultActorContext = {
+  id: string
+  display_name: string
+}
+
+export type SampleTestResult = Dates & {
+  id: string
+  sample_test_id: string
+  sequence_number: number
+  status: string
+  started_at: string | null
+  completed_at: string | null
+  entered_at: string | null
+  entered_by: ResultActorContext | null
+  notes: string | null
+  sample: ReferenceDisplay
+  sample_test: ReferenceDisplay
+  test: ReferenceDisplay
+  method_version: ResultMethodVersionContext
+  method_parameters: MethodParameterContext[]
+  parameters: ParameterResult[]
+  instrument_usages: ResultInstrumentUsage[]
+}
+
+export type ResultTypedValueInput = {
+  value_type: ResultValueType
+  text_value?: string | null
+  numeric_value?: number | string | null
+  integer_value?: number | null
+  boolean_value?: boolean | null
+  date_value?: string | null
+  datetime_value?: string | null
+}
+
+export type ParameterResultCreateInput = ResultTypedValueInput & {
+  method_parameter_id: string
+}
+
+export type ParameterResultUpdateInput = ResultTypedValueInput & {
+  version: number
+}
+
 export const samplesApi={
   list:(params:SampleListParams={})=>apiRequest<Sample[]>(`/samples${query(params)}`),
   get:(id:string)=>apiRequest<Sample>(`/samples/${id}`),
@@ -41,4 +133,53 @@ export const samplesApi={
   assign:(id:string,testId:string,data:SampleTestAssignInput)=>apiRequest<SampleTestAssignmentMutation>(`/samples/${id}/tests/${testId}/assign`,{method:'POST',body:data}),
   reassign:(id:string,testId:string,data:SampleTestReassignInput)=>apiRequest<SampleTestAssignmentMutation>(`/samples/${id}/tests/${testId}/reassign`,{method:'POST',body:data}),
   unassign:(id:string,testId:string,data:SampleTestUnassignInput)=>apiRequest<SampleTestAssignmentMutation>(`/samples/${id}/tests/${testId}/unassign`,{method:'POST',body:data}),
+  results:(id:string,testId:string)=>apiRequest<SampleTestResult[]>(`/samples/${id}/tests/${testId}/results`),
+
+  result:(id:string,testId:string,resultId:string)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}`
+  ),
+
+  createResult:(id:string,testId:string,notes:string|null=null)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results`,
+    {method:'POST',body:{notes}}
+  ),
+
+  updateResult:(id:string,testId:string,resultId:string,version:number,data:{
+    notes?:string|null
+    started_at?:string|null
+    completed_at?:string|null
+  })=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}`,
+    {method:'PUT',body:{...data,version}}
+  ),
+
+  addResultParameter:(id:string,testId:string,resultId:string,data:ParameterResultCreateInput)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/parameters`,
+    {method:'POST',body:data}
+  ),
+
+  updateResultParameter:(id:string,testId:string,resultId:string,parameterResultId:string,data:ParameterResultUpdateInput)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/parameters/${parameterResultId}`,
+    {method:'PUT',body:data}
+  ),
+
+  removeResultParameter:(id:string,testId:string,resultId:string,parameterResultId:string,version:number)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/parameters/${parameterResultId}`,
+    {method:'DELETE',body:{version}}
+  ),
+
+  addResultInstrument:(id:string,testId:string,resultId:string,instrumentId:string,usageNotes:string|null=null)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/instruments`,
+    {method:'POST',body:{instrument_id:instrumentId,usage_notes:usageNotes}}
+  ),
+
+  removeResultInstrument:(id:string,testId:string,resultId:string,usageId:string,version:number)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/instruments/${usageId}`,
+    {method:'DELETE',body:{version}}
+  ),
+
+  submitResult:(id:string,testId:string,resultId:string,version:number)=>apiRequest<SampleTestResult>(
+    `/samples/${id}/tests/${testId}/results/${resultId}/submit`,
+    {method:'POST',body:{version}}
+  ),
 }

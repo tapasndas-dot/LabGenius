@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+
+### Implemented ? Sprint 21C Result Entry Frontend
+
+- Added secured Result Entry UI within SampleTest detail using the nested Sprint 21B Result APIs.
+- Supports DRAFT Result creation and controlled editing of Result notes and execution timestamps.
+- Renders the exact frozen Method Version and its frozen Method Parameters.
+- Supports TEXT, NUMBER, INTEGER, BOOLEAN, DATE, and DATETIME parameter values.
+- Supports required-value validation and controlled removal of optional entered values.
+- Supports active Instrument discovery and Result Instrument usage association with contextual instrument identity.
+- Uses authoritative server-returned versions after mutations and explicit 409 refresh/recovery.
+- Supports DRAFT to ENTERED submission and makes submitted Results read-only for ordinary Result entry.
+- Added inline red Result validation/error presentation and constrains Completed At against Started At while retaining validation enforcement.
+- Focused frontend validation passed: Result Entry 6/6, SampleTest Assignment 4/4, Samples 6/6, production build and lint.
+- Manual browser acceptance passed for Result entry, frozen parameters, active Instrument association, persistence, submission to ENTERED, and post-submission read-only behavior.
+- Sprint 21 remains IN PROGRESS. Review/approval/finalization and controlled correction/revision workflow remain outside Sprint 21C and are deferred to Sprint 21D or later.
+
 ### Implemented — Sprint 21B Secured Result Entry API and Submission Foundation
 
 - Added secured nested Sample/SampleTest Result routes for history reads, DRAFT creation and

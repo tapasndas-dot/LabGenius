@@ -835,8 +835,10 @@ the approved dependency sequence for Sprints 16–24:
 21. Sprint 20C — SampleTest Assignment frontend — IMPLEMENTED
 22. Sprint 20D — SampleTest Assignment manual acceptance and Sprint 20 closure — COMPLETE
 23. Sprint 21A — Result Entry Foundation (Domain models, repositories, services, permissions, tests) — IMPLEMENTED
-24. Sprint 21B — Secured Result Entry API and Submission Foundation — IMPLEMENTED; REVIEW PENDING
-25. Sprint 21C–21D — Result Entry frontend, Review, and Finalization — DEFERRED
+24. Sprint 21B ? Secured Result Entry API and Submission Foundation ? IMPLEMENTED
+25. Sprint 21C ? Result Entry frontend ? IMPLEMENTED; Sprint 21D ? Review and Finalization ? PENDING
+
+Sprint 21C is IMPLEMENTED and manually accepted. It adds the secured Result Entry frontend, frozen Method Parameter entry, controlled execution timestamps, Instrument usage, DRAFT-to-ENTERED submission, authoritative-version reconciliation, explicit 409 recovery, and read-only ENTERED presentation. Sprint 21 remains IN PROGRESS; Sprint 21D review, approval, and finalization remain pending.
 26. Sprint 22 — QC Operational Dashboard
 27. Sprint 23 — Stability Protocol & Study Management
 28. Sprint 24 — Stability Pull Scheduling & QC Integration
