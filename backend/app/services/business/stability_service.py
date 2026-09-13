@@ -84,6 +84,15 @@ class StabilityProtocolService(_AuditedService):
         self._update_audit(db, actor, updated, before, action=action)
         return updated
 
+    def delete(self, db, actor, protocol_id, expected_version):
+        current = self.repository.get(db, actor.organization_id, protocol_id)
+        if current is None:
+            raise ResourceNotFoundException("Stability Protocol not found.")
+        before = self.audit.snapshot(current)
+        if not self.repository.delete_expected(db, protocol_id, expected_version):
+            raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+        self.audit.record_delete(db, entity=current, actor=actor, owner=current, before=before)
+
 
 class StabilityProtocolVersionService(_AuditedService):
     TRANSITIONS = {
