@@ -8,6 +8,8 @@ from app.dependencies.capabilities import require_capability
 from app.dependencies.database import get_db
 from app.schemas.business.instrument import (
     InstrumentCreate, InstrumentResponse, InstrumentUpdate,
+    StabilityChamberProfileCreate, StabilityChamberProfileResponse,
+    StabilityChamberProfileUpdate,
 )
 from app.schemas.business.shared import VersionRequest
 from app.services.business.instrument_service import InstrumentService
@@ -42,6 +44,37 @@ def get_instrument(
     actor=Depends(require_permission("instrument.view")),
 ):
     return service.get_scoped(db, actor, instrument_id, "instrument.view")
+
+
+@router.get("/{instrument_id}/chamber-profile", response_model=StabilityChamberProfileResponse)
+def get_stability_chamber_profile(
+    instrument_id: UUID, db: Session = Depends(get_db),
+    actor=Depends(require_permission("instrument.view")),
+):
+    return service.get_chamber_profile_scoped(db, actor, instrument_id)
+
+
+@router.post("/{instrument_id}/chamber-profile", response_model=StabilityChamberProfileResponse, status_code=201)
+def create_stability_chamber_profile(
+    instrument_id: UUID, payload: StabilityChamberProfileCreate,
+    db: Session = Depends(get_db),
+    actor=Depends(require_permission("instrument.update")),
+):
+    return service.create_chamber_profile_scoped(
+        db, actor, instrument_id, payload.model_dump()
+    )
+
+
+@router.put("/{instrument_id}/chamber-profile", response_model=StabilityChamberProfileResponse)
+def update_stability_chamber_profile(
+    instrument_id: UUID, payload: StabilityChamberProfileUpdate,
+    db: Session = Depends(get_db),
+    actor=Depends(require_permission("instrument.update")),
+):
+    return service.update_chamber_profile_scoped(
+        db, actor, instrument_id, payload.version,
+        payload.model_dump(exclude_unset=True, exclude={"version"}),
+    )
 
 
 @router.post("", response_model=InstrumentResponse, status_code=201)

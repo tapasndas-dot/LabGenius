@@ -25,6 +25,8 @@ import { MethodsPage } from './pages/laboratory/MethodsPage'
 import { SpecificationsPage } from './pages/laboratory/SpecificationsPage'
 import { SamplesPage } from './pages/samples/SamplesPage'
 import { QCDashboardPage } from './pages/qc-dashboard/QCDashboardPage'
+import { StabilityProtocolsPage } from './pages/stability/StabilityProtocolsPage'
+import { StabilityStudiesPage } from './pages/stability/StabilityStudiesPage'
 import './App.css'
 
 function UnknownRoute() {
@@ -52,6 +54,8 @@ function App() {
           <Route path="materials" element={<PermissionGate anyOf={['material.view']}><MasterPage kind="material" /></PermissionGate>} />
         </Route>
         <Route path="instruments" element={<CapabilityGate capability="INSTRUMENTS" permission="instrument.view"><InstrumentPage /></CapabilityGate>} />
+        <Route path="stability/protocols" element={<CapabilityGate capability="STABILITY" permission="stability_protocol.view"><StabilityProtocolsPage /></CapabilityGate>} />
+        <Route path="stability/studies" element={<CapabilityGate capability="STABILITY" permission="stability_study.view"><StabilityStudiesPage /></CapabilityGate>} />
         <Route path="samples" element={<PermissionGate anyOf={['sample.view']}><SamplesPage /></PermissionGate>} />
         <Route path="qc-dashboard" element={<PermissionGate anyOf={['sample.view']}><QCDashboardPage /></PermissionGate>} />
         <Route path="laboratory-masters" element={<LaboratoryLayout />}>

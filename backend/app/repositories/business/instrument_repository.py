@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_, update
 from sqlalchemy.orm import Session
 from app.models.business.instrument import Instrument, StabilityChamberProfile
 from .organization_master_repository import OrganizationMasterRepository
@@ -42,3 +42,20 @@ class InstrumentRepository(OrganizationMasterRepository[Instrument]):
         return db.query(StabilityChamberProfile).filter(
             StabilityChamberProfile.instrument_id == instrument_id
         ).first()
+
+    def update_chamber_profile_expected(
+        self, db: Session, profile_id: UUID, instrument_id: UUID,
+        expected_version: int, values: dict,
+    ):
+        updated_id = db.execute(update(StabilityChamberProfile).where(
+            StabilityChamberProfile.id == profile_id,
+            StabilityChamberProfile.instrument_id == instrument_id,
+            StabilityChamberProfile.version == expected_version,
+        ).values(
+            **values, version=StabilityChamberProfile.version + 1,
+            updated_at=func.now(),
+        ).returning(StabilityChamberProfile.id)).scalar_one_or_none()
+        if updated_id is None:
+            return None
+        db.flush()
+        return db.get(StabilityChamberProfile, updated_id)

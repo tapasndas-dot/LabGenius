@@ -14,6 +14,7 @@ const instrument = {
   status: 'AVAILABLE', criticality: 'HIGH', calibration_required: true, maintenance_required: false,
   qualification_required: true, is_active: true, version: 4, created_at: '', updated_at: '',
 }
+const chamberProfile = { id: 'profile-1', instrument_id: 'instrument-1', temperature_setpoint: '25', temperature_unit: 'C', humidity_setpoint: '60', humidity_unit: 'RH', description: 'Qualified chamber', version: 7, created_at: '', updated_at: '' }
 const type = { id: 'type-1', organization_id: 'org-1', code: 'CHAMBER', name: 'Stability Chamber', description: null, is_active: true, version: 1, created_at: '', updated_at: '' }
 const maker = { ...type, id: 'maker-1', code: 'ACME', name: 'Acme Instruments' }
 const location = { ...type, id: 'location-1', code: 'LAB-1', name: 'Main Laboratory', parent_location_id: null, location_type: 'LABORATORY' }
@@ -25,6 +26,7 @@ function apiMock(permissions: string[], capabilities = ['INSTRUMENTS']) {
     const url = String(input)
     if (url.endsWith('/auth/me')) return json(currentUser(permissions))
     if (url.endsWith('/modules/enabled')) return json(capabilities)
+    if (url.endsWith('/instruments/instrument-1/chamber-profile')) return json(chamberProfile)
     if (url.includes('/instruments')) return json([instrument])
     if (url.includes('/instrument-types')) return json([type])
     if (url.includes('/manufacturers')) return json([maker])
@@ -118,4 +120,27 @@ it('confirms activate/deactivate and delete with expected versions', async () =>
   const remove = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith('/instruments/instrument-1') && init?.method === 'DELETE')
   expect(JSON.parse(remove?.[1]?.body as string)).toEqual({ version: 4 })
   expect(confirm).toHaveBeenCalledTimes(2)
+})
+
+it('lets view-only users inspect an existing Chamber Profile without mutation controls', async () => {
+  apiMock(['instrument.view']); renderPath()
+  fireEvent.click(await screen.findByRole('button', { name: 'Chamber Profile' }))
+  expect(await screen.findByRole('heading', { name: /CH-001.*Stability Chamber Profile/ })).toBeTruthy()
+  expect(screen.getByText('Qualified chamber')).toBeTruthy()
+  expect(screen.getByText('7')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Edit Profile' })).toBeNull()
+})
+
+it('creates a missing Chamber Profile with exact fields', async () => {
+  const fetchMock = apiMock(['instrument.view', 'instrument.update'])
+  fetchMock.mockImplementation(async (input, init) => { const url = String(input); if (url.endsWith('/auth/me')) return json(currentUser(['instrument.view', 'instrument.update'])); if (url.endsWith('/modules/enabled')) return json(['INSTRUMENTS']); if (url.endsWith('/instruments/instrument-1/chamber-profile') && init?.method === 'POST') return json(chamberProfile, 201); if (url.endsWith('/instruments/instrument-1/chamber-profile')) return json({ detail: 'Stability Chamber Profile not found.' }, 404); if (url.includes('/instruments')) return json([instrument]); return json([]) })
+  renderPath(); fireEvent.click(await screen.findByRole('button', { name: 'Chamber Profile' })); fireEvent.click(await screen.findByRole('button', { name: 'Create Profile' }))
+  fireEvent.change(screen.getByLabelText('Temperature setpoint'), { target: { value: '25' } }); fireEvent.change(screen.getByLabelText('Temperature unit'), { target: { value: 'C' } }); fireEvent.change(screen.getByLabelText('Humidity setpoint'), { target: { value: '60' } }); fireEvent.change(screen.getByLabelText('Humidity unit'), { target: { value: 'RH' } }); fireEvent.click(screen.getByRole('button', { name: 'Save Profile' }))
+  await waitFor(() => expect(fetchMock.mock.calls.some(([url, init]) => String(url).endsWith('/chamber-profile') && init?.method === 'POST')).toBe(true)); const call = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith('/chamber-profile') && init?.method === 'POST'); expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({ temperature_setpoint: 25, temperature_unit: 'C', humidity_setpoint: 60, humidity_unit: 'RH' })
+})
+
+it('updates with profile version and offers profile refresh on 409', async () => {
+  const fetchMock = apiMock(['instrument.view', 'instrument.update']); fetchMock.mockImplementation(async (input, init) => { const url = String(input); if (url.endsWith('/auth/me')) return json(currentUser(['instrument.view', 'instrument.update'])); if (url.endsWith('/modules/enabled')) return json(['INSTRUMENTS']); if (url.endsWith('/instruments/instrument-1/chamber-profile') && init?.method === 'PUT') return json({ detail: 'Profile changed. Refresh and try again.' }, 409); if (url.endsWith('/instruments/instrument-1/chamber-profile')) return json(chamberProfile); if (url.includes('/instruments')) return json([instrument]); return json([]) })
+  renderPath(); fireEvent.click(await screen.findByRole('button', { name: 'Chamber Profile' })); fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' })); fireEvent.click(screen.getByRole('button', { name: 'Save Profile' }))
+  expect(await screen.findByRole('button', { name: 'Refresh current chamber profile' })).toBeTruthy(); const call = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith('/chamber-profile') && init?.method === 'PUT'); expect(JSON.parse(String(call?.[1]?.body)).version).toBe(7); expect(JSON.parse(String(call?.[1]?.body)).version).not.toBe(instrument.version)
 })

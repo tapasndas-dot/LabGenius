@@ -27,6 +27,8 @@ export function ApplicationShell() {
         {hasAnyPermission(['sample.view']) && <NavLink to="/app/qc-dashboard">QC Dashboard</NavLink>}
         {hasAnyPermission(['sample.view']) && <NavLink to="/app/samples">Samples</NavLink>}
         {canUse('INSTRUMENTS', 'instrument.view') && <NavLink to="/app/instruments">Instruments</NavLink>}
+        {canUse('STABILITY', 'stability_protocol.view') && <NavLink to="/app/stability/protocols">Stability Protocols</NavLink>}
+        {canUse('STABILITY', 'stability_study.view') && <NavLink to="/app/stability/studies">Stability Studies</NavLink>}
         {hasAnyPermission(ADMINISTRATION_PERMISSIONS) && <NavLink to="/app/administration">Administration</NavLink>}
       </nav></aside>
       <main className="app-content"><Outlet /></main>

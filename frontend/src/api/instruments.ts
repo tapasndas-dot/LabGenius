@@ -20,6 +20,17 @@ export type InstrumentListParams = Partial<{
   limit: number; offset: number; search: string; is_active: boolean; status: string;
   instrument_type_id: string; manufacturer_id: string; location_id: string
 }>
+export type StabilityChamberProfile = {
+  id: string; instrument_id: string; temperature_setpoint: string | number | null;
+  temperature_unit: string | null; humidity_setpoint: string | number | null;
+  humidity_unit: string | null; description: string | null; version: number;
+  created_at: string; updated_at: string
+}
+export type StabilityChamberProfileInput = {
+  temperature_setpoint: number | null; temperature_unit: string | null;
+  humidity_setpoint: number | null; humidity_unit: string | null;
+  description: string | null
+}
 
 function query(params: InstrumentListParams) {
   const search = new URLSearchParams()
@@ -34,4 +45,7 @@ export const instrumentsApi = {
   update: (id: string, version: number, data: Partial<InstrumentInput>) => apiRequest<Instrument>(`/instruments/${id}`, { method: 'PUT', body: { ...data, version } }),
   setActive: (id: string, version: number, active: boolean) => apiRequest<Instrument>(`/instruments/${id}/${active ? 'activate' : 'deactivate'}`, { method: 'PUT', body: { version } }),
   remove: (id: string, version: number) => apiRequest<void>(`/instruments/${id}`, { method: 'DELETE', body: { version } }),
+  getChamberProfile: (id: string) => apiRequest<StabilityChamberProfile>(`/instruments/${id}/chamber-profile`),
+  createChamberProfile: (id: string, data: StabilityChamberProfileInput) => apiRequest<StabilityChamberProfile>(`/instruments/${id}/chamber-profile`, { method: 'POST', body: data }),
+  updateChamberProfile: (id: string, version: number, data: StabilityChamberProfileInput) => apiRequest<StabilityChamberProfile>(`/instruments/${id}/chamber-profile`, { method: 'PUT', body: { ...data, version } }),
 }

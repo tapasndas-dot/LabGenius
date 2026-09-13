@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
@@ -82,6 +83,33 @@ class InstrumentResponse(BaseModel):
     maintenance_required: bool
     qualification_required: bool
     is_active: bool
+    version: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class StabilityChamberProfileCreate(StrictSchema):
+    temperature_setpoint: Decimal | None = None
+    temperature_unit: str | None = Field(default=None, max_length=20)
+    humidity_setpoint: Decimal | None = None
+    humidity_unit: str | None = Field(default=None, max_length=20)
+    description: str | None = None
+
+
+class StabilityChamberProfileUpdate(StabilityChamberProfileCreate):
+    version: int = Field(ge=1)
+
+
+class StabilityChamberProfileResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    instrument_id: UUID
+    temperature_setpoint: Decimal | None
+    temperature_unit: str | None
+    humidity_setpoint: Decimal | None
+    humidity_unit: str | None
+    description: str | None
     version: int
     created_at: datetime
     updated_at: datetime

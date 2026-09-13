@@ -136,6 +136,71 @@ class InstrumentService:
         db.flush()
         return profile
 
+    @staticmethod
+    def _normalize_chamber_profile(values: dict) -> dict:
+        return {
+            key: normalize_optional(value)
+            if key in ("temperature_unit", "humidity_unit", "description") else value
+            for key, value in values.items()
+        }
+
+    def get_chamber_profile_scoped(self, db: Session, actor, instrument_id: UUID):
+        self.get_scoped(db, actor, instrument_id, "instrument.view")
+        profile = self.repository.chamber_profile(db, instrument_id)
+        if profile is None:
+            raise ResourceNotFoundException("Stability Chamber Profile not found.")
+        return profile
+
+    def create_chamber_profile_scoped(
+        self, db: Session, actor, instrument_id: UUID, values: dict,
+    ):
+        instrument = self.get_scoped(db, actor, instrument_id, "instrument.update")
+        try:
+            profile = self.create_chamber_profile(
+                db, actor.organization_id, instrument_id,
+                self._normalize_chamber_profile(values),
+            )
+            self.audit_service.record_create(
+                db, entity=profile, actor=actor, owner=instrument
+            )
+            db.commit()
+            db.refresh(profile)
+            return profile
+        except IntegrityError as exc:
+            db.rollback()
+            raise DuplicateResourceException(
+                "Instrument already has a chamber profile."
+            ) from exc
+        except Exception:
+            db.rollback()
+            raise
+
+    def update_chamber_profile_scoped(
+        self, db: Session, actor, instrument_id: UUID,
+        expected_version: int, values: dict,
+    ):
+        instrument = self.get_scoped(db, actor, instrument_id, "instrument.update")
+        profile = self.repository.chamber_profile(db, instrument_id)
+        if profile is None:
+            raise ResourceNotFoundException("Stability Chamber Profile not found.")
+        before = self.audit_service.snapshot(profile)
+        try:
+            updated = self.repository.update_chamber_profile_expected(
+                db, profile.id, instrument_id, expected_version,
+                self._normalize_chamber_profile(values),
+            )
+            if updated is None:
+                raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+            self.audit_service.record_update(
+                db, entity=updated, actor=actor, owner=instrument, before=before
+            )
+            db.commit()
+            db.refresh(updated)
+            return updated
+        except Exception:
+            db.rollback()
+            raise
+
     def scoped_query(self, db: Session, actor, permission_code: str):
         return self.scope_service.filter_instruments(
             self.repository.query(db), actor, permission_code
