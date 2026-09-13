@@ -1,6 +1,23 @@
 # Changelog
 
 ## [Unreleased]
+### Completed - Sprint 23 Stability Protocol & Study Management
+
+- Added the Stability domain foundation with controlled Protocols, versioned Protocol structure, storage Conditions, Specification-backed Timepoints, scoped Studies, and Study Condition chamber assignments.
+- Reused the existing Stability Chamber Profile on the shared Instrument Registry rather than introducing a second chamber master.
+- Added the `23a_stability_foundation` migration and eight Stability permissions with idempotent ADMIN mapping.
+- Preserved exact approved references: Timepoints bind approved Specification Versions and Studies bind an exact approved Protocol Version whose controlled structure becomes historical and read-only after approval.
+- Added secured Stability Protocol, Version, Condition, Timepoint, Study, and Study Condition APIs with hierarchy scope, SELF exclusion where designed, UUID concealment, expected-version concurrency, and transactional audit behavior.
+- Added `/app/stability/protocols` and `/app/stability/studies`, gated by the existing `STABILITY` capability and exact Stability view permissions.
+- Added permission-aware Protocol/version lifecycle controls, nested Conditions and Timepoints, approved Specification Version selection, Study hierarchy selection, exact approved Protocol Version selection, and chamber assignments through the existing Instrument Registry.
+- Manual acceptance identified and corrected application-level Stability Chamber Profile management. Added scoped GET/POST/PUT Chamber Profile APIs and Instrument UI using the profile's own optimistic version without changing Instrument version.
+- Manual acceptance also replaced raw Study hierarchy UUID presentation with authorized human-readable Business Unit, Division, and Department labels.
+- Manual browser acceptance passed across Protocol approval, controlled historical structure, exact Specification-backed Timepoints, Study creation, Chamber Profile creation, chamber assignment, DRAFT-to-ACTIVE lifecycle, ACTIVE assignment controls, and terminal COMPLETED read-only behavior.
+- Final validation passed: 334 backend tests; 102 frontend tests across 15 files; frontend production build and lint; Python compilation; one current Alembic head `23a_stability_foundation`; and OpenAPI validation with 149 paths, 228 unique operation IDs, and zero duplicates.
+- OAuth2 token URL remains `/auth/login`.
+- Sprint 23 intentionally does not implement Stability pull scheduling, target-date generation, QC Sample generation from pulls, chamber excursion/logger processing, OOS/OOT workflow, generic workflow, DMS, or electronic-signature compliance claims.
+- Sprint 23 is COMPLETE and ready for release as `v0.27.0`.
+- Sprint 24 is the next approved milestone: Stability Pull Scheduling & QC Integration.
 ### Completed - Sprint 22 QC Operational Dashboard
 
 - Added the read-only QC Operational Dashboard over the existing Sample, SampleTest, active Assignment, and Result domains without adding dashboard persistence or new workflow states.

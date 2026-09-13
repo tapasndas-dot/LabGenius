@@ -840,7 +840,7 @@ the approved dependency sequence for Sprints 16–24:
 
 Sprint 21 is COMPLETE and ready for release as `v0.25.0`. Sprint 21C added the secured Result Entry frontend, frozen Method Parameter entry, controlled execution timestamps, Instrument usage, DRAFT-to-ENTERED submission, authoritative-version reconciliation, explicit 409 recovery, and read-only ENTERED presentation. Sprint 21D completed the Result lifecycle through ENTERED → REVIEWED → FINALIZED, synchronized SampleTest through RESULT_ENTERED → REVIEWED → FINALIZED, added distinct review/finalize authorization, transactional workflow audit, workflow actor/time metadata, finalized read-only behavior, and completed manual browser acceptance.
 26. Sprint 22 - QC Operational Dashboard - COMPLETE (`v0.26.0`)
-27. Sprint 23 - Stability Protocol & Study Management
+27. Sprint 23 - Stability Protocol & Study Management - COMPLETE (`v0.27.0`)
 28. Sprint 24 - Stability Pull Scheduling & QC Integration
 
 Sprint 22 is COMPLETE and ready for release as `v0.26.0`. It delivers the read-only QC Operational Dashboard as an authorized projection over the existing Sample, SampleTest, active Assignment, and Result workflow domains. The dashboard provides Operational Summary KPIs, Work Queue, permission-specific Review and Finalization Queue, and Recent Activity without introducing duplicate workflow state or dashboard persistence.
@@ -849,7 +849,17 @@ Dashboard authorization composes the existing domain permissions rather than int
 
 Sprint 22 manual browser acceptance passed across KPI presentation, work filtering, permission-aware review/finalization visibility, and recent submitted/reviewed/finalized activity. Release validation passed with 281 backend tests, 92 frontend tests across 13 files, production build and lint, one current Alembic head `21a_result_foundation`, and OpenAPI validation with 128 paths, 189 unique operation IDs, and zero duplicates. No database migration was required.
 
-Sprint 23 remains the next approved milestone: Stability Protocol & Study Management. Sprint 24 remains Stability Pull Scheduling & QC Integration.
+Sprint 23 is COMPLETE and ready for release as `v0.27.0`. It delivers controlled Stability Protocol and Protocol Version management, storage Conditions, Specification-backed Timepoints, scoped Stability Studies, and Study Condition chamber assignments while reusing the existing Instrument Registry, Stability Chamber Profile, approved Specification Versions, hierarchy authorization, optimistic concurrency, and transactional audit architecture.
+
+Sprint 23A established the Stability domain foundation and migration `23a_stability_foundation`. Sprint 23B exposed the secured Protocol, Version, Condition, Timepoint, Study, and Study Condition APIs. Sprint 23C added the permission- and capability-gated Stability Protocol and Study frontend. Manual acceptance also completed application-level Stability Chamber Profile management through the existing Instrument domain and replaced Study hierarchy UUID presentation with authorized human-readable labels.
+
+Stability Protocol Versions freeze their controlled structure after approval. Stability Studies bind the exact approved Protocol Version, and Study Conditions bind the exact Protocol Condition to an existing eligible Instrument with a Stability Chamber Profile. No duplicate chamber master, client-side temperature/humidity compatibility engine, Stability pull scheduling, QC Sample generation, OOS/OOT workflow, generic workflow engine, or electronic-signature compliance claim was introduced.
+
+Manual browser acceptance passed across Protocol creation and approval, Conditions and exact Specification-backed Timepoints, Study creation, readable hierarchy presentation, Chamber Profile creation, chamber assignment, DRAFT-to-ACTIVE transition, ACTIVE assignment controls, and terminal COMPLETED read-only behavior.
+
+Sprint 23 release validation passed with 334 backend tests and 102 frontend tests across 15 files, production build and lint, Python compilation, one current Alembic head `23a_stability_foundation`, and OpenAPI validation with 149 paths, 228 unique operation IDs, and zero duplicates. OAuth2 remains `/auth/login`.
+
+Sprint 24 remains the next approved milestone: Stability Pull Scheduling & QC Integration. It will build on the frozen Study/Protocol structure and reuse the existing QC Sample, SampleTest, Assignment, Result, Review, and Finalization engine rather than duplicating laboratory testing workflow.
 
 Dependency direction:
 
