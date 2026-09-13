@@ -249,6 +249,20 @@ PERMISSION_CATALOG += [
     for action in ("view", "create", "update", "cancel")
 ]
 
+# Sprint 24A: system-generated Stability Pull schedule permissions
+PERMISSION_CATALOG += [
+    {
+        "permission_code": "stability_pull.view",
+        "permission_name": "View Stability Pulls",
+        "description": "View Stability Pull schedules within assigned organization scope.",
+    },
+    {
+        "permission_code": "stability_pull.execute",
+        "permission_name": "Execute Stability Pulls",
+        "description": "Execute Stability Pull lifecycle operations within assigned organization scope.",
+    },
+]
+
 PERMISSION_CATALOG += [
     {
         "permission_code": f"{resource}.{action}",

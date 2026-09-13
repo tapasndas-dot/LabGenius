@@ -25,6 +25,13 @@ class StabilityStudyStatus(StrEnum):
     CANCELLED = "CANCELLED"
 
 
+class StabilityPullStatus(StrEnum):
+    SCHEDULED = "SCHEDULED"
+    PULLED = "PULLED"
+    SAMPLE_CREATED = "SAMPLE_CREATED"
+    CANCELLED = "CANCELLED"
+
+
 class StabilityProtocol(MasterEntity):
     __tablename__ = "stability_protocols"
     __table_args__ = (
@@ -127,6 +134,7 @@ class StabilityStudy(UUIDMixin, TimestampMixin, VersionMixin, BaseModel):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     protocol_version = relationship("StabilityProtocolVersion")
     conditions = relationship("StabilityStudyCondition", back_populates="study", passive_deletes=True)
+    pulls = relationship("StabilityPull", back_populates="study", passive_deletes=True)
 
 
 class StabilityStudyCondition(UUIDMixin, TimestampMixin, VersionMixin, BaseModel):
@@ -145,3 +153,51 @@ class StabilityStudyCondition(UUIDMixin, TimestampMixin, VersionMixin, BaseModel
     study = relationship("StabilityStudy", back_populates="conditions")
     protocol_condition = relationship("StabilityProtocolCondition")
     instrument = relationship("Instrument")
+    pulls = relationship("StabilityPull", back_populates="study_condition", passive_deletes=True)
+
+
+class StabilityPull(UUIDMixin, TimestampMixin, VersionMixin, BaseModel):
+    __tablename__ = "stability_pulls"
+    __table_args__ = (
+        UniqueConstraint(
+            "stability_study_condition_id",
+            "stability_protocol_timepoint_id",
+            name="uq_stability_pulls_condition_timepoint",
+        ),
+        UniqueConstraint("qc_sample_id", name="uq_stability_pulls_qc_sample"),
+        CheckConstraint(
+            "status IN ('SCHEDULED', 'PULLED', 'SAMPLE_CREATED', 'CANCELLED')",
+            name="ck_stability_pulls_status",
+        ),
+        CheckConstraint("version > 0", name="ck_stability_pulls_version_positive"),
+        Index("ix_stability_pulls_study_status", "stability_study_id", "status"),
+    )
+
+    stability_study_id: Mapped[UUID] = mapped_column(
+        ForeignKey("stability_studies.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    stability_study_condition_id: Mapped[UUID] = mapped_column(
+        ForeignKey("stability_study_conditions.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    stability_protocol_timepoint_id: Mapped[UUID] = mapped_column(
+        ForeignKey("stability_protocol_timepoints.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    specification_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("specification_versions.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    scheduled_date: Mapped[date] = mapped_column(Date, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=StabilityPullStatus.SCHEDULED,
+        server_default=text("'SCHEDULED'"),
+    )
+    qc_sample_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("qc_samples.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    pulled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    study = relationship("StabilityStudy", back_populates="pulls")
+    study_condition = relationship("StabilityStudyCondition", back_populates="pulls")
+    timepoint = relationship("StabilityProtocolTimepoint")
+    specification_version = relationship("SpecificationVersion")
+    qc_sample = relationship("Sample")

@@ -15,7 +15,7 @@ from app.models.user.user import User
 from app.models.business.instrument import Instrument
 from app.models.business.sample import Sample, SampleTest
 from app.models.business.sample_test_assignment import SampleTestAssignment
-from app.models.business.stability import StabilityStudy
+from app.models.business.stability import StabilityPull, StabilityStudy
 
 
 class AccessScope(StrEnum):
@@ -262,6 +262,13 @@ class OrganizationScopeService:
                 StabilityStudy.department_id.in_(departments),
             ))
         return query.filter(StabilityStudy.department_id == actor.department_id)
+
+    def filter_stability_pulls(self, query, actor: User, permission_code: str):
+        """Apply the parent Study's hierarchy scope; SELF is unsupported."""
+        scoped_studies = self.filter_stability_studies(
+            select(StabilityStudy.id), actor, permission_code
+        )
+        return query.filter(StabilityPull.stability_study_id.in_(scoped_studies))
 
     def can_place_stability_study(self, db: Session, actor: User, permission_code: str, values: dict) -> bool:
         """Reuse Sample hierarchy placement semantics while explicitly rejecting SELF."""

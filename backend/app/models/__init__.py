@@ -22,7 +22,7 @@ from .business import (Instrument, InstrumentType, Location, Manufacturer,
                        StabilityChamberProfile, StabilityProtocol,
                        StabilityProtocolCondition, StabilityProtocolTimepoint,
                        StabilityProtocolVersion, StabilityStudy,
-                       StabilityStudyCondition, Test)
+                       StabilityStudyCondition, StabilityPull, Test)
 from .module import Module, OrganizationModule
 
 __all__ = [
@@ -54,4 +54,5 @@ __all__ = [
     "StabilityProtocol", "StabilityProtocolVersion",
     "StabilityProtocolCondition", "StabilityProtocolTimepoint",
     "StabilityStudy", "StabilityStudyCondition",
+    "StabilityPull",
 ]

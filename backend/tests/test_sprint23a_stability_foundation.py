@@ -1,5 +1,5 @@
 """Focused PostgreSQL/domain tests for Sprint 23A."""
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -49,12 +49,16 @@ class Sprint23AStabilityTests(Sprint19ADatabaseTests):
             version = self.versions.transition(self.db, self.actor, version.id, version.version, "APPROVED")
         return protocol, version, condition
 
-    def test_exact_permissions_and_no_parallel_qc_or_pull_models(self):
+    def test_stability_permissions_and_no_parallel_result_model(self):
         codes = [item["permission_code"] for item in PERMISSION_CATALOG]
         self.assertEqual({code for code in codes if code.startswith("stability_protocol.")}, {f"stability_protocol.{action}" for action in ("view", "create", "update", "delete")})
         self.assertEqual({code for code in codes if code.startswith("stability_study.")}, {f"stability_study.{action}" for action in ("view", "create", "update", "cancel")})
         self.assertEqual(len(codes), len(set(codes)))
-        self.assertNotIn("stability_pulls", StabilityProtocol.metadata.tables)
+        self.assertEqual(
+            {code for code in codes if code.startswith("stability_pull.")},
+            {"stability_pull.view", "stability_pull.execute"},
+        )
+        self.assertIn("stability_pulls", StabilityProtocol.metadata.tables)
         self.assertNotIn("stability_results", StabilityProtocol.metadata.tables)
         self.assertIn("stability_chamber_profiles", StabilityProtocol.metadata.tables)
 
@@ -101,7 +105,7 @@ class Sprint23AStabilityTests(Sprint19ADatabaseTests):
         with self.assertRaises(DuplicateResourceException): self.timepoints.create(self.db, self.actor, condition.id, {"sequence_number": 2, "label": "Initial 2", "is_initial": True, "specification_version_id": approved.id})
 
     def test_study_references_hierarchy_activation_and_frozen_basis(self):
-        protocol, draft, _ = self.protocol_tree(); values = {"study_number": "ST-1", "study_name": "Study", "material_id": self.material.id, "stability_protocol_version_id": draft.id}
+        protocol, draft, _ = self.protocol_tree(); values = {"study_number": "ST-1", "study_name": "Study", "material_id": self.material.id, "stability_protocol_version_id": draft.id, "start_date": date(2026, 1, 1)}
         study = self.studies.create(self.db, self.actor, values)
         with self.assertRaises(ValidationException): self.studies.transition(self.db, self.actor, study.id, study.version, "ACTIVE")
         approved = self.versions.transition(self.db, self.actor, draft.id, draft.version, "APPROVED")
@@ -118,7 +122,7 @@ class Sprint23AStabilityTests(Sprint19ADatabaseTests):
     def test_study_activation_accepts_matching_timepoint_specification_material(self):
         specification_version = self._basis()[0]
         _, protocol_version, _ = self.protocol_tree(approve=True, specification=specification_version)
-        study = self.studies.create(self.db, self.actor, {"study_number": "MATCH", "study_name": "Matching Material", "material_id": self.material.id, "stability_protocol_version_id": protocol_version.id})
+        study = self.studies.create(self.db, self.actor, {"study_number": "MATCH", "study_name": "Matching Material", "material_id": self.material.id, "stability_protocol_version_id": protocol_version.id, "start_date": date(2026, 1, 1)})
 
         active = self.studies.transition(self.db, self.actor, study.id, study.version, "ACTIVE")
 
@@ -129,7 +133,7 @@ class Sprint23AStabilityTests(Sprint19ADatabaseTests):
         self.db.add(other_material); self.db.flush()
         other_specification_version = self._basis(material=other_material)[0]
         _, protocol_version, _ = self.protocol_tree(approve=True, specification=other_specification_version)
-        study = self.studies.create(self.db, self.actor, {"study_number": "MISMATCH", "study_name": "Mismatched Material", "material_id": self.material.id, "stability_protocol_version_id": protocol_version.id})
+        study = self.studies.create(self.db, self.actor, {"study_number": "MISMATCH", "study_name": "Mismatched Material", "material_id": self.material.id, "stability_protocol_version_id": protocol_version.id, "start_date": date(2026, 1, 1)})
 
         with self.assertRaises(ValidationException):
             self.studies.transition(self.db, self.actor, study.id, study.version, "ACTIVE")
@@ -166,7 +170,7 @@ class Sprint23AStabilityTests(Sprint19ADatabaseTests):
         self.db.add(StabilityChamberProfile(instrument_id=instrument.id)); self.db.flush()
 
         def study(number):
-            return self.studies.create(self.db, self.actor, {"study_number": number, "study_name": number, "material_id": self.material.id, "stability_protocol_version_id": version.id})
+            return self.studies.create(self.db, self.actor, {"study_number": number, "study_name": number, "material_id": self.material.id, "stability_protocol_version_id": version.id, "start_date": date(2026, 1, 1)})
 
         draft = study("LIFE-DRAFT")
         draft_condition = self.study_conditions.create(self.db, self.actor, draft.id, {"stability_protocol_condition_id": condition_one.id, "instrument_id": instrument.id})

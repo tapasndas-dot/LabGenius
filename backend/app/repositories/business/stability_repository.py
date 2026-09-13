@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import delete, func, update
 from sqlalchemy.orm import Session
 
-from app.models.business.stability import StabilityProtocol, StabilityProtocolCondition, StabilityProtocolTimepoint, StabilityProtocolVersion, StabilityStudy, StabilityStudyCondition
+from app.models.business.stability import StabilityProtocol, StabilityProtocolCondition, StabilityProtocolTimepoint, StabilityProtocolVersion, StabilityPull, StabilityStudy, StabilityStudyCondition
 
 
 class _VersionedRepository:
@@ -73,3 +73,38 @@ class StabilityStudyConditionRepository(_VersionedRepository):
 
     def get(self, db: Session, organization_id: UUID, study_condition_id: UUID):
         return self.query(db).join(StabilityStudy).filter(StabilityStudy.organization_id == organization_id, StabilityStudyCondition.id == study_condition_id).first()
+
+
+class StabilityPullRepository(_VersionedRepository):
+    model = StabilityPull
+
+    def get(self, db: Session, organization_id: UUID, pull_id: UUID):
+        return self.query(db).join(StabilityStudy).filter(
+            StabilityStudy.organization_id == organization_id,
+            StabilityPull.id == pull_id,
+        ).first()
+
+    def for_study(self, db: Session, organization_id: UUID, study_id: UUID):
+        return self.query(db).join(StabilityStudy).filter(
+            StabilityStudy.organization_id == organization_id,
+            StabilityPull.stability_study_id == study_id,
+        ).all()
+
+    def for_study_condition(self, db: Session, organization_id: UUID, study_condition_id: UUID):
+        return self.query(db).join(StabilityStudy).filter(
+            StabilityStudy.organization_id == organization_id,
+            StabilityPull.stability_study_condition_id == study_condition_id,
+        ).all()
+
+    def find_existing(self, db: Session, study_condition_id: UUID, timepoint_id: UUID):
+        return self.query(db).filter(
+            StabilityPull.stability_study_condition_id == study_condition_id,
+            StabilityPull.stability_protocol_timepoint_id == timepoint_id,
+        ).first()
+
+    def has_scheduled_for_study(self, db: Session, organization_id: UUID, study_id: UUID) -> bool:
+        return self.query(db).join(StabilityStudy).filter(
+            StabilityStudy.organization_id == organization_id,
+            StabilityPull.stability_study_id == study_id,
+            StabilityPull.status == "SCHEDULED",
+        ).first() is not None

@@ -7,13 +7,14 @@ from app.core.exceptions import DuplicateResourceException, ResourceNotFoundExce
 from app.models.business.instrument import Instrument, InstrumentStatus, StabilityChamberProfile
 from app.models.business.material import Material
 from app.models.business.specification import Specification, SpecificationVersion, SpecificationVersionStatus
-from app.models.business.stability import StabilityProtocol, StabilityProtocolCondition, StabilityProtocolTimepoint, StabilityProtocolVersion, StabilityProtocolVersionStatus, StabilityStudy, StabilityStudyCondition, StabilityStudyStatus
-from app.repositories.business.stability_repository import StabilityProtocolConditionRepository, StabilityProtocolRepository, StabilityProtocolTimepointRepository, StabilityProtocolVersionRepository, StabilityStudyConditionRepository, StabilityStudyRepository
+from app.models.business.stability import StabilityProtocol, StabilityProtocolCondition, StabilityProtocolTimepoint, StabilityProtocolVersion, StabilityProtocolVersionStatus, StabilityPull, StabilityPullStatus, StabilityStudy, StabilityStudyCondition, StabilityStudyStatus
+from app.repositories.business.stability_repository import StabilityProtocolConditionRepository, StabilityProtocolRepository, StabilityProtocolTimepointRepository, StabilityProtocolVersionRepository, StabilityPullRepository, StabilityStudyConditionRepository, StabilityStudyRepository
 from app.services.audit_service import AuditAction, AuditService
 from app.services.organization_scope_service import AccessScope, OrganizationScopeService
 from .normalization import normalize_code, normalize_name, normalize_optional
 from .organization_master_service import VERSION_CONFLICT_MESSAGE
 from .sample_service import SampleService
+from .stability_scheduling import calculate_pull_date
 
 
 IMMUTABLE_PROTOCOL_MESSAGE = "Only DRAFT Stability Protocol Versions may be structurally modified."
@@ -277,7 +278,7 @@ class StabilityStudyService(_AuditedService):
     MUTABLE = {"business_unit_id", "division_id", "department_id", "study_name", "batch_number", "lot_number", "start_date", "notes"}
 
     def __init__(self):
-        super().__init__(); self.repository = StabilityStudyRepository(); self.protocol_versions = StabilityProtocolVersionRepository(); self.scope = OrganizationScopeService()
+        super().__init__(); self.repository = StabilityStudyRepository(); self.protocol_versions = StabilityProtocolVersionRepository(); self.pulls = StabilityPullRepository(); self.scope = OrganizationScopeService()
 
     def scoped_query(self, db, actor, permission): return self.scope.filter_stability_studies(self.repository.query(db), actor, permission)
 
@@ -340,15 +341,72 @@ class StabilityStudyService(_AuditedService):
         if target == StabilityStudyStatus.ACTIVE:
             if protocol_version.status != StabilityProtocolVersionStatus.APPROVED: raise ValidationException("Study activation requires an APPROVED Protocol Version.")
             self._validate_timepoint_materials(db, current)
+            if current.start_date is None:
+                raise ValidationException("Study activation requires a start date for Stability Pull scheduling.")
+            pull_plan = self._build_pull_schedule(db, actor, current)
+        if target == StabilityStudyStatus.COMPLETED and self.pulls.has_scheduled_for_study(db, actor.organization_id, current.id):
+            raise ValidationException("Study completion requires all scheduled Stability Pulls to be executed or cancelled.")
         before = self.audit.snapshot(current); updated = self.repository.update_expected(db, study_id, expected_version, {"status": target.value})
         if updated is None: raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+        if target == StabilityStudyStatus.ACTIVE:
+            self._create_pull_schedule(db, actor, updated, pull_plan)
         action = AuditAction.CANCEL if target == StabilityStudyStatus.CANCELLED else AuditAction.UPDATE
         self._update_audit(db, actor, updated, before, action=action); return updated
+
+    def generate_pull_schedule(self, db, actor, study, *, study_condition_ids=None):
+        """Create only missing Pulls from the Study's frozen condition/timepoint tree."""
+        plan = self._build_pull_schedule(db, actor, study, study_condition_ids=study_condition_ids)
+        return self._create_pull_schedule(db, actor, study, plan)
+
+    def _build_pull_schedule(self, db, actor, study, *, study_condition_ids=None):
+        if study.organization_id != actor.organization_id:
+            raise ResourceNotFoundException("Stability Study not found.")
+        if study.start_date is None:
+            raise ValidationException("Study activation requires a start date for Stability Pull scheduling.")
+
+        study_conditions_query = db.query(StabilityStudyCondition).filter_by(stability_study_id=study.id)
+        if study_condition_ids is not None:
+            study_conditions_query = study_conditions_query.filter(StabilityStudyCondition.id.in_(study_condition_ids))
+        study_conditions = study_conditions_query.all()
+        pending = []
+        for study_condition in study_conditions:
+            protocol_condition = db.query(StabilityProtocolCondition).filter_by(
+                id=study_condition.stability_protocol_condition_id,
+                stability_protocol_version_id=study.stability_protocol_version_id,
+            ).first()
+            if protocol_condition is None:
+                raise ValidationException("Study Condition must belong to the Study's frozen Protocol Version.")
+            timepoints = db.query(StabilityProtocolTimepoint).filter_by(
+                stability_protocol_condition_id=protocol_condition.id
+            ).order_by(StabilityProtocolTimepoint.sequence_number).all()
+            for timepoint in timepoints:
+                if self.pulls.find_existing(db, study_condition.id, timepoint.id) is not None:
+                    continue
+                pending.append((study_condition, timepoint, calculate_pull_date(study.start_date, timepoint)))
+
+        return pending
+
+    def _create_pull_schedule(self, db, actor, study, plan):
+        created = []
+        for study_condition, timepoint, scheduled_date in plan:
+            pull = StabilityPull(
+                stability_study_id=study.id,
+                stability_study_condition_id=study_condition.id,
+                stability_protocol_timepoint_id=timepoint.id,
+                specification_version_id=timepoint.specification_version_id,
+                scheduled_date=scheduled_date,
+                status=StabilityPullStatus.SCHEDULED,
+            )
+            db.add(pull)
+            db.flush()
+            self._create_audit(db, actor, pull, study)
+            created.append(pull)
+        return created
 
 
 class StabilityStudyConditionService(_AuditedService):
     def __init__(self):
-        super().__init__(); self.repository = StabilityStudyConditionRepository(); self.studies = StabilityStudyRepository(); self.conditions = StabilityProtocolConditionRepository()
+        super().__init__(); self.repository = StabilityStudyConditionRepository(); self.studies = StabilityStudyRepository(); self.conditions = StabilityProtocolConditionRepository(); self.study_service = StabilityStudyService()
 
     @staticmethod
     def validate_times(assigned_at, ended_at):
@@ -378,12 +436,19 @@ class StabilityStudyConditionService(_AuditedService):
         if study is None: raise ResourceNotFoundException("Stability Study not found.")
         self.validate_mutation_allowed(study)
         self.validate_references(db, actor.organization_id, study, values.get("stability_protocol_condition_id"), values.get("instrument_id")); self.validate_times(values.get("assigned_at"), values.get("ended_at"))
-        record = StabilityStudyCondition(stability_study_id=study_id, **values); db.add(record); db.flush(); self._create_audit(db, actor, record, study); return record
+        record = StabilityStudyCondition(stability_study_id=study_id, **values); db.add(record); db.flush(); self._create_audit(db, actor, record, study)
+        if StabilityStudyStatus(study.status) == StabilityStudyStatus.ACTIVE:
+            self.study_service.generate_pull_schedule(db, actor, study, study_condition_ids={record.id})
+        return record
 
     def update(self, db, actor, study_condition_id, expected_version, values):
         current = self.repository.get(db, actor.organization_id, study_condition_id)
         if current is None: raise ResourceNotFoundException("Stability Study Condition not found.")
-        study = current.study; self.validate_mutation_allowed(study); condition_id = values.get("stability_protocol_condition_id", current.stability_protocol_condition_id); instrument_id = values.get("instrument_id", current.instrument_id)
+        study = current.study; self.validate_mutation_allowed(study)
+        requested_condition_id = values.get("stability_protocol_condition_id", current.stability_protocol_condition_id)
+        if StabilityStudyStatus(study.status) == StabilityStudyStatus.ACTIVE and requested_condition_id != current.stability_protocol_condition_id:
+            raise ValidationException("Protocol Condition cannot be changed after Stability Study activation.")
+        condition_id = requested_condition_id; instrument_id = values.get("instrument_id", current.instrument_id)
         self.validate_references(db, actor.organization_id, study, condition_id, instrument_id); self.validate_times(values.get("assigned_at", current.assigned_at), values.get("ended_at", current.ended_at))
         before = self.audit.snapshot(current); updated = self.repository.update_expected(db, study_condition_id, expected_version, values)
         if updated is None: raise VersionConflictException(VERSION_CONFLICT_MESSAGE)

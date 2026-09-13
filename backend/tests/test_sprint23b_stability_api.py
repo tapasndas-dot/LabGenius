@@ -145,7 +145,7 @@ class Sprint23BStabilityAPITests(Sprint19ADatabaseTests):
         specification = self._basis()[0]
         _, version, _, _ = self.create_protocol_tree(specification, approve=True)
         self.use_permissions("stability_study.view", "stability_study.create", "stability_study.update", "stability_study.cancel")
-        payload = {"study_number": "API-S", "study_name": "Study", "material_id": str(self.material.id), "stability_protocol_version_id": str(version.id), "department_id": str(self.department.id)}
+        payload = {"study_number": "API-S", "study_name": "Study", "material_id": str(self.material.id), "stability_protocol_version_id": str(version.id), "department_id": str(self.department.id), "start_date": "2026-01-01"}
         created = self.client.post("/stability-studies", json=payload)
         self.assertEqual(created.status_code, 201); study = created.json()
         self.assertEqual(self.client.get("/stability-studies").status_code, 200)
@@ -181,7 +181,7 @@ class Sprint23BStabilityAPITests(Sprint19ADatabaseTests):
         instrument = Instrument(organization_id=self.org.id, instrument_type_id=instrument_type.id, instrument_code=f"I{uuid4().hex[:6]}", instrument_name="Chamber")
         self.db.add(instrument); self.db.flush()
         self.use_permissions("stability_study.view", "stability_study.create", "stability_study.update", "stability_study.cancel")
-        payload = {"study_name": "Study", "material_id": str(self.material.id), "stability_protocol_version_id": str(version.id), "department_id": str(self.department.id)}
+        payload = {"study_name": "Study", "material_id": str(self.material.id), "stability_protocol_version_id": str(version.id), "department_id": str(self.department.id), "start_date": "2026-01-01"}
         first = self.client.post("/stability-studies", json={**payload, "study_number": "SC-1"}).json()
         second = self.client.post("/stability-studies", json={**payload, "study_number": "SC-2"}).json()
         condition_url = f"/stability-studies/{first['id']}/conditions"
