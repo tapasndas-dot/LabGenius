@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_user
 from app.dependencies.database import get_db
 from app.main import app
+from app.models.business.qc_method import Test as QCTest
 from app.models.business.sample import SampleTest
 from app.models.business.sample_test_assignment import SampleTestAssignment
 from app.models.business.sample_test_result import SampleTestResult
@@ -232,9 +233,34 @@ class Sprint22BQCDashboardTests(unittest.TestCase):
         activities = self.dashboard.recent_activity(
             self.db, self.actor("sample.view"), 2
         )
+        qc_test = self.db.get(QCTest, test.test_id)
         self.assertEqual([row["activity_type"] for row in activities],
                          ["FINALIZED", "REVIEWED"])
         self.assertTrue(all(row["result_id"] == result.id for row in activities))
+        self.assertEqual(activities[0]["test"], {
+            "id": test.test_id,
+            "code": qc_test.test_code,
+            "name": qc_test.test_name,
+        })
+        self.assertTrue(all(not {"test_id", "test_code", "test_name"}
+                            .intersection(row) for row in activities))
+
+        actor = self.actor("sample.view")
+        app.dependency_overrides[get_db] = lambda: self.db
+        app.dependency_overrides[get_current_user] = lambda: actor
+        response = TestClient(app).get("/qc-dashboard/recent-activity?limit=2")
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = response.json()
+        self.assertEqual([row["activity_type"] for row in payload],
+                         ["FINALIZED", "REVIEWED"])
+        self.assertEqual(payload[0]["test"], {
+            "id": str(test.test_id),
+            "code": qc_test.test_code,
+            "name": qc_test.test_name,
+        })
+        self.assertTrue(all(not {"test_id", "test_code", "test_name"}
+                            .intersection(row) for row in payload))
+
         _, active_test = self.new_test(test_status="REVIEWED")
         active_result = self.add_result(
             active_test, "REVIEWED", entered_at=now - timedelta(minutes=30),

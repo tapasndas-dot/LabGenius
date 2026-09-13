@@ -123,9 +123,19 @@ class QCDashboardService:
         }
 
     def recent_activity(self, db, actor, limit):
-        return [dict(row) for row in self.repository.recent_activity(
+        rows = self.repository.recent_activity(
             db, self._tests(db, actor, "sample.view"), limit
-        )]
+        )
+        return [{
+            "activity_type": row.activity_type,
+            "occurred_at": row.occurred_at,
+            "sample_id": row.sample_id,
+            "sample_number": row.sample_number,
+            "sample_test_id": row.sample_test_id,
+            "result_id": row.result_id,
+            "test": self._reference(row, "test"),
+            "actor_display_name": row.actor_display_name,
+        } for row in rows]
 
 
 qc_dashboard_service = QCDashboardService()
