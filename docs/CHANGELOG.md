@@ -1,6 +1,20 @@
 # Changelog
 
 ## [Unreleased]
+### Completed - Sprint 22 QC Operational Dashboard
+
+- Added the read-only QC Operational Dashboard over the existing Sample, SampleTest, active Assignment, and Result domains without adding dashboard persistence or new workflow states.
+- Added four secured dashboard APIs: Operational Summary, Work Queue, Review/Finalization Queue, and Recent Activity.
+- Preserved SQL-level organization and hierarchy scope. SELF remains derived only from the active SampleTest assignment; Result actor identity does not broaden access.
+- Reused existing authorization rather than adding `dashboard.view`: Summary, Work Queue, and Recent Activity require `sample.view`, while Review and Finalization visibility is independently governed by `sample_test_result.review` and `sample_test_result.finalize`.
+- Added the `/app/qc-dashboard` frontend with six operational KPI cards, authorized work queue, hierarchy/status/assignee/due-date filters, permission-aware review/finalization queue, and recent workflow activity.
+- Kept the dashboard read-only: it does not duplicate Result review/finalization mutations, infer Sample lifecycle transitions, or introduce PASS/FAIL, OOS/OOT, correction/reopen, Stability, or generic workflow behavior.
+- Manual acceptance identified and corrected the Recent Activity response contract: flattened Test projection fields are now shaped into the strict nested Test reference expected by the API schema. Real-environment browser acceptance subsequently passed.
+- Final validation passed: 281 backend tests; 92 frontend tests across 13 files; production build and lint; one current Alembic head `21a_result_foundation`; and OpenAPI validation with 128 paths, 189 operation IDs, 189 unique operation IDs, and zero duplicates.
+- No Sprint 22 database migration was required.
+- Sprint 22 is COMPLETE and ready for release as `v0.26.0`.
+- Sprint 23 remains the next approved milestone: Stability Protocol & Study Management.
+
 
 ### Completed — Sprint 21 Result Entry, Review & Finalization
 

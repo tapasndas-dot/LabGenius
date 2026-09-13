@@ -839,9 +839,17 @@ the approved dependency sequence for Sprints 16–24:
 25. Sprint 21C — Result Entry frontend — IMPLEMENTED; Sprint 21D — Review and Finalization — COMPLETE
 
 Sprint 21 is COMPLETE and ready for release as `v0.25.0`. Sprint 21C added the secured Result Entry frontend, frozen Method Parameter entry, controlled execution timestamps, Instrument usage, DRAFT-to-ENTERED submission, authoritative-version reconciliation, explicit 409 recovery, and read-only ENTERED presentation. Sprint 21D completed the Result lifecycle through ENTERED → REVIEWED → FINALIZED, synchronized SampleTest through RESULT_ENTERED → REVIEWED → FINALIZED, added distinct review/finalize authorization, transactional workflow audit, workflow actor/time metadata, finalized read-only behavior, and completed manual browser acceptance.
-26. Sprint 22 — QC Operational Dashboard
-27. Sprint 23 — Stability Protocol & Study Management
-28. Sprint 24 — Stability Pull Scheduling & QC Integration
+26. Sprint 22 - QC Operational Dashboard - COMPLETE (`v0.26.0`)
+27. Sprint 23 - Stability Protocol & Study Management
+28. Sprint 24 - Stability Pull Scheduling & QC Integration
+
+Sprint 22 is COMPLETE and ready for release as `v0.26.0`. It delivers the read-only QC Operational Dashboard as an authorized projection over the existing Sample, SampleTest, active Assignment, and Result workflow domains. The dashboard provides Operational Summary KPIs, Work Queue, permission-specific Review and Finalization Queue, and Recent Activity without introducing duplicate workflow state or dashboard persistence.
+
+Dashboard authorization composes the existing domain permissions rather than introducing a broad dashboard permission. Summary, Work Queue, and Recent Activity use `sample.view`; Review and Finalization visibility is independently derived from `sample_test_result.review` and `sample_test_result.finalize`. Existing hierarchy scope and active-assignment SELF semantics remain authoritative, with SQL-level scope applied before dashboard filters.
+
+Sprint 22 manual browser acceptance passed across KPI presentation, work filtering, permission-aware review/finalization visibility, and recent submitted/reviewed/finalized activity. Release validation passed with 281 backend tests, 92 frontend tests across 13 files, production build and lint, one current Alembic head `21a_result_foundation`, and OpenAPI validation with 128 paths, 189 unique operation IDs, and zero duplicates. No database migration was required.
+
+Sprint 23 remains the next approved milestone: Stability Protocol & Study Management. Sprint 24 remains Stability Pull Scheduling & QC Integration.
 
 Dependency direction:
 
