@@ -15,6 +15,7 @@ from app.models.user.user import User
 from app.models.business.instrument import Instrument
 from app.models.business.sample import Sample, SampleTest
 from app.models.business.sample_test_assignment import SampleTestAssignment
+from app.models.business.stability import StabilityStudy
 
 
 class AccessScope(StrEnum):
@@ -237,6 +238,36 @@ class OrganizationScopeService:
                 )),
             ))
         return query.filter(or_(*predicates))
+
+    def filter_stability_studies(self, query, actor: User, permission_code: str):
+        """Apply hierarchy scope to Studies; SELF has no meaning in Sprint 23."""
+        scope = self.resolve_scope(actor, permission_code)
+        query = query.filter(StabilityStudy.organization_id == actor.organization_id)
+        if scope == AccessScope.ORGANIZATION:
+            return query
+        if scope == AccessScope.SELF:
+            return query.filter(false())
+        if scope == AccessScope.BUSINESS_UNIT:
+            divisions = select(Division.id).where(Division.business_unit_id == actor.business_unit_id)
+            departments = select(Department.id).where(Department.division_id.in_(divisions))
+            return query.filter(or_(
+                StabilityStudy.business_unit_id == actor.business_unit_id,
+                StabilityStudy.division_id.in_(divisions),
+                StabilityStudy.department_id.in_(departments),
+            ))
+        if scope == AccessScope.DIVISION:
+            departments = select(Department.id).where(Department.division_id == actor.division_id)
+            return query.filter(or_(
+                StabilityStudy.division_id == actor.division_id,
+                StabilityStudy.department_id.in_(departments),
+            ))
+        return query.filter(StabilityStudy.department_id == actor.department_id)
+
+    def can_place_stability_study(self, db: Session, actor: User, permission_code: str, values: dict) -> bool:
+        """Reuse Sample hierarchy placement semantics while explicitly rejecting SELF."""
+        if self.resolve_scope(actor, permission_code) == AccessScope.SELF:
+            return False
+        return self.can_place_sample(db, actor, permission_code, values)
 
     def filter_sample_tests(self, query, actor: User, permission_code: str):
         """Union hierarchy access with exact active-assignment SELF access."""

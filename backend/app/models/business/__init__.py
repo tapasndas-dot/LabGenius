@@ -8,6 +8,16 @@ from .specification import Specification, SpecificationCriterionType, Specificat
 from .sample import Sample, SamplePriority, SampleStatus, SampleTest, SampleTestStatus
 from .sample_test_assignment import SampleTestAssignment
 from .sample_test_result import SampleTestResult, SampleTestResultStatus, ParameterResult, ParameterValueType, ResultInstrumentUsage
+from .stability import (
+    StabilityProtocol,
+    StabilityProtocolCondition,
+    StabilityProtocolTimepoint,
+    StabilityProtocolVersion,
+    StabilityProtocolVersionStatus,
+    StabilityStudy,
+    StabilityStudyCondition,
+    StabilityStudyStatus,
+)
 
 __all__ = [
     "InstrumentType",
@@ -33,4 +43,8 @@ __all__ = [
     "SampleTestResult", "SampleTestResultStatus",
     "ParameterResult", "ParameterValueType",
     "ResultInstrumentUsage",
+    "StabilityProtocol", "StabilityProtocolVersion",
+    "StabilityProtocolVersionStatus", "StabilityProtocolCondition",
+    "StabilityProtocolTimepoint", "StabilityStudy", "StabilityStudyStatus",
+    "StabilityStudyCondition",
 ]

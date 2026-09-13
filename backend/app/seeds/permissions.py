@@ -231,6 +231,24 @@ PERMISSION_CATALOG += [{
     "description": "Finalize Sample Test result records within assigned organization scope.",
 }]
 
+# Sprint 23A: Stability Protocol and Study foundation permissions
+PERMISSION_CATALOG += [
+    {
+        "permission_code": f"stability_protocol.{action}",
+        "permission_name": f"{action.title()} Stability Protocols",
+        "description": f"{action.title()} organization-owned Stability Protocol records.",
+    }
+    for action in ("view", "create", "update", "delete")
+]
+PERMISSION_CATALOG += [
+    {
+        "permission_code": f"stability_study.{action}",
+        "permission_name": f"{action.title()} Stability Studies",
+        "description": f"{action.title()} Stability Study records within assigned organization scope.",
+    }
+    for action in ("view", "create", "update", "cancel")
+]
+
 PERMISSION_CATALOG += [
     {
         "permission_code": f"{resource}.{action}",

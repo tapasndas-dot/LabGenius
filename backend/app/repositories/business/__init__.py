@@ -8,6 +8,14 @@ from .specification_repository import SpecificationLimitRepository, Specificatio
 from .sample_repository import SampleRepository, SampleTestRepository
 from .sample_test_assignment_repository import SampleTestAssignmentRepository
 from .sample_test_result_repository import SampleTestResultRepository, ParameterResultRepository, ResultInstrumentUsageRepository
+from .stability_repository import (
+    StabilityProtocolConditionRepository,
+    StabilityProtocolRepository,
+    StabilityProtocolTimepointRepository,
+    StabilityProtocolVersionRepository,
+    StabilityStudyRepository,
+    StabilityStudyConditionRepository,
+)
 
 __all__ = [
     "InstrumentTypeRepository",
@@ -26,4 +34,7 @@ __all__ = [
     "SampleTestResultRepository",
     "ParameterResultRepository",
     "ResultInstrumentUsageRepository",
+    "StabilityProtocolRepository", "StabilityProtocolVersionRepository",
+    "StabilityProtocolConditionRepository", "StabilityProtocolTimepointRepository",
+    "StabilityStudyRepository", "StabilityStudyConditionRepository",
 ]
