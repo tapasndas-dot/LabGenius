@@ -2,6 +2,7 @@ import { apiRequest } from './client'
 
 export type ProtocolVersionStatus = 'DRAFT' | 'APPROVED' | 'RETIRED' | 'SUPERSEDED'
 export type StudyStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+export type PullStatus = 'SCHEDULED' | 'PULLED' | 'SAMPLE_CREATED' | 'CANCELLED'
 export type IntervalUnit = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR'
 type RecordMeta = { id: string; version: number; created_at: string; updated_at: string }
 
@@ -11,6 +12,22 @@ export type StabilityProtocolCondition = RecordMeta & { stability_protocol_versi
 export type StabilityProtocolTimepoint = RecordMeta & { stability_protocol_condition_id: string; sequence_number: number; label: string; interval_value: number | null; interval_unit: IntervalUnit | null; is_initial: boolean; specification_version_id: string; description: string | null }
 export type StabilityStudy = RecordMeta & { organization_id: string; business_unit_id: string | null; division_id: string | null; department_id: string | null; study_number: string; study_name: string; material_id: string; stability_protocol_version_id: string; start_date: string | null; status: StudyStatus; batch_number: string | null; lot_number: string | null; notes: string | null }
 export type StabilityStudyCondition = RecordMeta & { stability_study_id: string; stability_protocol_condition_id: string; instrument_id: string; assigned_at: string | null; ended_at: string | null; notes: string | null }
+export type StabilityPull = RecordMeta & {
+  stability_study_id: string
+  stability_study_condition_id: string
+  stability_protocol_timepoint_id: string
+  specification_version_id: string
+  scheduled_date: string
+  status: PullStatus
+  qc_sample_id: string | null
+  pulled_at: string | null
+  notes: string | null
+  protocol_condition: { id: string; code: string; name: string } | null
+  timepoint: { id: string; label: string; sequence_number: number; is_initial: boolean } | null
+  assigned_instrument: { id: string; code: string; name: string; status: string } | null
+  qc_sample: { id: string; sample_number: string; status: string } | null
+}
+export type StabilityPullFilters = { status?: PullStatus; study_condition_id?: string; scheduled_from?: string; scheduled_to?: string; limit?: number; offset?: number }
 
 export type ProtocolInput = { protocol_code: string; protocol_name: string; description?: string | null }
 export type ProtocolVersionInput = { version_number: number; version_label?: string | null; effective_from?: string | null; effective_to?: string | null; description?: string | null }
@@ -53,4 +70,21 @@ export const stabilityStudiesApi = {
   createCondition: (id: string, data: StudyConditionInput) => apiRequest<StabilityStudyCondition>(`/stability-studies/${id}/conditions`, { method: 'POST', body: { ...data, assigned_at: timestamp(data.assigned_at), ended_at: timestamp(data.ended_at) } }),
   updateCondition: (study: string, item: StabilityStudyCondition, data: Partial<StudyConditionInput>) => apiRequest<StabilityStudyCondition>(`/stability-studies/${study}/conditions/${item.id}`, { method: 'PUT', body: { ...data, assigned_at: timestamp(data.assigned_at), ended_at: timestamp(data.ended_at), version: item.version } }),
   removeCondition: (study: string, item: StabilityStudyCondition) => apiRequest<void>(`/stability-studies/${study}/conditions/${item.id}`, { method: 'DELETE', body: body(item.version) }),
+}
+
+const pullQuery = (filters: StabilityPullFilters = {}) => {
+  const query = new URLSearchParams()
+  Object.entries(filters).forEach(([key, item]) => {
+    if (item !== undefined && item !== '') query.set(key, String(item))
+  })
+  const value = query.toString()
+  return value ? `?${value}` : ''
+}
+
+export const stabilityPullsApi = {
+  pulls: (studyId: string, filters: StabilityPullFilters = {}) => apiRequest<StabilityPull[]>(`/stability-studies/${studyId}/pulls${pullQuery(filters)}`),
+  pull: (studyId: string, pullId: string) => apiRequest<StabilityPull>(`/stability-studies/${studyId}/pulls/${pullId}`),
+  markPulled: (studyId: string, pullId: string, version: number, pulledAt: string, notes: string | null) => apiRequest<StabilityPull>(`/stability-studies/${studyId}/pulls/${pullId}/mark-pulled`, { method: 'POST', body: { version, pulled_at: pulledAt, notes } }),
+  createPullSample: (studyId: string, pullId: string, version: number, sampleNumber: string) => apiRequest<StabilityPull>(`/stability-studies/${studyId}/pulls/${pullId}/create-sample`, { method: 'POST', body: { version, sample_number: sampleNumber } }),
+  cancelPull: (studyId: string, pullId: string, version: number) => apiRequest<StabilityPull>(`/stability-studies/${studyId}/pulls/${pullId}/cancel`, { method: 'POST', body: { version } }),
 }
