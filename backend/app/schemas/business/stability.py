@@ -2,9 +2,9 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.models.business.stability import StabilityProtocolVersionStatus, StabilityStudyStatus
+from app.models.business.stability import StabilityProtocolVersionStatus, StabilityPullStatus, StabilityStudyStatus
 from .shared import StrictSchema
 
 
@@ -224,3 +224,68 @@ class StabilityStudyConditionResponse(BaseModel):
     version: int
     created_at: datetime
     updated_at: datetime
+
+
+class StabilityPullConditionContext(BaseModel):
+    id: UUID
+    code: str
+    name: str
+
+
+class StabilityPullTimepointContext(BaseModel):
+    id: UUID
+    label: str
+    sequence_number: int
+    is_initial: bool
+
+
+class StabilityPullInstrumentContext(BaseModel):
+    id: UUID
+    code: str
+    name: str
+    status: str
+
+
+class StabilityPullSampleContext(BaseModel):
+    id: UUID
+    sample_number: str
+    status: str
+
+
+class StabilityPullResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    stability_study_id: UUID
+    stability_study_condition_id: UUID
+    stability_protocol_timepoint_id: UUID
+    specification_version_id: UUID
+    scheduled_date: date
+    status: StabilityPullStatus
+    qc_sample_id: UUID | None
+    pulled_at: datetime | None
+    notes: str | None
+    version: int
+    created_at: datetime
+    updated_at: datetime
+    protocol_condition: StabilityPullConditionContext | None
+    timepoint: StabilityPullTimepointContext | None
+    assigned_instrument: StabilityPullInstrumentContext | None
+    qc_sample: StabilityPullSampleContext | None
+
+
+class StabilityPullMarkPulledRequest(StrictSchema):
+    version: int = Field(ge=1)
+    pulled_at: datetime
+    notes: str | None = None
+
+    @field_validator("pulled_at")
+    @classmethod
+    def require_timezone(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("pulled_at must be timezone-aware")
+        return value
+
+
+class StabilityPullCreateSampleRequest(StrictSchema):
+    version: int = Field(ge=1)
+    sample_number: str = Field(min_length=1, max_length=100)

@@ -108,3 +108,18 @@ class StabilityPullRepository(_VersionedRepository):
             StabilityPull.stability_study_id == study_id,
             StabilityPull.status == "SCHEDULED",
         ).first() is not None
+
+    @staticmethod
+    def apply_filters(query, *, status=None, study_condition_id=None,
+                      scheduled_from=None, scheduled_to=None):
+        if status is not None:
+            query = query.filter(StabilityPull.status == status)
+        if study_condition_id is not None:
+            query = query.filter(
+                StabilityPull.stability_study_condition_id == study_condition_id
+            )
+        if scheduled_from is not None:
+            query = query.filter(StabilityPull.scheduled_date >= scheduled_from)
+        if scheduled_to is not None:
+            query = query.filter(StabilityPull.scheduled_date <= scheduled_to)
+        return query

@@ -1,16 +1,22 @@
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
-from app.core.exceptions import DuplicateResourceException, ResourceNotFoundException
+from app.auth.dependencies import get_effective_permission_codes
+from app.core.exceptions import DuplicateResourceException, ResourceNotFoundException, ValidationException, VersionConflictException
+from app.models.business.sample import SamplePriority, SampleStatus
 from app.models.business.stability import (
     StabilityProtocolCondition, StabilityProtocolTimepoint, StabilityProtocolVersion,
-    StabilityStudyCondition,
+    StabilityPull, StabilityPullStatus, StabilityStudy, StabilityStudyCondition, StabilityStudyStatus,
 )
 from app.repositories.business.stability_repository import (
     StabilityProtocolConditionRepository, StabilityProtocolRepository,
     StabilityProtocolTimepointRepository, StabilityProtocolVersionRepository,
-    StabilityStudyConditionRepository, StabilityStudyRepository,
+    StabilityPullRepository, StabilityStudyConditionRepository, StabilityStudyRepository,
 )
+from app.services.audit_service import AuditAction, AuditService
+from app.services.business.sample_service import SampleService, SampleTestService
+from app.services.business.normalization import normalize_optional
+from app.services.business.organization_master_service import VERSION_CONFLICT_MESSAGE
 from app.services.organization_scope_service import OrganizationScopeService
 from .stability_service import (
     StabilityProtocolConditionService, StabilityProtocolService,
@@ -210,6 +216,163 @@ class StabilityStudyAPIService(_Transactions):
         self._commit(db, lambda: self.condition_domain.delete(db, actor, study_condition_id, expected))
 
 
+class StabilityPullAPIService(_Transactions):
+    def __init__(self):
+        self.repository = StabilityPullRepository()
+        self.scope = OrganizationScopeService()
+        self.samples = SampleService()
+        self.sample_tests = SampleTestService(self.samples.repository)
+        self.audit = AuditService()
+
+    def _query(self, db, actor, permission):
+        return self.scope.filter_stability_pulls(
+            self.repository.query(db), actor, permission
+        )
+
+    def _get(self, db, actor, study_id, pull_id, permission):
+        record = self._query(db, actor, permission).filter(
+            StabilityPull.id == pull_id,
+            StabilityPull.stability_study_id == study_id,
+        ).first()
+        if record is None:
+            raise ResourceNotFoundException("Stability Pull not found.")
+        return record
+
+    @staticmethod
+    def _response(record):
+        study_condition = record.study_condition
+        condition = study_condition.protocol_condition if study_condition else None
+        instrument = study_condition.instrument if study_condition else None
+        timepoint = record.timepoint
+        sample = record.qc_sample
+        return {
+            **record.__dict__,
+            "protocol_condition": ({"id": condition.id, "code": condition.condition_code,
+                                     "name": condition.condition_name} if condition else None),
+            "timepoint": ({"id": timepoint.id, "label": timepoint.label,
+                           "sequence_number": timepoint.sequence_number,
+                           "is_initial": timepoint.is_initial} if timepoint else None),
+            "assigned_instrument": ({"id": instrument.id, "code": instrument.instrument_code,
+                                     "name": instrument.instrument_name,
+                                     "status": instrument.status} if instrument else None),
+            "qc_sample": ({"id": sample.id, "sample_number": sample.sample_number,
+                           "status": sample.status} if sample else None),
+        }
+
+    def list(self, db, actor, study_id, permission, *, limit=100, offset=0, **filters):
+        # The parent check and row filtering both use the Pull permission's Study scope.
+        query = self._query(db, actor, permission).filter(
+            StabilityPull.stability_study_id == study_id
+        )
+        query = self.repository.apply_filters(query, **filters)
+        records = query.order_by(
+            StabilityPull.scheduled_date, StabilityPull.id
+        ).offset(offset).limit(limit).all()
+        if not records:
+            scoped_study = self.scope.filter_stability_studies(
+                db.query(StabilityStudy), actor, permission
+            ).filter_by(id=study_id).first()
+            if scoped_study is None:
+                raise ResourceNotFoundException("Stability Study not found.")
+        return [self._response(record) for record in records]
+
+    def get(self, db, actor, study_id, pull_id, permission):
+        return self._response(self._get(db, actor, study_id, pull_id, permission))
+
+    @staticmethod
+    def _validate_active(record):
+        if record.study.status != StabilityStudyStatus.ACTIVE:
+            raise ValidationException("Stability Pull actions require an ACTIVE Study.")
+
+    @staticmethod
+    def _validate_expected(record, expected):
+        if record.version != expected:
+            raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+
+    def mark_pulled(self, db, actor, study_id, pull_id, expected, pulled_at, notes, *, notes_supplied):
+        record = self._get(db, actor, study_id, pull_id, "stability_pull.execute")
+        self._validate_expected(record, expected)
+        self._validate_active(record)
+        if record.status != StabilityPullStatus.SCHEDULED:
+            raise ValidationException("Only a SCHEDULED Stability Pull may be marked pulled.")
+        before = self.audit.snapshot(record)
+        values = {"status": StabilityPullStatus.PULLED.value, "pulled_at": pulled_at}
+        if notes_supplied:
+            values["notes"] = normalize_optional(notes)
+        def mutation():
+            updated = self.repository.update_expected(db, pull_id, expected, values)
+            if updated is None:
+                raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+            self.audit.record_update(db, entity=updated, actor=actor, before=before, owner=record.study)
+            return updated
+        return self._response(self._commit(db, mutation))
+
+    def cancel(self, db, actor, study_id, pull_id, expected):
+        record = self._get(db, actor, study_id, pull_id, "stability_pull.execute")
+        self._validate_expected(record, expected)
+        self._validate_active(record)
+        if record.status != StabilityPullStatus.SCHEDULED:
+            raise ValidationException("Only a SCHEDULED Stability Pull may be cancelled.")
+        before = self.audit.snapshot(record)
+        def mutation():
+            updated = self.repository.update_expected(
+                db, pull_id, expected, {"status": StabilityPullStatus.CANCELLED.value}
+            )
+            if updated is None:
+                raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+            self.audit.record_update(db, entity=updated, actor=actor, before=before,
+                                     owner=record.study, action=AuditAction.CANCEL)
+            return updated
+        return self._response(self._commit(db, mutation))
+
+    def create_sample(self, db, actor, study_id, pull_id, expected, sample_number):
+        record = self._get(db, actor, study_id, pull_id, "stability_pull.execute")
+        if "sample.create" not in get_effective_permission_codes(actor):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Permission 'sample.create' is required.")
+        self._validate_expected(record, expected)
+        self._validate_active(record)
+        if record.status != StabilityPullStatus.PULLED or record.qc_sample_id is not None or record.pulled_at is None:
+            raise ValidationException("Only a pulled Stability Pull without a QC Sample may create a Sample.")
+        study = record.study
+        values = {
+            "business_unit_id": study.business_unit_id,
+            "division_id": study.division_id,
+            "department_id": study.department_id,
+            "sample_number": sample_number,
+            "material_id": study.material_id,
+            "specification_version_id": record.specification_version_id,
+            "sampled_at": record.pulled_at,
+            "status": SampleStatus.REGISTERED.value,
+            "priority": SamplePriority.NORMAL.value,
+        }
+        normalized = self.samples.normalize(values)
+        if not self.scope.can_place_sample(db, actor, "sample.create", normalized):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Target Sample hierarchy is outside the authorized scope.")
+        before = self.audit.snapshot(record)
+        def mutation():
+            sample = self.samples.create(db, actor.organization_id, normalized)
+            self.audit.record_create(db, entity=sample, actor=actor)
+            existing = self.sample_tests.repository.existing_source_ids(db, sample.id)
+            tests = self.sample_tests.generate(db, actor.organization_id, sample.id)
+            for sample_test in tests:
+                if sample_test.specification_test_id not in existing:
+                    self.audit.record_create(db, entity=sample_test, actor=actor, owner=sample)
+            updated = self.repository.update_expected(db, pull_id, expected, {
+                "status": StabilityPullStatus.SAMPLE_CREATED.value,
+                "qc_sample_id": sample.id,
+            })
+            if updated is None:
+                raise VersionConflictException(VERSION_CONFLICT_MESSAGE)
+            self.audit.record_update(db, entity=updated, actor=actor, before=before, owner=study)
+            return updated
+        return self._response(self._commit(
+            db, mutation, duplicate_message="A Sample with this number already exists."
+        ))
+
+
 stability_protocol_api_service = StabilityProtocolAPIService()
 stability_protocol_tree_api_service = StabilityProtocolTreeAPIService(stability_protocol_api_service)
 stability_study_api_service = StabilityStudyAPIService()
+stability_pull_api_service = StabilityPullAPIService()
