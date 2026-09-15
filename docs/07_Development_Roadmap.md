@@ -859,7 +859,7 @@ Manual browser acceptance passed across Protocol creation and approval, Conditio
 
 Sprint 23 release validation passed with 334 backend tests and 102 frontend tests across 15 files, production build and lint, Python compilation, one current Alembic head `23a_stability_foundation`, and OpenAPI validation with 149 paths, 228 unique operation IDs, and zero duplicates. OAuth2 remains `/auth/login`.
 
-Sprint 24 remains the next approved milestone: Stability Pull Scheduling & QC Integration. It will build on the frozen Study/Protocol structure and reuse the existing QC Sample, SampleTest, Assignment, Result, Review, and Finalization engine rather than duplicating laboratory testing workflow.
+Sprint 24 was the next approved milestone after Sprint 23 and is now COMPLETE as `v0.28.0`: Stability Pull Scheduling & QC Integration. It builds on the frozen Study/Protocol structure and reuses the existing QC Sample, SampleTest, Assignment, Result, Review, and Finalization engine rather than duplicating laboratory testing workflow.
 
 Dependency direction:
 
@@ -943,6 +943,25 @@ The API deliberately permits one retained result until correction/reopen authori
 it does not infer an effective result. At the Sprint 21B milestone, SampleTest status synchronization and review/finalization were intentionally deferred.
 Sprint 21D subsequently superseded that interim limitation by synchronizing SampleTest through RESULT_ENTERED → REVIEWED → FINALIZED and adding secured Result review/finalization with concurrency and transactional audit.
 Sprint 21 is COMPLETE and ready for release as `v0.25.0`. Correction/reopen, specification PASS/FAIL evaluation, OOS/OOT, automatic Sample finalization, and electronic-signature/compliance semantics remain outside Sprint 21.
+
+
+28. Sprint 24 - Stability Pull Scheduling & QC Integration - COMPLETE (`v0.28.0`)
+
+Sprint 24 is COMPLETE and ready for release as `v0.28.0`. It extends Stability Study execution from approved protocol structure into scheduled Stability Pulls and reuses the existing QC Sample and SampleTest workflow rather than creating a parallel Stability testing engine.
+
+Sprint 24A added the Stability Pull foundation and migration `24a_stability_pull_scheduling`. Activating a Stability Study with a start date generates an immutable Pull schedule for each participating Study Condition and Protocol Timepoint. Initial, DAY, WEEK, MONTH, and YEAR scheduling preserve calendar semantics, including end-of-month clamping. ACTIVE Study Conditions added after activation immediately receive their missing Pull schedule without rewriting existing Pulls.
+
+Sprint 24B added secured Pull APIs for listing, retrieval, Mark Pulled, cancellation, and QC Sample creation. Pull visibility inherits the parent Stability Study hierarchy, SELF remains unsupported, expected-version concurrency is enforced, and inaccessible resources remain concealed. Pull lifecycle is deliberately limited to `SCHEDULED -> PULLED -> SAMPLE_CREATED`, with `SCHEDULED -> CANCELLED` as the only cancellation path.
+
+QC Sample creation requires both Stability Pull execution authority and authorized Sample placement. The generated Sample inherits the Study organization, hierarchy, Material, and the Pull's exact approved Specification Version. Existing SampleTest generation is reused immediately so Stability remains responsible for when and why testing occurs while the existing QC engine remains responsible for tests, assignments, results, review, and finalization. Pull-to-Sample traceability is retained through `qc_sample_id`.
+
+Sprint 24C added the permission-gated Pull Schedule to the selected Stability Study experience with backend-driven status, Study Condition, and scheduled-date filters; lifecycle-aware Mark Pulled, Cancel, and Create QC Sample actions; QC Sample handoff; and explicit 409 concurrency refresh behavior. It intentionally does not duplicate downstream QC Sample/Test workflow inside Stability.
+
+Sprint 24D manual browser acceptance passed the end-to-end Stability-to-QC handoff using an ACTIVE Study: generated Pulls were verified, an Initial Pull moved from SCHEDULED to PULLED to SAMPLE_CREATED, the generated QC Sample was opened in the existing Samples UI, and its generated SampleTest retained the exact frozen approved Specification and Method versions. Acceptance also improved the Pull Schedule filter layout for responsive use and added safe native-date-input dismissal after committed Pull filter date selection.
+
+Final Sprint 24 validation passed with 431 backend tests and 108 frontend tests. Frontend production build and lint passed, Python compilation passed, Alembic remained at the single current head `24a_stability_pull_scheduling` with no new upgrade operations, and OpenAPI validation reported 233 operations, 233 unique operation IDs, and zero duplicates. The five secured Stability Pull routes remained present.
+
+Sprint 24 intentionally does not add a generic workflow engine, OOS/OOT workflow, CAPA/deviation, full DMS, calibration/maintenance, inventory, ERP integration, report designer, or electronic-signature/21 CFR Part 11 compliance claims.
 
 ---
 

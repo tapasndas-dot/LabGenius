@@ -1,6 +1,24 @@
 # Changelog
 
 ## [Unreleased]
+
+### Completed - Sprint 24 Stability Pull Scheduling & QC Integration
+
+- Added Stability Pull scheduling from ACTIVE Stability Studies using Study start date, Study Conditions, Protocol Timepoints, and exact approved Specification Versions.
+- Added migration `24a_stability_pull_scheduling` and idempotent Stability Pull permission support.
+- Preserved calendar-aware scheduling for Initial, DAY, WEEK, MONTH, and YEAR timepoints, including end-of-month clamping and immutable existing Pull schedules.
+- Added secured Stability Pull list/detail, Mark Pulled, Cancel, and Create QC Sample APIs with parent-Study hierarchy scope, SELF exclusion, UUID concealment, optimistic concurrency, and transactional audit behavior.
+- Added the explicit Pull lifecycle `SCHEDULED -> PULLED -> SAMPLE_CREATED`, with `SCHEDULED -> CANCELLED` as the only cancellation path.
+- Reused the existing QC Sample and SampleTest services. Generated Samples inherit the Stability Study hierarchy and Material plus the Pull's exact approved Specification Version; generated SampleTests continue through the existing QC assignment, result, review, and finalization engine.
+- Added direct Pull-to-QC-Sample traceability through `qc_sample_id` without introducing generic source fields or a second Stability testing workflow.
+- Added the permission-gated Pull Schedule to Stability Studies with backend-driven status, Study Condition, and scheduled-date filters plus lifecycle-aware actions and QC Samples handoff.
+- Sprint 24D browser acceptance passed the complete Stability-to-QC handoff: generated Pull -> Mark Pulled -> Create QC Sample -> generated SampleTest with frozen approved Specification/Method linkage.
+- Acceptance improved the Pull Schedule filter layout for responsive widths and added safe native-date-input blur after committed date selection without introducing a custom date picker.
+- Release regression also hardened one pre-existing Sprint 21B typed-parameter test against nondeterministic collection ordering; no Result production behavior was changed.
+- Final validation passed: 431 backend tests; 108 frontend tests; frontend production build and lint; Python compilation; one current Alembic head `24a_stability_pull_scheduling` with no new upgrade operations; and OpenAPI validation with 233 operations, 233 unique operation IDs, and zero duplicates.
+- Sprint 24 intentionally does not implement OOS/OOT, CAPA/deviation, full DMS, calibration/maintenance, inventory, ERP integration, report designer, generic workflow, or electronic-signature/21 CFR Part 11 compliance claims.
+- Sprint 24 is COMPLETE and ready for release as `v0.28.0`.
+
 ### Completed - Sprint 23 Stability Protocol & Study Management
 
 - Added the Stability domain foundation with controlled Protocols, versioned Protocol structure, storage Conditions, Specification-backed Timepoints, scoped Studies, and Study Condition chamber assignments.
