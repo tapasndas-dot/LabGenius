@@ -228,7 +228,11 @@ class Sprint21BResultAPITests(unittest.TestCase):
                 {"method_parameter_id": self.parameters[value_type].id,
                  "value_type": value_type, "typed_values": typed},
             )
-            self.assertEqual(response["parameters"][-1]["value_type"], value_type)
+            current = next(
+                row for row in response["parameters"]
+                if row["method_parameter_id"] == self.parameters[value_type].id
+            )
+            self.assertEqual(current["value_type"], value_type)
         item = self.api.results.parameter_repository.get_for_result_and_parameter(
             self.db, result_id, self.parameters["TEXT"].id
         )
