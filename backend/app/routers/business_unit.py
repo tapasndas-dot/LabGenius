@@ -11,11 +11,13 @@ from app.schemas.business_unit import (
     BusinessUnitUpdate,
 )
 from app.services.business_unit_service import BusinessUnitService
+from app.services.hierarchy_read_service import HierarchyReadService
 
 
 router = APIRouter()
 
 service = BusinessUnitService()
+read_service = HierarchyReadService(service.repository.model, "business_units", "business_unit.view")
 
 
 @router.get(
@@ -30,7 +32,7 @@ def get_business_units(
         ),
     ),
 ):
-    return service.get_all(db)
+    return read_service.list(db, current_user)
 
 
 @router.get(
@@ -46,9 +48,10 @@ def get_business_units_by_organization(
         ),
     ),
 ):
-    return service.get_by_organization(
+    return read_service.list(
         db,
-        organization_id,
+        current_user,
+        organization_id=organization_id,
     )
 
 
@@ -65,8 +68,9 @@ def get_business_unit(
         ),
     ),
 ):
-    return service.get(
+    return read_service.get(
         db,
+        current_user,
         business_unit_id,
     )
 

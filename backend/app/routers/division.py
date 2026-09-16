@@ -11,11 +11,13 @@ from app.schemas.division import (
     DivisionUpdate,
 )
 from app.services.division_service import DivisionService
+from app.services.hierarchy_read_service import HierarchyReadService
 
 
 router = APIRouter()
 
 service = DivisionService()
+read_service = HierarchyReadService(service.repository.model, "divisions", "division.view")
 
 
 @router.get(
@@ -30,7 +32,7 @@ def get_divisions(
         ),
     ),
 ):
-    return service.get_all(db)
+    return read_service.list(db, current_user)
 
 
 @router.get(
@@ -46,9 +48,10 @@ def get_by_business_unit(
         ),
     ),
 ):
-    return service.get_by_business_unit(
+    return read_service.list(
         db,
-        business_unit_id,
+        current_user,
+        business_unit_id=business_unit_id,
     )
 
 
@@ -65,8 +68,9 @@ def get_division(
         ),
     ),
 ):
-    return service.get(
+    return read_service.get(
         db,
+        current_user,
         division_id,
     )
 

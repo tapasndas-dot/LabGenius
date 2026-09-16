@@ -11,11 +11,13 @@ from app.schemas.organization import (
     OrganizationUpdate,
 )
 from app.services.organization_service import OrganizationService
+from app.services.hierarchy_read_service import HierarchyReadService
 
 
 router = APIRouter()
 
 service = OrganizationService()
+read_service = HierarchyReadService(service.repository.model, "organizations", "organization.view")
 
 
 @router.get(
@@ -30,7 +32,7 @@ def get_organizations(
         ),
     ),
 ):
-    return service.get_all(db)
+    return read_service.list(db, current_user)
 
 
 @router.get(
@@ -46,8 +48,9 @@ def get_organization(
         ),
     ),
 ):
-    return service.get(
+    return read_service.get(
         db,
+        current_user,
         organization_id,
     )
 

@@ -11,11 +11,13 @@ from app.schemas.department import (
     DepartmentUpdate,
 )
 from app.services.department_service import DepartmentService
+from app.services.hierarchy_read_service import HierarchyReadService
 
 
 router = APIRouter()
 
 service = DepartmentService()
+read_service = HierarchyReadService(service.repository.model, "departments", "department.view")
 
 
 @router.get(
@@ -30,7 +32,7 @@ def get_departments(
         ),
     ),
 ):
-    return service.get_all(db)
+    return read_service.list(db, current_user)
 
 
 @router.get(
@@ -46,9 +48,10 @@ def get_departments_by_division(
         ),
     ),
 ):
-    return service.get_by_division(
+    return read_service.list(
         db,
-        division_id,
+        current_user,
+        division_id=division_id,
     )
 
 
@@ -65,8 +68,9 @@ def get_department(
         ),
     ),
 ):
-    return service.get(
+    return read_service.get(
         db,
+        current_user,
         department_id,
     )
 

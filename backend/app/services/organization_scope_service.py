@@ -100,12 +100,12 @@ class OrganizationScopeService:
         if not self.can_access_user(actor, target, permission_code):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
 
-    def user_hierarchy_lookups(self, db: Session, actor: User, permission_code: str) -> dict:
-        """Return only hierarchy choices reachable by a permission's effective user scope."""
+    def hierarchy_queries(self, db: Session, actor: User, permission_code: str) -> dict:
+        """Build SQL queries anchored to the permission-specific organization scope."""
         scope = self.resolve_scope(actor, permission_code)
         organizations = db.query(Organization).filter(
             Organization.id == actor.organization_id
-        ).all()
+        )
         business_units = db.query(BusinessUnit).filter(
             BusinessUnit.organization_id == actor.organization_id
         )
@@ -138,10 +138,17 @@ class OrganizationScopeService:
             designations = designations.filter(BusinessUnit.id == actor.business_unit_id)
         return {
             "organizations": organizations,
-            "business_units": business_units.order_by(BusinessUnit.business_unit_code).all(),
-            "divisions": divisions.order_by(Division.division_code).all(),
-            "departments": departments.order_by(Department.department_code).all(),
-            "designations": designations.order_by(Designation.designation_code).all(),
+            "business_units": business_units.order_by(BusinessUnit.business_unit_code),
+            "divisions": divisions.order_by(Division.division_code),
+            "departments": departments.order_by(Department.department_code),
+            "designations": designations.order_by(Designation.designation_code),
+        }
+
+    def user_hierarchy_lookups(self, db: Session, actor: User, permission_code: str) -> dict:
+        """Return only hierarchy choices reachable by a permission's effective user scope."""
+        return {
+            key: query.all()
+            for key, query in self.hierarchy_queries(db, actor, permission_code).items()
         }
 
     def filter_shared_masters(self, query, actor: User, permission_code: str, model):

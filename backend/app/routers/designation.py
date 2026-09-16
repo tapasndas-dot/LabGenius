@@ -11,11 +11,13 @@ from app.schemas.designation import (
     DesignationUpdate,
 )
 from app.services.designation_service import DesignationService
+from app.services.hierarchy_read_service import HierarchyReadService
 
 
 router = APIRouter()
 
 service = DesignationService()
+read_service = HierarchyReadService(service.repository.model, "designations", "designation.view")
 
 
 @router.get(
@@ -30,7 +32,7 @@ def get_designations(
         ),
     ),
 ):
-    return service.get_all(db)
+    return read_service.list(db, current_user)
 
 
 @router.get(
@@ -46,9 +48,10 @@ def get_by_department(
         ),
     ),
 ):
-    return service.get_by_department(
+    return read_service.list(
         db,
-        department_id,
+        current_user,
+        department_id=department_id,
     )
 
 
@@ -65,8 +68,9 @@ def get_designation(
         ),
     ),
 ):
-    return service.get(
+    return read_service.get(
         db,
+        current_user,
         designation_id,
     )
 
